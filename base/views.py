@@ -72,10 +72,7 @@ def JSONSuccess(success: bool):
 
 
 def home(request: WSGIRequest):
-    args = {
-        "resources": models.Resource.objects.all(),
-        "info": models.StaticDataClass.get_text("homepage-info"),
-    }
+    args = {"resources": models.Resource.objects.all()}
     return render(request, "base/home.html", args)
 
 

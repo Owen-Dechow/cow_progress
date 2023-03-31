@@ -14,21 +14,6 @@ class Resource(models.Model):
     link = models.CharField(max_length=255)
 
 
-class StaticDataClass(models.Model):
-    __str__ = lambda self: self.name
-
-    name = models.CharField(max_length=255, unique=True)
-    data = models.TextField(max_length=1000, blank=True)
-
-    @staticmethod
-    def get_text(title):
-        return StaticDataClass.objects.get(name=title).data
-
-    @staticmethod
-    def get_number(title):
-        return float(StaticDataClass.objects.get(name=title).data)
-
-
 class Trait(models.Model):
     __str__ = lambda self: self.name
 
