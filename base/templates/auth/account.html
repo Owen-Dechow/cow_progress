@@ -1,0 +1,53 @@
+{% extends "../extends.html" %}
+{% load dic %}
+{% load static %}
+
+{% block title %}
+{% endblock title %}
+
+{% block links %}
+    <link rel="stylesheet" href="{% static 'css/auth_form.css' %}">
+{% endblock links %}
+
+{% block body %}
+    <form method="POST"
+          onsubmit="return confirm(`Confirm change of profile information.`);">
+        <span>Username: <span class="pow">{{ request.user.username }}</span></span>
+        <br>
+        {% csrf_token %}
+        {% if form.non_field_errors %}
+            {{ form.non_field_errors }}
+            <br>
+        {% endif %}
+        {% for field in form %}
+            {{ field.label }}
+            {{ field }}
+            {{ field.errors }}
+            <div class="help">{{ field.help_text }}</div>
+            <br>
+        {% endfor %}
+        <button type="submit">Edit Info</button>
+    </form>
+    <form>
+        <a class="as-btn" href="/auth/password-change">Change Password</a>
+    </form>
+    <form method="POST" action="/auth/delete-account">
+        {% csrf_token %}
+        <h1>Delete Account</h1>
+        {{ passwordcheck.password.label }}
+        {{ passwordcheck.password }}
+        {% if passworderror %}
+            <ul class="errorlist">
+                <li>Incorrect Password</li>
+            </ul>
+        {% endif %}
+        <span>{{ passwordcheck.password.help_text }}</span>
+        <br>
+
+        <button href="/auth/delete-account"
+                onclick="return confirm('Are you sure you want to delete you account? \nThis action cannot be undone.')">
+            Delete
+            Account
+        </button>
+    </form>
+{% endblock body %}

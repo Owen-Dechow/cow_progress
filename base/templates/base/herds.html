@@ -1,0 +1,50 @@
+{% extends "../extends.html" %}
+{% load dic %}
+{% load static %}
+{% block title %}
+{% endblock title %}
+{% block links %}
+    <script src="{% static 'js/herds.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'css/herds.css' %}">
+{% endblock links %}
+{% block body %}
+    <div class="panel left" id="left-panel" style="--flowdir: column;">
+        <div class="title">
+            <h1>Herd Summaries</h1>
+        </div>
+        <div class="herd-btns">
+            <h2>Public Herds</h2>
+            <div id="herd-btns-public" class="col"></div>
+        </div>
+        <div class="herd-btns">
+            <h2>Private Herds</h2>
+            <div id="herd-btns-private" class="col"></div>
+        </div>
+        {% if classes %}
+            <div class="new-herd">
+                <h2>Create New Herd</h2>
+                <form action="auto-generate-herd" method="POST">
+{% csrf_token %}
+                    <label>Select Class</label>
+                    <select name="class" required>
+                        {% for class in classes %}
+                            <option value="{{ class.id }}">
+{{ class.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                    <label>Herd Name</label>
+                    <div>
+                        <input type="text" maxlength=100 name="name" required>
+                        <button type="submit">New Herd</button>
+                    </div>
+                </form>
+            </div>
+        {% endif %}
+    </div>
+    <div class="panel right" id="right-panel">
+        <h1 id="herd-name">~</h1>
+        <a class="as-btn" id="open-herd-link">Open Herd</a>
+        <div id="herd-averages"></div>
+    </div>
+{% endblock body %}

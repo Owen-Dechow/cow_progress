@@ -1,0 +1,70 @@
+{% extends "../extends.html" %}
+{% load dic %}
+{% load static %}
+{% block title %}
+{% endblock title %}
+{% block links %}
+    <link rel="stylesheet" href="{% static 'css/home.css' %}">
+{% endblock links %}
+{% block body %}
+    <div class="info-panel">
+        <div class="full center">
+            <canvas id="canvas" class="background-canvas">
+                <script>
+                    canvas = document.getElementById("canvas")
+                    paper = canvas.getContext('2d');
+                    canvas.width = Math.sqrt((canvas.clientWidth * canvas.clientWidth) + (canvas.clientHeight * canvas.clientHeight));
+
+
+                    GROW = 30
+                    // var pythagoras = Math.sqrt((canvas.height * canvas.height) + (canvas.width * canvas.width));
+                    paper.lineWidth = 4;
+
+                    paper.beginPath();
+                    paper.strokeStyle = "#a82838";
+                    for (let i = 0; i < canvas.width; i++) {
+                        paper.lineTo(i, canvas.height * (i / canvas.width) - (Math.sin(i / GROW) * GROW));
+                    }
+                    paper.stroke();
+
+                    paper.beginPath();
+                    paper.strokeStyle = "#2828b8";
+                    for (let i = 0; i < canvas.width; i++) {
+                        paper.lineTo(i, canvas.height * (i / canvas.width) - (Math.sin(-i / GROW) * GROW));
+                    }
+                    paper.stroke();
+
+                    paper.lineWidth = 2;
+                    paper.strokeStyle = "#608560";
+                    for (let i = 0; i < canvas.width; i += 20) {
+                        paper.beginPath();
+
+                        spot = paper.lineTo(i, canvas.height * (i / canvas.width) - (Math.sin(i / GROW) * GROW));
+                        spot2 = paper.lineTo(i, canvas.height * (i / canvas.width) - (Math.sin(-i / GROW) * GROW));
+
+                        paper.lineTo(i, spot);
+                        paper.lineTo(i, spot2);
+                        paper.stroke();
+                    }
+                </script>
+            </canvas>
+            <h1 class="big poptext">Cow Progress</h1>
+            <h3 class="poptext">Genetic Progress Simulator</h3>
+            <span class="subnote">Created by Owen Dechow</span>
+        </div>
+    </div>
+    <div class="info-panel">
+        <img class="small" src="{% static 'media/cow1.jpg' %}">
+        <p class="large lines">{{ info }}</p>
+    </div>
+    <div class="info-panel">
+        <div class="full">
+            <h1 class="center">Resources</h1>
+            {% for r in resources %}
+                <p>
+                    {{ r.title }}: <a class="as_link" href="{{ r.link }}">{{ r.link }}</a>
+                </p>
+            {% endfor %}
+        </div>
+    </div>
+{% endblock body %}

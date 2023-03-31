@@ -1,0 +1,125 @@
+{% extends "../extends.html" %}
+{% load dic %}
+{% load static %}
+{% block title %}
+{% endblock title %}
+{% block links %}
+    <link rel="stylesheet" href="{% static 'css/classes.css' %}">
+    <script src="{% static 'js/classes.js' %}"></script>
+{% endblock links %}
+{% block body %}
+    <div class="grid">
+        <div class="forms">
+            <form method="POST">
+                <h1>Create Class</h1>
+                {% csrf_token %}
+                {% for field in addclass %}
+                    {{ field.label }}
+                    {{ field }}
+                {% endfor %}
+                <button type="submit">Create</button>
+            </form>
+            <form method="POST">
+                <h1>Join Class</h1>
+                {% csrf_token %}
+                {% for field in joinclass %}
+                    {{ field.label }}
+                    {{ field }}
+                {% endfor %}
+                <button type="submit">Join</button>
+            </form>
+        </div>
+        <div class="enrollments">
+            <h1>Current Classes</h1>
+            {% for enrollment in enrollmentinfo %}
+                <div class="enrollment">
+                    <h2>{{ enrollment.connectedclass.name }}</h2>
+                    <div class="classinfo">
+                        {% if enrollment.teacher %}
+                            <textarea id="classinfo">{{enrollment.connectedclass.info}}</textarea>
+                            <button onclick="changeinfo(event, '{{ enrollment.connectedclass.id }}')">Update Info</button>
+                        {% else %}
+                            <textarea readonly>{{enrollment.connectedclass.info}}</textarea>
+                        {% endif %}
+                    </div>
+                    {% if enrollment.teacher %}
+                        <button onclick="Copy('{{ enrollment.connectedclass.classcode }}')">
+                            Copy Class Code: <span class="pow">{{ enrollment.connectedclass.classcode }}</span>
+                        </button>
+                        <button onclick="Copy('{{ enrollment.connectedclass.teacherclasscode }}')">
+                            Copy Teacher Code: <span class="pow">{{ enrollment.connectedclass.teacherclasscode }}</span>
+                        </button>
+                    {% else %}
+                        <form method="POST">
+                            {% csrf_token %}
+                            {{ promoteclass.formid }}
+                            {{ promoteclass.classcode.label }}
+                            {{ promoteclass.classcode }}
+                            <input type="hidden"
+                                   value="{{ enrollment.connectedclass.id }}"
+                                   name="{{ promoteclass.connectedclass.name }}">
+                            <button type="hidden">Promote Enrollment to Teacher</button>
+                        </form>
+                    {% endif %}
+                    <br>
+                    <details>
+                        <summary>
+                            Class Members
+                        </summary>
+                        <div class="members">
+                            {% for member in enrollmentinfo|dic:enrollment %}
+                                <div class="member" id="member-{{ member.id }}">
+                                    {{ member.user.get_full_name }}
+                                    {% if member.teacher %}
+                                        : <span class="pow">Teacher
+                                        {% if member.connectedclass.owner == member.user %}| Owner{% endif %}
+                                    </span>
+                                {% endif %}
+                                {% if enrollment.teacher or member.teacher %}
+                                    <br>
+                                    {{ member.user.email }}
+                                {% endif %}
+                                {% if enrollment.teacher %}
+                                    {% if member.user != request.user %}
+                                        {% if not member.teacher %}
+                                            <button onclick="deleteuser(event, '{{ member.id }}')">Remove From Class</button>
+                                        {% elif enrollment.connectedclass.owner == request.user %}
+                                            <button onclick="deleteuser(event, '{{ member.id }}')">Remove From Class</button>
+                                        {% endif %}
+                                    {% endif %}
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                </details>
+                <br>
+                {% if enrollment.connectedclass.owner == request.user %}
+                    <form method="POST">
+                        {% csrf_token %}
+                        {{ deleteclass.formid }}
+                        <input type="hidden"
+                               value="{{ enrollment.connectedclass.id }}"
+                               name="{{ deleteclass.connectedclass.name }}">
+                        <button onclick="return confirm(`Are you sure you want to delete {{ enrollment.connectedclass.name }}? \nThis action cannot be undone.`)"
+                                type="submit">
+                            Delete Class
+                        </button>
+                    </form>
+                {% else %}
+                    <form method="POST">
+                        {% csrf_token %}
+                        {{ exitclass.formid }}
+                        <input type="hidden"
+                               value="{{ enrollment.connectedclass.id }}"
+                               name="{{ exitclass.connectedclass.name }}">
+                        <button type="submit"
+                                onclick="return confirm(`Are you sure you want to leave {{ enrollment.connectedclass.name }}? \nThis action cannot be undone.`)">
+                            Exit Class
+                        </button>
+                    </form>
+                {% endif %}
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock body %}

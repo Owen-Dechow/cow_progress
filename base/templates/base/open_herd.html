@@ -1,0 +1,92 @@
+{% extends "../extends.html" %}
+{% load dic %}
+{% load static %}
+{% block title %}
+{% endblock title %}
+{% block links %}
+    <script src="{% static 'js/open_herd.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'css/open_herd.css' %}">
+{% endblock links %}
+{% block body %}
+    <div class="panel left">
+        <details class="title">
+            <summary>
+                {{ herd.name }}
+            </summary>
+            <form action="/delete-herd/{{ herd.id }}"
+                  onsubmit="return confirm('Are you sure you want to delete this herd?\nThis action cannot be undone.')">
+                {{ herdstatus }} Herd
+                <a class="as-btn" href="/herd-file/{{ herd.id }}">Download as .xlsx</a>
+                {% if herdstatus == "Private" %}
+                    <a class="as-btn" href="/open-herd/{{ herd.connectedclass.herd.id }}">Open Class Herd</a>
+                    <button class="delete" type="submit">Delete Herd</button>
+                {% endif %}
+            </form>
+        </details>
+        {% if herdstatus == "Private" %}
+            <details class="breed-herd">
+                <summary>
+                    Breed Herd
+                </summary>
+                <form action="/breed-herd/{{ herd.id }}"
+                      id="new-herd-form"
+                      method="POST"
+                      onsubmit="return confirm('Are you sure you want to breed this herd?\nThis action cannot be undone.')">
+                    {% csrf_token %}
+                    <div id="bulls" class="bulls"></div>
+                    <script>
+                        addAnotherBull();
+                    </script>
+                    <br>
+                    <button type="button" onclick="addAnotherBull()">Add Another Bull</button>
+                    <button type="submit">Submit Breeding</button>
+                </form>
+            </details>
+        {% endif %}
+        <details class="sort">
+            <summary>
+                Sort Animals
+            </summary>
+            <form action="javascript:void(0)">
+                <select id="sort-pos-neg" onchange="setSortOrder()">
+                    <option value="pos">
+                        +
+                    </option>
+                    <option value="neg">
+                        -
+                    </option>
+                </select>
+                <select id="order-by" value="id" onchange="setSortOrder()">
+                </select>
+                <input type="text" id="filter" oninput="filterHasName(this.value)">
+                <span>Filter By Name</span>
+            </form>
+        </details>
+        <details class="cow-btns">
+            <summary>
+                Bulls
+            </summary>
+            <div id="herd-btns-bulls" class="col"></div>
+        </details>
+        <details class="cow-btns">
+            <summary>
+                Cows
+            </summary>
+            <div id="herd-btns-cows" class="col"></div>
+        </details>
+    </div>
+    <div class="panel right" id="right-panel">
+        <div class="cow-name">
+            <input id="cow-name"
+                   value="~"
+                   maxlength="{{ maxlen }}"
+                   class="cow-name {% if herdstatus == 'Private' %}owner{% endif %}"
+                   disabled>
+        </div>
+        {% if herdstatus == "Private" %}
+            <button type="button" onclick="setCowName(event)">Change Name</button>
+            <button type="button" onclick="moveToClassHerd(event)">Move to Class Herd</button>
+        {% endif %}
+        <div id="cow-stats" class="cow-stats"></div>
+    </div>
+{% endblock body %}
