@@ -24,12 +24,12 @@
             <div class="new-herd">
                 <h2>Create New Herd</h2>
                 <form action="auto-generate-herd" method="POST">
-{% csrf_token %}
+                    {% csrf_token %}
                     <label>Select Class</label>
                     <select name="class" required>
                         {% for class in classes %}
                             <option value="{{ class.id }}">
-{{ class.name }}
+                                {{ class.name }}
                             </option>
                         {% endfor %}
                     </select>

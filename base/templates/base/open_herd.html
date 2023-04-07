@@ -16,6 +16,7 @@
             <form action="/delete-herd/{{ herd.id }}"
                   onsubmit="return confirm('Are you sure you want to delete this herd?\nThis action cannot be undone.')">
                 {{ herdstatus }} Herd
+                <button type="button">Show Herd Summary</button>
                 <a class="as-btn" href="/herd-file/{{ herd.id }}">Download as .xlsx</a>
                 {% if herdstatus == "Private" %}
                     <a class="as-btn" href="/open-herd/{{ herd.connectedclass.herd.id }}">Open Class Herd</a>

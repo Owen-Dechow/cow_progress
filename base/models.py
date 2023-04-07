@@ -1,10 +1,10 @@
 from django.db import models
 from django.contrib.auth.models import User
-from random import randrange
+from random import randrange, random
 from . import correlations as cor
 
-MUTATION_RATE = 0.25
 PTA_DECIMALS = 3
+MUTATION_RATE = 0.25
 
 
 class Resource(models.Model):
@@ -36,6 +36,7 @@ class Correlation(models.Model):
 
 class TraitsList(models.Model):
     data = models.JSONField()
+    scaled = models.JSONField()
     connected_bull = models.ForeignKey(
         to="Bull",
         on_delete=models.CASCADE,
@@ -54,13 +55,19 @@ class TraitsList(models.Model):
         new = TraitsList()
         new.data = {}
 
-        correlated_data = cor.get_result(cor_matrix)
+        uncorrelated = {}
         for trait in Trait.objects.all():
-            perfect = (a.data[trait.name] + b.data[trait.name]) / 2
-            mutated = perfect + (
-                correlated_data[trait] * MUTATION_RATE * trait.standard_deviation
-            )
-            new.data[trait.name] = round(mutated, PTA_DECIMALS)
+            val = (a.data[trait.name] + b.data[trait.name]) / 2
+            newval = val + MUTATION_RATE * cor.DOMAIN()
+            if abs(newval) > 1:
+                newval += (0 - newval) * abs(newval)
+
+            uncorrelated[trait.name] = newval
+
+        initial_val_list = [uncorrelated[key.name] for key in cor_matrix["traits"]]
+        corelated_data = cor.get_result(cor_matrix, initial_values=initial_val_list)
+        new.data = cor.convert_data(corelated_data)
+        new.set_scaled_data()
 
         if bull:
             bull.save()
@@ -76,8 +83,8 @@ class TraitsList(models.Model):
         self.data = {}
 
         correlated_data = cor.get_result(cor_matrix)
-        for key, val in correlated_data.items():
-            self.data[key.name] = round(val * key.standard_deviation, PTA_DECIMALS)
+        self.data = cor.convert_data(correlated_data)
+        self.set_scaled_data()
         self.save()
 
         if bull:
@@ -89,11 +96,23 @@ class TraitsList(models.Model):
 
         self.save()
 
+    def set_scaled_data(self):
+        traits = Trait.objects.all()
+        scaled_data = {}
+        for key, val in self.data.items():
+            scaled_data[key] = round(
+                traits.get(name=key).standard_deviation * val, PTA_DECIMALS
+            )
+
+        self.scaled = scaled_data
+
     def __str__(self):
         if self.connected_cow is not None:
             return "Cow: " + str(self.connected_cow.id)
         elif self.connected_bull is not None:
             return "Bull: " + str(self.connected_bull.id)
+        else:
+            return "NONE"
 
 
 class Herd(models.Model):
@@ -156,13 +175,13 @@ class Herd(models.Model):
         for trait in traitgroups:
             for key in trait.data:
                 if key in summary:
-                    summary[key] += trait.data[key]
+                    summary[key] += trait.scaled[key]
                 else:
-                    summary[key] = trait.data[key]
+                    summary[key] = trait.scaled[key]
 
         n = len(traitgroups)
         for key in summary:
-            summary[key] = summary[key] / n
+            summary[key] = round(summary[key] / n, PTA_DECIMALS)
 
         return summary
 
@@ -174,8 +193,8 @@ class Herd(models.Model):
                 "name": cow.name,
                 "Generation": cow.generation,
                 "Sire": cow.sire.id if cow.sire else "NA",
-                "Dam": cow.dam.id if cow.sire else "NA",
-                "traits": cow.traits.data,
+                "Dam": cow.dam.id if cow.dam else "NA",
+                "traits": cow.traits.scaled,
             }
 
         for bull in Bull.objects.filter(herd=self):
@@ -183,8 +202,8 @@ class Herd(models.Model):
                 "name": bull.name,
                 "Generation": bull.generation,
                 "Sire": bull.sire.id if bull.sire else "NA",
-                "Dam": bull.dam.id if bull.sire else "NA",
-                "traits": bull.traits.data,
+                "Dam": bull.dam.id if bull.dam else "NA",
+                "traits": bull.traits.scaled,
             }
 
         return herd

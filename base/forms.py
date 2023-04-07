@@ -60,7 +60,12 @@ class AddClass(forms.Form):
         max_length=100,
         label="Class Name",
     )
-    formid = forms.CharField(initial="addclass", widget=forms.HiddenInput, label="")
+    info = forms.CharField(
+        widget=forms.Textarea, label="Class Info", max_length=1024, required=False
+    )
+    formid = forms.CharField(
+        initial="addclass", widget=forms.HiddenInput, label="", required=False
+    )
 
     def is_valid(self, user) -> bool:
         return super().is_valid()
@@ -71,6 +76,7 @@ class AddClass(forms.Form):
         connectedclass.teacherclasscode = models.Class.get_class_code()
         connectedclass.classcode = models.Class.get_class_code()
         connectedclass.owner = user
+        connectedclass.info = self.cleaned_data["info"]
 
         herd = models.Herd()
         herd.name = connectedclass.name

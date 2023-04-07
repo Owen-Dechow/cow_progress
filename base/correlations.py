@@ -1,7 +1,11 @@
 import numpy as np
 from scipy.linalg import cholesky
-from scipy.stats import norm
 from . import models
+from random import random
+
+
+DOMAIN = lambda: random() * 2 - 1
+DOMAIN_CHEAT = lambda: random() * 2.1 - 1.05
 
 
 def get_cor_matrix():
@@ -23,9 +27,11 @@ def get_result(cor_matrix, initial_values: list = None):
     r = np.array(cor_matrix["matrix"])
 
     if initial_values:
-        x = np.array(initial_values)
+        values = initial_values
     else:
-        x = norm.rvs(size=(len(r), 1))
+        values = [DOMAIN_CHEAT() for _ in range(len(r))]
+
+    x = np.array(values)
 
     c = cholesky(r, lower=True)
     y = np.dot(c, x)
@@ -35,3 +41,11 @@ def get_result(cor_matrix, initial_values: list = None):
         data[cor_matrix["traits"][i]] = float(y[i])
 
     return data
+
+
+def convert_data(data: dict):
+    new_data = {}
+    for key, val in data.items():
+        new_data[key.name] = val
+
+    return new_data

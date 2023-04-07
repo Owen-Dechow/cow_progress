@@ -1,0 +1,6 @@
+main h1 {
+    background-color: var(--prime);
+    margin: 10px;
+    text-align: center;
+    padding: 20px;
+}
