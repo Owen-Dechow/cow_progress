@@ -60,7 +60,7 @@ class TraitsList(models.Model):
             val = (a.data[trait.name] + b.data[trait.name]) / 2
             newval = val + MUTATION_RATE * cor.DOMAIN()
             if abs(newval) > 1:
-                newval += (0 - newval) * abs(newval)
+                newval += abs(newval) / newval
 
             uncorrelated[trait.name] = newval
 
