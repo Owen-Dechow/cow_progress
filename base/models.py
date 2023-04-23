@@ -108,6 +108,7 @@ class TraitsList(models.Model):
         self.set_scaled_data()
 
         # Connect to animal and save data
+        self.save()
         if bull:
             bull.save()
             self.connected_bull = bull
