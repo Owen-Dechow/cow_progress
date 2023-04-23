@@ -5,7 +5,6 @@ from random import random
 
 
 DOMAIN = lambda: random() * 2 - 1
-DOMAIN_CHEAT = lambda: random() * 2.1 - 1.05
 
 
 def get_cor_matrix():
@@ -29,7 +28,7 @@ def get_result(cor_matrix, initial_values: list = None):
     if initial_values:
         values = initial_values
     else:
-        values = [DOMAIN_CHEAT() for _ in range(len(r))]
+        values = [DOMAIN() for _ in range(len(r))]
 
     x = np.array(values)
 
