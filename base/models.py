@@ -1,7 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import User
 from random import randrange, random
-from . import correlations as cor
+from .traitinfo import traits
+from .traitinfo import correlations as cor
 
 PTA_DECIMALS = 3  # Number of decimal placements shown for PTAs on website/ xlsx files
 MUTATION_RATE = 0.25  # Maximum mutation of a PTA in one generation from -1 to 1 value
@@ -11,38 +12,16 @@ MUTATION_RATE = 0.25  # Maximum mutation of a PTA in one generation from -1 to 1
 class Resource(models.Model):
     __str__ = lambda self: self.title
 
-    title = models.CharField(max_length=255)  # The text that will be displayed for resource
+    title = models.CharField(
+        max_length=255
+    )  # The text that will be displayed for resource
     link = models.CharField(max_length=255)  # Url to the resource itself
-
-
-# Holds the information for one PTA
-class Trait(models.Model):
-    __str__ = lambda self: self.name
-
-    name = models.CharField(max_length=255) # Common identifier of the PTA (MILK, PROT, DCE, etc.)
-    average = models.FloatField() # The average PTA value | Should always be 0
-    standard_deviation = models.FloatField() # The standard deviation of PTA | AKA The scale factor
-
-
-# Correlation class for PTAs
-class Correlation(models.Model):
-    __str__ = lambda self: str(self.trait_a) + " to " + str(self.trait_b)
-
-    factor = models.FloatField() # Strength of the correlation
-
-    #### The connected PTAs ####
-    trait_a = models.ForeignKey(
-        to=Trait, on_delete=models.CASCADE, related_name="trait_b"
-    )
-    trait_b = models.ForeignKey(
-        to=Trait, on_delete=models.CASCADE, related_name="trait_a"
-    )
 
 
 # Holds the PTAs on single animal
 class TraitsList(models.Model):
-    data = models.JSONField() # Stores the unscaled data -1 to 1 form
-    scaled = models.JSONField() # Stores the front end scaled PTA data
+    data = models.JSONField()  # Stores the unscaled data -1 to 1 form
+    scaled = models.JSONField()  # Stores the front end scaled PTA data
 
     #### Refrances either the cow or bull connected to PTA list ####
     connected_bull = models.ForeignKey(
@@ -59,8 +38,8 @@ class TraitsList(models.Model):
     )
 
     @staticmethod
-    def get_mutated_average(a, b, cor_matrix, bull=None, cow=None):
-        """ Takes in two TraitsLists and creates a child List from the data """
+    def get_mutated_average(a, b, bull=None, cow=None):
+        """Takes in two TraitsLists and creates a child List from the data"""
 
         # Create and initialize new List
         new = TraitsList()
@@ -68,10 +47,10 @@ class TraitsList(models.Model):
 
         # Generate mutated uncorrelated values -1 to 1
         uncorrelated = {}
-        for trait in Trait.objects.all():
+        for trait in traits.Trait.Get_All():
             val = (a.data[trait.name] + b.data[trait.name]) / 2
-            newval = val + MUTATION_RATE * cor.DOMAIN()
-            
+            newval = val + MUTATION_RATE * traits.DOMAIN()
+
             # Ensure new value is in range -1 to 1
             if abs(newval) > 1:
                 newval += abs(newval) / newval
@@ -79,10 +58,10 @@ class TraitsList(models.Model):
             uncorrelated[trait.name] = newval
 
         # Correlate data
-        initial_val_list = [uncorrelated[key.name] for key in cor_matrix["traits"]]
-        corelated_data = cor.get_result(cor_matrix, initial_values=initial_val_list)
+        initial_val_list = [uncorrelated[key.name] for key in traits.Trait.Get_All()]
+        corelated_data = cor.get_result(initial_values=initial_val_list)
         new.data = cor.convert_data(corelated_data)
-        
+
         # Scale data for front end
         new.set_scaled_data()
 
@@ -97,13 +76,13 @@ class TraitsList(models.Model):
         new.save()
         return new
 
-    def auto_data(self, cor_matrix, cow=None, bull=None):
-        """ Auto generates the data for one TraitsList"""
+    def auto_data(self, cow=None, bull=None):
+        """Auto generates the data for one TraitsList"""
 
         # Get data -1 to 1
-        correlated_data = cor.get_result(cor_matrix)
+        correlated_data = cor.get_result()
         self.data = cor.convert_data(correlated_data)
-        
+
         # Scale the data
         self.set_scaled_data()
 
@@ -118,9 +97,9 @@ class TraitsList(models.Model):
         self.save()
 
     def set_scaled_data(self):
-        """ Scales the data field into the scaled field """
+        """Scales the data field into the scaled field"""
 
-        traits = Trait.objects.all()
+        traits = traits.Trait.Get_All()
         scaled_data = {}
         for key, val in self.data.items():
             scaled_data[key] = round(
@@ -140,11 +119,17 @@ class TraitsList(models.Model):
 
 # Holds a group of animals
 class Herd(models.Model):
-    name = models.CharField(max_length=255) # Name of the herd
-    owner = models.ForeignKey(to=User, on_delete=models.CASCADE, null=True, blank=True) # Owner of the herd
-    breedings = models.IntegerField(default=0) # Number of breedings that have been run on herd
-    unrestricted = models.BooleanField(default=False) # Tells if herd can be accessed by anyone
-    
+    name = models.CharField(max_length=255)  # Name of the herd
+    owner = models.ForeignKey(
+        to=User, on_delete=models.CASCADE, null=True, blank=True
+    )  # Owner of the herd
+    breedings = models.IntegerField(
+        default=0
+    )  # Number of breedings that have been run on herd
+    unrestricted = models.BooleanField(
+        default=False
+    )  # Tells if herd can be accessed by anyone
+
     # Stores the class this herd is part of
     connectedclass = models.ForeignKey(
         to="Class",
@@ -153,7 +138,7 @@ class Herd(models.Model):
         blank=True,
         related_name="_herd_connectedclass",
     )
-    
+
     # Stores the enrollment used to build herd
     enrollment = models.ForeignKey(
         to="Enrollment",
@@ -165,10 +150,10 @@ class Herd(models.Model):
 
     @staticmethod
     def get_auto_generated_herd(name, connectedclass, enrollment=None):
-        """ Builds a random herd """
+        """Builds a random herd"""
 
-        NUMBER_OF_COWS = 150 # Number of cows generated
-        NUMBER_OF_BULLS = 10 # Number of bulls generated
+        NUMBER_OF_COWS = 150  # Number of cows generated
+        NUMBER_OF_BULLS = 10  # Number of bulls generated
 
         # Create and initialize herd
         herd = Herd()
@@ -177,15 +162,12 @@ class Herd(models.Model):
         herd.name = name
         herd.save()
 
-        # Build correlation matrix
-        cor_matrix = cor.get_cor_matrix()
-
         # Create cows
         for _ in range(NUMBER_OF_COWS):
             cow = Cow()
 
             cow.traits = TraitsList()
-            cow.traits.auto_data(cor_matrix, cow=cow)
+            cow.traits.auto_data(cow=cow)
             cow.herd = herd
             cow.name = cow.get_name()
             cow.save()
@@ -195,7 +177,7 @@ class Herd(models.Model):
             bull = Bull()
 
             bull.traits = TraitsList()
-            bull.traits.auto_data(cor_matrix, bull=bull)
+            bull.traits.auto_data(bull=bull)
             bull.herd = herd
             bull.name = bull.get_name()
             bull.save()
@@ -204,7 +186,7 @@ class Herd(models.Model):
         return herd
 
     def get_summary(self):
-        """ Gets a JSON serializable dict of all PTAs average among animals """
+        """Gets a JSON serializable dict of all PTAs average among animals"""
 
         summary = {}
 
@@ -229,7 +211,7 @@ class Herd(models.Model):
         return summary
 
     def get_herd_dict(self):
-        """ Gets a JSON serializable dict of all animals in herd """
+        """Gets a JSON serializable dict of all animals in herd"""
 
         herd = {"cows": {}, "bulls": {}}
 
@@ -256,11 +238,11 @@ class Herd(models.Model):
         return herd
 
     def run_breeding(self, sires):
-        """ Breeds the herd to specified bulls """
+        """Breeds the herd to specified bulls"""
 
-        NUMBER_OF_COWS = 100 # Planed number of cows generated
-        NUMBER_OF_BULLS = 10 # Planed number of bulls generated
-        MAX_GENERATION = 5 # Max age of animal before its removed
+        NUMBER_OF_COWS = 100  # Planed number of cows generated
+        NUMBER_OF_BULLS = 10  # Planed number of bulls generated
+        MAX_GENERATION = 5  # Max age of animal before its removed
 
         # Update the herd generation
         self.breedings += 1
@@ -332,38 +314,45 @@ class Herd(models.Model):
 class Cow(models.Model):
     __str__ = lambda self: self.name
 
-    name = models.CharField(max_length=255) # Holds the name of the cow
-    herd = models.ForeignKey(to=Herd, on_delete=models.CASCADE, null=True) # Holds the herd the cow is part of
-    generation = models.IntegerField(default=0) # Holds the generation the cow was born in
-    
+    name = models.CharField(max_length=255)  # Holds the name of the cow
+    herd = models.ForeignKey(
+        to=Herd, on_delete=models.CASCADE, null=True
+    )  # Holds the herd the cow is part of
+    generation = models.IntegerField(
+        default=0
+    )  # Holds the generation the cow was born in
+
     # Connects a trait list to cow
     traits = models.OneToOneField(
-        to=TraitsList, on_delete=models.SET_NULL, related_name="Cull_traits_TraitsList", null=True
+        to=TraitsList,
+        on_delete=models.SET_NULL,
+        related_name="Cull_traits_TraitsList",
+        null=True,
     )
 
     # Connects dam to cow
     dam = models.ForeignKey(
         to="Cow", on_delete=models.SET_NULL, null=True, default=None
     )
-    
+
     # Connects sire to cow
     sire = models.ForeignKey(
         to="Bull", on_delete=models.SET_NULL, null=True, default=None
     )
 
     def get_name(self):
-        """ Autogenerates a name for cow """
+        """Autogenerates a name for cow"""
 
         return f"X Id-{self.id} Gen-{self.generation}"
 
     def get_sexed_id(self):
-        """ Gets the int id of cow with the 'f' prefix """
+        """Gets the int id of cow with the 'f' prefix"""
 
         return "f" + str(self.id)
 
     @staticmethod
     def from_breeding(sire, dam, herd, cor_matrix):
-        """ Creates a cow from a breeding """
+        """Creates a cow from a breeding"""
 
         cow = Cow()
         cow.traits = TraitsList.get_mutated_average(
@@ -382,43 +371,48 @@ class Cow(models.Model):
 class Bull(models.Model):
     __str__ = lambda self: self.name
 
-    name = models.CharField(max_length=255) # Holds the name of the bull
-    herd = models.ForeignKey(to=Herd, on_delete=models.CASCADE, null=True) # Holds the herd the bull is part of
-    generation = models.IntegerField(default=0) # Holds the generation the bull was born in
+    name = models.CharField(max_length=255)  # Holds the name of the bull
+    herd = models.ForeignKey(
+        to=Herd, on_delete=models.CASCADE, null=True
+    )  # Holds the herd the bull is part of
+    generation = models.IntegerField(
+        default=0
+    )  # Holds the generation the bull was born in
 
     # Connects a trait list to bull
     traits = models.OneToOneField(
-        to=TraitsList, on_delete=models.SET_NULL, related_name="Bull_traits_TraitsList", null=True
+        to=TraitsList,
+        on_delete=models.SET_NULL,
+        related_name="Bull_traits_TraitsList",
+        null=True,
     )
 
     # Connects dam to bull
     dam = models.ForeignKey(
         to="Cow", on_delete=models.SET_NULL, null=True, default=None
     )
-    
+
     # Connects sire to bull
     sire = models.ForeignKey(
         to="Bull", on_delete=models.SET_NULL, null=True, default=None
     )
-    
+
     def get_name(self):
-        """ Autogenerates a name for bull """
+        """Autogenerates a name for bull"""
 
         return f"Y id-{self.id} Gen-{self.generation}"
 
     def get_sexed_id(self):
-        """ Gets the int id of cow with the 'm' prefix """
+        """Gets the int id of cow with the 'm' prefix"""
 
         return "m" + str(self.id)
 
     @staticmethod
-    def from_breeding(sire, dam, herd, cor_matrix):
-        """ Creates a bull from a breeding """
-        
+    def from_breeding(sire, dam, herd):
+        """Creates a bull from a breeding"""
+
         bull = Bull()
-        bull.traits = TraitsList.get_mutated_average(
-            sire.traits, dam.traits, cor_matrix, bull=bull
-        )
+        bull.traits = TraitsList.get_mutated_average(sire.traits, dam.traits, bull=bull)
         bull.generation = herd.breedings
         bull.herd = herd
         bull.name = bull.get_name()
@@ -431,16 +425,22 @@ class Bull(models.Model):
 class Class(models.Model):
     __str__ = lambda self: self.name
 
-    name = models.CharField(max_length=255) # Holds the name of the class
-    info = models.TextField(blank=True, null=True, max_length=1024) # Holds the class info
-    classcode = models.CharField(unique=True, max_length=255) # Holds the student enrollment code
-    teacherclasscode = models.CharField(unique=True, max_length=255) # Holds the teacher enrollment code
-    
+    name = models.CharField(max_length=255)  # Holds the name of the class
+    info = models.TextField(
+        blank=True, null=True, max_length=1024
+    )  # Holds the class info
+    classcode = models.CharField(
+        unique=True, max_length=255
+    )  # Holds the student enrollment code
+    teacherclasscode = models.CharField(
+        unique=True, max_length=255
+    )  # Holds the teacher enrollment code
+
     # Connects the owner of the class
     owner = models.ForeignKey(
         to=User, on_delete=models.CASCADE, related_name="classowner"
     )
-    
+
     # Connects a class herd
     herd = models.OneToOneField(
         to=Herd, on_delete=models.CASCADE, related_name="classherd"
@@ -448,7 +448,7 @@ class Class(models.Model):
 
     @staticmethod
     def get_class_code():
-        """ Autogenerates a class code """
+        """Autogenerates a class code"""
 
         CODE_SECTIONS = 3
         CHAR_PER_SECTIONS = 3
@@ -472,9 +472,9 @@ class Class(models.Model):
 
     @staticmethod
     def get_from_code(code):
-        """ Gets the class from classcode and returns it in a tuple with the a boolean
-        telling if a teacher class code was used  """
-        
+        """Gets the class from classcode and returns it in a tuple with the a boolean
+        telling if a teacher class code was used"""
+
         try:
             _class = Class.objects.get(classcode=code)
             teacher = False
@@ -493,24 +493,24 @@ class Enrollment(models.Model):
     user = models.ForeignKey(
         to=User, on_delete=models.CASCADE, related_name="_enrollmentuser"
     )
-    
+
     # Connects the class
     connectedclass = models.ForeignKey(
         to=Class, on_delete=models.CASCADE, related_name="_enrollmentclass"
     )
-    
+
     # Tells if user is a teacher (true) of student (false)
     teacher = models.BooleanField(default=False)
 
     def save(self, *args, **kwargs) -> None:
-        """ Saves the enrollment and calls the scrub method """
+        """Saves the enrollment and calls the scrub method"""
 
         super().save(*args, **kwargs)
         Enrollment.scrub_enrollment(self.user, self.connectedclass)
 
     @staticmethod
     def scrub_enrollment(user, connectedclass):
-        """ Deletes any douplicate enrollments """
+        """Deletes any douplicate enrollments"""
 
         enrollments = list(
             Enrollment.objects.filter(user=user, connectedclass=connectedclass)
