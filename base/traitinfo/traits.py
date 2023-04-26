@@ -1,4 +1,5 @@
 from random import random
+from django.core.exceptions import ObjectDoesNotExist
 
 RELPATH = "base/traitinfo/"
 DOMAIN = lambda: random() * 2 - 1
@@ -7,12 +8,12 @@ DOMAIN = lambda: random() * 2 - 1
 class Trait:
     __str__ = lambda self: self.name
 
-    name: str
-    standard_deviation: float
+    name: str = ""
+    standard_deviation: float = 0
 
     def __init__(self, name, standard_deviation):
-        self.name = name
-        self.standard_deviation = standard_deviation
+        self.name = str(name)
+        self.standard_deviation = float(standard_deviation)
 
     @classmethod
     def Get_All(cls):
@@ -25,3 +26,12 @@ class Trait:
                 traits.append(Trait(name, standard_deviation))
 
         return traits
+
+    @classmethod
+    def get(cls, name):
+        traitslist = cls.Get_All()
+        for trait in traitslist:
+            if trait.name == name:
+                return trait
+
+        raise ObjectDoesNotExist(f"The requested trait of type {name} does not exist!")

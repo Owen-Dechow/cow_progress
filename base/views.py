@@ -6,6 +6,7 @@ from django.core.handlers.wsgi import WSGIRequest
 from django.contrib.auth.models import User
 from django.contrib.auth import login
 from django.contrib import messages
+from .traitinfo import traits
 from io import BytesIO
 from . import models
 from . import forms
@@ -210,12 +211,12 @@ def classes(request: WSGIRequest):
 def traitnames(request: WSGIRequest):
     """JSON dict of all trait names"""
 
-    traits = {}
+    traitdict = {}
 
-    for trait in models.Trait.objects.all():
-        traits[trait.name] = None
+    for trait in traits.Trait.Get_All():
+        traitdict[trait.name] = trait.standard_deviation
 
-    return JsonResponse(traits)
+    return JsonResponse(traitdict)
 
 
 @login_required
@@ -279,7 +280,7 @@ def get_herd_file(request: WSGIRequest, herdID: int):
     auth_herd(request, herd)
 
     special = ["Id", "Name", "Sex", "Generation", "Sire", "Dam"]
-    block = [special + [x.name for x in models.Trait.objects.all()]]
+    block = [special + [x.name for x in traits.Trait.Get_All()]]
 
     for cow in list(models.Bull.objects.filter(herd=herd)) + list(
         models.Cow.objects.filter(herd=herd)

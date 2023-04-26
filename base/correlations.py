@@ -20,31 +20,3 @@ def get_cor_matrix():
         cor_matrix.append(row)
 
     return {"matrix": cor_matrix, "traits": traits}
-
-
-def get_result(cor_matrix, initial_values: list = None):
-    r = np.array(cor_matrix["matrix"])
-
-    if initial_values:
-        values = initial_values
-    else:
-        values = [DOMAIN() for _ in range(len(r))]
-
-    x = np.array(values)
-
-    c = cholesky(r, lower=True)
-    y = np.dot(c, x)
-
-    data = {}
-    for i in range(len(y)):
-        data[cor_matrix["traits"][i]] = float(y[i])
-
-    return data
-
-
-def convert_data(data: dict):
-    new_data = {}
-    for key, val in data.items():
-        new_data[key.name] = val
-
-    return new_data

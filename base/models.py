@@ -99,11 +99,11 @@ class TraitsList(models.Model):
     def set_scaled_data(self):
         """Scales the data field into the scaled field"""
 
-        traits = traits.Trait.Get_All()
         scaled_data = {}
         for key, val in self.data.items():
+            standard_deviation = traits.Trait.get(key).standard_deviation
             scaled_data[key] = round(
-                traits.get(name=key).standard_deviation * val, PTA_DECIMALS
+                standard_deviation * val, PTA_DECIMALS
             )
 
         self.scaled = scaled_data
