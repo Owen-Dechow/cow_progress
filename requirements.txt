@@ -1,5 +1,6 @@
 asgiref==3.6.0
 Django==4.2
+django-environ==0.10.0
 numpy==1.24.3
 scipy==1.10.1
 sqlparse==0.4.4

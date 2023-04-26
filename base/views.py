@@ -12,10 +12,12 @@ from . import forms
 from . import excel
 
 
-""" UTILS """
+########### Utility functions ##########
 
 
 def auth_herd(request: WSGIRequest, herd: User, error=True, unprotected=True):
+    """Authenticate a users herd acceses"""
+
     if unprotected:
         if herd.unrestricted:
             return True
@@ -37,6 +39,8 @@ def auth_herd(request: WSGIRequest, herd: User, error=True, unprotected=True):
 
 
 def auth_password(request: WSGIRequest):
+    """Ensure user entered a proper password | request.POST['password']"""
+
     form = forms.Passwordcheck(request.POST)
     if form.is_valid():
         if check_password(form.cleaned_data["password"], request.user.password):
@@ -46,12 +50,9 @@ def auth_password(request: WSGIRequest):
 
 
 def string_validation(
-    string: str,
-    minlength: int,
-    maxlength: int,
-    specialchar="",
-    allowall=False,
+    string: str, minlength: int, maxlength: int, specialchar="", allowall=False
 ):
+    """Validate a string"""
 
     if len(string) not in range(minlength, maxlength + 1):
         raise Http404()
@@ -65,18 +66,23 @@ def string_validation(
 
 
 def JSONSuccess(success: bool):
+    """Returns a success dict"""
     return JsonResponse({"successful": success})
 
 
-""" VIEWS """
+########## Page views ##########
 
 
 def home(request: WSGIRequest):
+    """Home page"""
+
     args = {"resources": models.Resource.objects.all()}
     return render(request, "base/home.html", args)
 
 
 def register(request: WSGIRequest):
+    """Signup page"""
+
     if request.method == "POST":
         user = forms.CustomUserCreationForm(request.POST)
 
@@ -92,171 +98,9 @@ def register(request: WSGIRequest):
 
 
 @login_required
-def herds(request: WSGIRequest):
-    classes = [
-        x.connectedclass for x in models.Enrollment.objects.filter(user=request.user)
-    ]
-    return render(
-        request,
-        "base/herds.html",
-        {
-            "classes": classes,
-            "maxlen": models.Herd._meta.get_field("name").max_length,
-        },
-    )
-
-
-@login_required
-def breed_herd(request: WSGIRequest, herdID: int):
-    sires = []
-    for key in request.POST:
-        if key[:5] == "bull-":
-            sire = get_object_or_404(models.Bull, id=int(request.POST[key]))
-            sires.append(sire)
-            auth_herd(request, sire.herd)
-    if len(sires) == 0:
-        raise Http404()
-
-    herd = models.Herd.objects.get(id=herdID)
-    auth_herd(request, herd, unprotected=False)
-
-    herd.run_breeding(sires)
-    return HttpResponseRedirect(f"/open-herd/{herd.id}")
-
-
-@login_required
-def traitnames(request: WSGIRequest):
-    traits = {}
-
-    for trait in models.Trait.objects.all():
-        traits[trait.name] = None
-
-    return JsonResponse(traits)
-
-
-@login_required
-def herdsummaries(request: WSGIRequest):
-    publicherdlist = models.Herd.objects.filter(unrestricted=True)
-    privateherdlist = models.Herd.objects.filter(owner=request.user)
-    classherdslist = [
-        x.connectedclass.herd
-        for x in models.Enrollment.objects.filter(user=request.user)
-    ]
-
-    summaries = {"public": {}, "private": {}, "class": {}}
-
-    for herd in list(publicherdlist) + classherdslist:
-        summaries["public"][herd.id] = {
-            "name": herd.name,
-            "traits": herd.get_summary(),
-        }
-
-    for herd in privateherdlist:
-        summaries["private"][herd.id] = {
-            "name": str(herd),
-            "traits": herd.get_summary(),
-        }
-
-    return JsonResponse(summaries)
-
-
-@login_required
-def open_herd(request: WSGIRequest, herdID: int):
-    herd = get_object_or_404(models.Herd, id=herdID)
-    auth_herd(request, herd)
-
-    if herd.unrestricted:
-        herdstatus = "Public"
-    elif herd.connectedclass.herd == herd:
-        herdstatus = "Class"
-    else:
-        herdstatus = "Private"
-
-    return render(
-        request,
-        "base/open_herd.html",
-        {"herd": herd, "herdstatus": herdstatus},
-    )
-
-
-@login_required
-def get_herd_data(request: WSGIRequest, herdID: int):
-    herd = get_object_or_404(models.Herd, id=herdID)
-    auth_herd(request, herd)
-    return JsonResponse(herd.get_herd_dict())
-
-
-@login_required
-def get_bull_name(request: WSGIRequest, cowID: int):
-
-    try:
-        bull = models.Bull.objects.get(id=cowID)
-    except Exception:
-        return JsonResponse({"name": None})
-
-    accessible = auth_herd(request, bull.herd, error=False)
-    return JsonResponse({"name": bull.name if accessible else None})
-
-
-@login_required
-def change_name(request: WSGIRequest, cowID: int, gender: str, name: str):
-    try:
-        targetmodel = models.Bull if gender == "bulls" else models.Cow
-
-        string_validation(name, 1, 100, specialchar=" -_.")
-
-        cow = get_object_or_404(targetmodel, id=cowID)
-        auth_herd(request, cow.herd, unprotected=False)
-
-        cow.name = name
-        cow.save()
-        return JSONSuccess(True)
-    except:
-        return JSONSuccess(False)
-
-
-@login_required
-def auto_generate_herd(request: WSGIRequest):
-    try:
-        name = request.POST["name"]
-        _class = models.Class.objects.get(id=request.POST["class"])
-        enrollment = models.Enrollment.objects.get(
-            connectedclass=_class, user=request.user
-        )
-        string_validation(name, 1, 100, allowall=True)
-    except:
-        return HttpResponseRedirect("/herds")
-
-    herd = models.Herd.get_auto_generated_herd(name, _class, enrollment=enrollment)
-    herd.owner = request.user
-    herd.save()
-    return HttpResponseRedirect(f"/open-herd/{herd.id}")
-
-
-@login_required
-def delete_herd(request: WSGIRequest, herdID: int):
-    herd = get_object_or_404(models.Herd, id=herdID)
-    auth_herd(request, herd, unprotected=False)
-    herd.delete()
-    return HttpResponseRedirect("/herds")
-
-
-@login_required
-def move_cow(request: WSGIRequest, cowID: int, gender: str):
-    try:
-        targetmodel = models.Bull if gender == "bulls" else models.Cow
-        cow = get_object_or_404(targetmodel, id=cowID)
-        auth_herd(request, cow.herd, unprotected=False)
-        cow.herd = cow.herd.connectedclass.herd
-        cow.name = f"[{request.user.get_full_name()}] {cow.name}"
-        cow.save()
-        return JSONSuccess(True)
-    except:
-        return JSONSuccess(False)
-
-
-@login_required
 def account(request: WSGIRequest):
+    """Your account page"""
+
     context = {"passwordcheck": forms.Passwordcheck}
 
     for message in messages.get_messages(request):
@@ -278,8 +122,54 @@ def account(request: WSGIRequest):
         )
 
 
+def account_deleted(request: WSGIRequest):
+    """Account deleted page"""
+
+    return render(request, "auth/account_deleted.html")
+
+
+@login_required
+def herds(request: WSGIRequest):
+    """Your herds page"""
+
+    classes = [
+        x.connectedclass for x in models.Enrollment.objects.filter(user=request.user)
+    ]
+    return render(
+        request,
+        "base/herds.html",
+        {
+            "classes": classes,
+            "maxlen": models.Herd._meta.get_field("name").max_length,
+        },
+    )
+
+
+@login_required
+def open_herd(request: WSGIRequest, herdID: int):
+    """View herd page"""
+
+    herd = get_object_or_404(models.Herd, id=herdID)
+    auth_herd(request, herd)
+
+    if herd.unrestricted:
+        herdstatus = "Public"
+    elif herd.connectedclass.herd == herd:
+        herdstatus = "Class"
+    else:
+        herdstatus = "Private"
+
+    return render(
+        request,
+        "base/open_herd.html",
+        {"herd": herd, "herdstatus": herdstatus},
+    )
+
+
 @login_required
 def classes(request: WSGIRequest):
+    """Your classes page"""
+
     view_forms = {
         "joinclass": forms.JoinClass,
         "addclass": forms.AddClass,
@@ -315,8 +205,76 @@ def classes(request: WSGIRequest):
     )
 
 
+########## JSON requests ##########
+@login_required
+def traitnames(request: WSGIRequest):
+    """JSON dict of all trait names"""
+
+    traits = {}
+
+    for trait in models.Trait.objects.all():
+        traits[trait.name] = None
+
+    return JsonResponse(traits)
+
+
+@login_required
+def herdsummaries(request: WSGIRequest):
+    """JSON dict of all accessable herd summaries"""
+
+    publicherdlist = models.Herd.objects.filter(unrestricted=True)
+    privateherdlist = models.Herd.objects.filter(owner=request.user)
+    classherdslist = [
+        x.connectedclass.herd
+        for x in models.Enrollment.objects.filter(user=request.user)
+    ]
+
+    summaries = {"public": {}, "private": {}, "class": {}}
+
+    for herd in list(publicherdlist) + classherdslist:
+        summaries["public"][herd.id] = {
+            "name": herd.name,
+            "traits": herd.get_summary(),
+        }
+
+    for herd in privateherdlist:
+        summaries["private"][herd.id] = {
+            "name": str(herd),
+            "traits": herd.get_summary(),
+        }
+
+    return JsonResponse(summaries)
+
+
+@login_required
+def get_herd_data(request: WSGIRequest, herdID: int):
+    """JSON response of all cows in herd"""
+
+    herd = get_object_or_404(models.Herd, id=herdID)
+    auth_herd(request, herd)
+    return JsonResponse(herd.get_herd_dict())
+
+
+@login_required
+def get_bull_name(request: WSGIRequest, cowID: int):
+    """Get the name if a bull from id"""
+
+    try:
+        bull = models.Bull.objects.get(id=cowID)
+    except Exception:
+        return JsonResponse({"name": None})
+
+    accessible = auth_herd(request, bull.herd, error=False)
+    return JsonResponse({"name": bull.name if accessible else None})
+
+
+########## File requests ##########
+
+
 @login_required
 def get_herd_file(request: WSGIRequest, herdID: int):
+    """Get XLSX file for herd"""
+
     herd = get_object_or_404(models.Herd, id=herdID)
     auth_herd(request, herd)
 
@@ -373,23 +331,48 @@ def get_herd_file(request: WSGIRequest, herdID: int):
     return response
 
 
+########## Actions -> success dict ##########
+
+
 @login_required
-def delete_account(request: WSGIRequest):
-    if auth_password(request):
-        request.user.is_active = False
-        request.user.save()
-        return HttpResponseRedirect("/auth/account-deleted")
+def change_name(request: WSGIRequest, cowID: int, gender: str, name: str):
+    """Change the name of a cow"""
 
-    messages.error(request, "wrong-password")
-    return HttpResponseRedirect("/account")
+    try:
+        targetmodel = models.Bull if gender == "bulls" else models.Cow
+
+        string_validation(name, 1, 100, specialchar=" -_.")
+
+        cow = get_object_or_404(targetmodel, id=cowID)
+        auth_herd(request, cow.herd, unprotected=False)
+
+        cow.name = name
+        cow.save()
+        return JSONSuccess(True)
+    except:
+        return JSONSuccess(False)
 
 
-def account_deleted(request: WSGIRequest):
-    return render(request, "auth/account_deleted.html")
+@login_required
+def move_cow(request: WSGIRequest, cowID: int, gender: str):
+    """Move an animal to class herd"""
+
+    try:
+        targetmodel = models.Bull if gender == "bulls" else models.Cow
+        cow = get_object_or_404(targetmodel, id=cowID)
+        auth_herd(request, cow.herd, unprotected=False)
+        cow.herd = cow.herd.connectedclass.herd
+        cow.name = f"[{request.user.get_full_name()}] {cow.name}"
+        cow.save()
+        return JSONSuccess(True)
+    except:
+        return JSONSuccess(False)
 
 
 @login_required
 def setclassinfo(request: WSGIRequest, classID: int, info: str):
+    """Sets the info for a class"""
+
     try:
         connectedclass = models.Class.objects.get(id=classID)
         assert models.Enrollment.objects.get(
@@ -400,12 +383,14 @@ def setclassinfo(request: WSGIRequest, classID: int, info: str):
         connectedclass.info = info.replace("<&:none>", "")
         connectedclass.save()
         return JSONSuccess(True)
-    except Exception as e:
+    except:
         return JSONSuccess(False)
 
 
 @login_required
 def delete_enrollment(request: WSGIRequest, enrollmentID: int):
+    """Unenroll user in class"""
+
     try:
         enrollment = models.Enrollment.objects.get(id=enrollmentID)
         user_enrollment = models.Enrollment.objects.get(
@@ -419,5 +404,69 @@ def delete_enrollment(request: WSGIRequest, enrollmentID: int):
         enrollment.delete()
         return JSONSuccess(True)
 
-    except Exception as e:
-        raise e
+    except:
+        return JSONSuccess(False)
+
+
+########## Actions -> redirect ##########
+@login_required
+def breed_herd(request: WSGIRequest, herdID: int):
+    """Breed your herd"""
+
+    sires = []
+    for key in request.POST:
+        if key[:5] == "bull-":
+            sire = get_object_or_404(models.Bull, id=int(request.POST[key]))
+            sires.append(sire)
+            auth_herd(request, sire.herd)
+    if len(sires) == 0:
+        raise Http404()
+
+    herd = models.Herd.objects.get(id=herdID)
+    auth_herd(request, herd, unprotected=False)
+
+    herd.run_breeding(sires)
+    return HttpResponseRedirect(f"/open-herd/{herd.id}")
+
+
+@login_required
+def auto_generate_herd(request: WSGIRequest):
+    """Generate a random herd"""
+
+    try:
+        name = request.POST["name"]
+        _class = models.Class.objects.get(id=request.POST["class"])
+        enrollment = models.Enrollment.objects.get(
+            connectedclass=_class, user=request.user
+        )
+        string_validation(name, 1, 100, allowall=True)
+    except:
+        return HttpResponseRedirect("/herds")
+
+    herd = models.Herd.get_auto_generated_herd(name, _class, enrollment=enrollment)
+    herd.owner = request.user
+    herd.save()
+    return HttpResponseRedirect(f"/open-herd/{herd.id}")
+
+
+@login_required
+def delete_herd(request: WSGIRequest, herdID: int):
+    """Delete a herd"""
+
+    herd = get_object_or_404(models.Herd, id=herdID)
+    auth_herd(request, herd, unprotected=False)
+    herd.delete()
+    return HttpResponseRedirect("/herds")
+
+
+@login_required
+def delete_account(request: WSGIRequest):
+    """Dissable an account"""
+
+    if auth_password(request):
+        request.user.is_active = False
+        request.user.save()
+        return HttpResponseRedirect("/auth/account-deleted")
+
+    messages.error(request, "wrong-password")
+    return HttpResponseRedirect("/account")
