@@ -4,12 +4,13 @@ from django.contrib.auth.views import LoginView, LogoutView
 from django.contrib.auth import views as auth_views
 
 urlpatterns = [
+    ########## Accounts ##########
     path("login", LoginView.as_view(template_name="auth/login.html"), name="login"),
     path("logout", LogoutView.as_view(template_name="auth/form.html"), name="logout"),
     path("register", views.register, name="register"),
     path("delete-account", views.delete_account, name="delete-account"),
     path("account-deleted", views.account_deleted, name="account-deleted"),
-    # Password Paths
+    ########## Password Change ##########
     path(
         "password-change",
         auth_views.PasswordChangeView.as_view(
@@ -24,6 +25,7 @@ urlpatterns = [
         ),
         name="password_change_done",
     ),
+    ########### Password Reset ##########
     path(
         "password-reset",
         auth_views.PasswordResetView.as_view(

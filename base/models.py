@@ -102,9 +102,7 @@ class TraitsList(models.Model):
         scaled_data = {}
         for key, val in self.data.items():
             standard_deviation = traits.Trait.get(key).standard_deviation
-            scaled_data[key] = round(
-                standard_deviation * val, PTA_DECIMALS
-            )
+            scaled_data[key] = round(standard_deviation * val, PTA_DECIMALS)
 
         self.scaled = scaled_data
 
@@ -285,15 +283,14 @@ class Herd(models.Model):
             breedings_Female[randrange(0, len(breedings_Male))]["cows"].append(cow)
 
         # Generate new bulls
-        cor_matrix = cor.get_cor_matrix()
         for breeding in breedings_Male:
             for dam in breeding["cows"]:
-                Bull.from_breeding(breeding["sire"], dam, self, cor_matrix)
+                Bull.from_breeding(breeding["sire"], dam, self)
 
         # Generate new cows
         for breeding in breedings_Female:
             for dam in breeding["cows"]:
-                Cow.from_breeding(breeding["sire"], dam, self, cor_matrix)
+                Cow.from_breeding(breeding["sire"], dam, self)
 
         #### Remove any animals over the max age ####
         for cow in Cow.objects.filter(herd=self):
@@ -351,13 +348,11 @@ class Cow(models.Model):
         return "f" + str(self.id)
 
     @staticmethod
-    def from_breeding(sire, dam, herd, cor_matrix):
+    def from_breeding(sire, dam, herd):
         """Creates a cow from a breeding"""
 
         cow = Cow()
-        cow.traits = TraitsList.get_mutated_average(
-            sire.traits, dam.traits, cor_matrix, cow=cow
-        )
+        cow.traits = TraitsList.get_mutated_average(sire.traits, dam.traits, cow=cow)
         cow.generation = herd.breedings
         cow.herd = herd
         cow.name = cow.get_name()
@@ -483,6 +478,9 @@ class Class(models.Model):
             teacher = True
 
         return _class, teacher
+
+    class Meta:
+        verbose_name_plural = "Classes"
 
 
 # Connects users to classes

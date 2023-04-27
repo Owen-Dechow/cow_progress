@@ -32,13 +32,10 @@ DEBUG = True
 ALLOWED_HOSTS = ["127.0.0.1"]
 
 
-# if DEBUG:
-#     EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
-
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587
-EMAIL_HOST_USER = "owen.dechow@gmail.com"
-EMAIL_HOST_PASSWORD = "keqwburfkohaezwt"
+EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="owen.dechow@gmail.com")
+EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD")
 EMAIL_USE_TLS = True
 
 
