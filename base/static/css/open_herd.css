@@ -118,12 +118,7 @@ main .panel.left .cow-btns .col button.focused-btn {
 main .panel.right {
     margin-left: 10px;
     padding: 10px;
-    filter: brightness(80%) blur(3px);
     background-color: var(--prime);
-}
-
-main .panel.right.cow-selected {
-    filter: none;
 }
 
 main .panel.right .cow-name {

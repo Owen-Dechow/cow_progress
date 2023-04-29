@@ -2,12 +2,16 @@
 {% load dic %}
 {% load static %}
 {% block title %}
+{{herd.name}}
 {% endblock title %}
 {% block links %}
     <script src="{% static 'js/open_herd.js' %}"></script>
     <link rel="stylesheet" href="{% static 'css/open_herd.css' %}">
 {% endblock links %}
 {% block body %}
+    <script>
+        sessionStorage.setItem("HerdId", '{{herd.id}}')
+    </script>
     <div class="panel left">
         <details class="title">
             <summary>
@@ -16,7 +20,7 @@
             <form action="/delete-herd/{{ herd.id }}"
                   onsubmit="return confirm('Are you sure you want to delete this herd?\nThis action cannot be undone.')">
                 {{ herdstatus }} Herd
-                <button type="button">Show Herd Summary</button>
+                <button type="button" onclick="changeDisplayedCow()">Show Herd Summary</button>
                 <a class="as-btn" href="/herd-file/{{ herd.id }}">Download as .xlsx</a>
                 {% if herdstatus == "Private" %}
                     <a class="as-btn" href="/open-herd/{{ herd.connectedclass.herd.id }}">Open Class Herd</a>

@@ -1,13 +1,11 @@
-let TRAITNAMES;
-let SUMMARIES;
-
 async function loadTraitNames() {
     var traitNames = await fetch("/traitnames");
     if (!traitNames.ok) {
         alert("Error loading herd data. Please try again.")
         return false;
     }
-    TRAITNAMES = traitNames.json();
+
+    setSessionDict("TraitNames", await traitNames.json());
     return true;
 }
 
@@ -18,12 +16,12 @@ async function loadHerds() {
         return false;
     }
 
-    SUMMARIES = herds.json();
+    setSessionDict("Summaries", await herds.json());
     return true;
 }
 
-async function displayHerds() {
-    var summaries = await SUMMARIES;
+function displayHerds() {
+    var summaries = getSessionDict("Summaries");
 
     displayHerdsBy("id", false, "public", summaries);
     displayHerdsBy("id", false, "private", summaries);
@@ -50,8 +48,12 @@ function displayHerdsBy(orderby, reverse, protection, summaries) {
     for (var key in keylist) {
         if (keylist.hasOwnProperty(key)) {
             key = keylist[key];
+            herdName = summaries[protection][key]["name"];
+            className = summaries[protection][key]["class"];
+
             btn = document.createElement("button");
-            btn.textContent = summaries[protection][key]["name"];
+            btn.textContent = `[${className}] ${herdName}`;
+
             btn.herdid = key;
 
             btn.onclick = (e) => {
@@ -69,11 +71,10 @@ function displayHerdsBy(orderby, reverse, protection, summaries) {
     }
 }
 
-async function displayTraits() {
-    var traitnames = await TRAITNAMES;
+function displayTraits() {
+    var traitnames = getSessionDict("TraitNames");
 
     var herdAverages = document.getElementById("herd-averages");
-    var orderby = document.getElementById("order-by");
 
     function addFromKey(key) {
         lbl = document.createElement("label");
@@ -99,13 +100,13 @@ async function displayTraits() {
     }
 }
 
-async function changeDisplayedHerd(publicprivate, herdid) {
+function changeDisplayedHerd(publicprivate, herdid) {
     document.getElementById("right-panel").classList.add("herd-selected");
 
-    var summaries = await SUMMARIES;
+    var summaries = getSessionDict("Summaries");
     var herdsum = summaries[publicprivate][herdid]["traits"];
 
-    document.getElementById("open-herd-link").href = "/open-herd/" + herdid;
+    document.getElementById("open-herd-link").href = "/openherd-" + herdid;
     document.getElementById("herd-name").textContent = summaries[publicprivate][herdid]["name"];
 
     document.getElementById("ID" + "-ipt").value = herdid;
@@ -119,8 +120,6 @@ async function changeDisplayedHerd(publicprivate, herdid) {
 async function setUp() {
     await loadTraitNames();
     await loadHerds();
-    await displayTraits();
-    await displayHerds();
+    displayTraits();
+    displayHerds();
 }
-
-setUp();

@@ -1,36 +1,36 @@
-let TRAITNAMES;
-let COWS;
-var DATALOADED;
-var LOADEDGENDER;
-var CanChangeID = true;
-
-
 async function loadCows() {
-    herdid = window.location.pathname.split("/").pop();
-    var cows = await fetch("/herd-data/" + herdid);
+    herdID = sessionStorage.getItem("HerdId");
+    var cows = await fetch("/herddata-" + herdID);
 
     if (!cows.ok) {
-        alert("Error loading herd data. Please try again.")
-        return false;
+        alertreal("Error Loading Data", "Error loading herd data. Please try again.", "ok")
     }
 
-    COWS = await cows.json();
-    DATALOADED = true;
-    return true;
+    setSessionDict("Cows", await cows.json());
 }
 
 async function loadTraitNames() {
     var traitNames = await fetch("/traitnames");
     if (!traitNames.ok) {
-        alert("Error loading herd data. Please try again.")
-        return false;
+        alertreal("Error Loading Data", "Error loading herd data. Please try again.", "ok")
     }
-    TRAITNAMES = traitNames.json();
-    return true;
+
+    setSessionDict("TraitNames", await traitNames.json());
 }
 
-async function displayCows() {
-    var cows = await COWS;
+async function loadHerdSummary() {
+    herdID = sessionStorage.getItem("HerdId");
+
+    var summary = await fetch("/herdsummary-" + herdID);
+    if (!summary.ok) {
+        alertreal("Error Loading Data", "Error loading herd data. Please try again.", "ok")
+    }
+
+    setSessionDict("HerdSummary", await summary.json());
+}
+
+function displayCows() {
+    var cows = getSessionDict("Cows");
 
     displayCowsBy("id", false, "bulls", cows);
     displayCowsBy("id", false, "cows", cows);
@@ -76,8 +76,8 @@ function displayCowsBy(orderby, reverse, gender, cowslist) {
     }
 }
 
-async function displayTraits() {
-    var traitnames = await TRAITNAMES;
+function displayTraits() {
+    var traitnames = getSessionDict("TraitNames");
 
     var herdAverages = document.getElementById("cow-stats");
     var orderby = document.getElementById("order-by");
@@ -114,21 +114,26 @@ async function displayTraits() {
     }
 }
 
-async function changeDisplayedCow(gender, cowid) {
-    if (gender != undefined && cowid != undefined) {
-        document.getElementById("right-panel").classList.add("cow-selected");
+function changeDisplayedCow(gender, cowID) {
+    cows = getSessionDict("Cows");
 
+    if (gender != undefined) {
+        sessionStorage.setItem("LoadedGender", gender);
+    } else {
+        sessionStorage.setItem("LoadedGender", "none")
+    }
+
+    if (gender != undefined && cowID != undefined) {
         var cowname = document.getElementById("cow-name");
         if (cowname.classList.contains("owner")) {
             cowname.disabled = false;
         }
 
-        LOADEDGENDER = gender;
 
-        var stats = await COWS[gender][cowid];
+        var stats = cows[gender][cowID];
         document.getElementById("cow-name").value = stats["name"]
 
-        document.getElementById("id" + "-ipt").value = cowid;
+        document.getElementById("id" + "-ipt").value = cowID;
         document.getElementById("Generation" + "-ipt").value = stats["Generation"];
         document.getElementById("Sire" + "-ipt").value = stats["Sire"];
         document.getElementById("Dam" + "-ipt").value = stats["Dam"];
@@ -139,45 +144,39 @@ async function changeDisplayedCow(gender, cowid) {
             }
         }
     } else {
-        LOADEDGENDER = gender;
-        document.getElementById("cow-name").value = "~"
-        document.getElementById("right-panel").classList.remove("cow-selected");
-        document.getElementById("id" + "-ipt").value = "cowid";
-        document.getElementById("Generation" + "-ipt").value = "";
-        document.getElementById("Sire" + "-ipt").value = "";
-        document.getElementById("Dam" + "-ipt").value = "";
-        var stats = await TRAITNAMES;
+        var cowname = document.getElementById("cow-name").disabled = true;
+
+
+        document.getElementById("cow-name").value = "[HERD SUMMARY]"
+        document.getElementById("id" + "-ipt").value = "~";
+        document.getElementById("Generation" + "-ipt").value = "~";
+        document.getElementById("Sire" + "-ipt").value = "~";
+        document.getElementById("Dam" + "-ipt").value = "~";
+        var stats = getSessionDict("HerdSummary");
         for (var key in stats) {
             if (stats.hasOwnProperty(key)) {
-                document.getElementById(key + "-ipt").value = "";
+                document.getElementById(key + "-ipt").value = stats[key];
             }
         }
     }
 }
 
-async function setUp() {
-    await loadCows();
-    await loadTraitNames();
-    await displayTraits();
-    await displayCows();
-}
-
-async function setSortOrder() {
+function setSortOrder() {
     var reverse = document.getElementById("sort-pos-neg");
     var orderby = document.getElementById("order-by");
-    var cows = await COWS;
+    var cows = getSessionDict("Cows");
 
     displayCowsBy(orderby.value, reverse.value == "neg", "bulls", cows);
     displayCowsBy(orderby.value, reverse.value == "neg", "cows", cows);
 }
 
-async function filterHasName(val) {
+function filterHasName(val) {
     filterHasNameBy(val, "cows");
     filterHasNameBy(val, "bulls");
 }
 
-async function filterHasNameBy(val, gender) {
-    await setSortOrder();
+function filterHasNameBy(val, gender) {
+    setSortOrder();
 
     var container = document.getElementById("herd-btns-" + gender);
     var elements = [];
@@ -197,65 +196,6 @@ async function filterHasNameBy(val, gender) {
             container.appendChild(element);
         });
     }
-}
-
-async function setCowName(event) {
-    if (LOADEDGENDER == undefined) return;
-    event.target.disabled = true;
-
-    gender = LOADEDGENDER == "bulls" ? "bull" : "cow";
-
-    id = document.getElementById("id-ipt").value;
-    newname = document.getElementById("cow-name").value;
-    if (!/^[A-Za-z0-9-_ .]+$/.test(newname)) {
-        alertreal("Invalid name", `Letters, numbers  plus -_ . only.`, "ok");
-        event.target.disabled = false;
-        return;
-    }
-
-    gender = LOADEDGENDER;
-
-    data = await fetch(`/set-cow-name/${id}/${gender}/${newname}`);
-    jsondata = await data.json();
-
-    if (jsondata["successful"]) {
-        COWS[gender][id]["name"] = newname;
-        alertreal("Name Changed", `Name was successfully changed to <br> ${newname}`, "ok");
-    } else {
-        alertreal("Name Change Failed", "Name change was unsuccessful.", "ok");
-    }
-
-    setSortOrder();
-
-    event.target.disabled = false;
-}
-
-async function moveToClassHerd(event) {
-    if (LOADEDGENDER == undefined) return;
-    event.target.disabled = true;
-
-    gender = LOADEDGENDER == "bulls" ? "bull" : "cow";
-    if (confirm(`Are you sure you want to move this ${gender} to class herd?\nThis action cannot be undone.`)) {
-
-        gender = LOADEDGENDER;
-        id = document.getElementById("id-ipt").value;
-        data = await fetch(`/move-cow/${id}/${gender}`);
-        jsondata = await data.json();
-        jsondata = {
-            "successful": true
-        }
-
-        if (jsondata["successful"]) {
-            alertreal("Move Successful", `${COWS[gender][id]["name"]} was successfully moved to class herd.`, "ok");
-            delete COWS[gender][id];
-        } else {
-            alertreal("Move Failed", `${COWS[gender][id]["name"]} could not be moved to class herd.`, "ok");
-        }
-
-        setSortOrder();
-        changeDisplayedCow(undefined, undefined);
-    }
-    event.target.disabled = false;
 }
 
 function addAnotherBull() {
@@ -308,10 +248,74 @@ function removeBull(target) {
 function IDChange(target) {
     if (target.value > Number.MAX_SAFE_INTEGER) return;
 
-    if (CanChangeID) {
-        CanChangeID = false;
-        FetchIDChange(target).finally(() => { CanChangeID = true; });
+    if (sessionStorage.getItem("CanChangeId") == "true") {
+        sessionStorage.setItem("CanChangeId", "false");
+        FetchIDChange(target).finally(() => {
+            sessionStorage.setItem("CanChangeId", "true");
+        });
     }
+}
+
+async function setCowName(event) {
+    LoadedGender = sessionStorage.getItem("LoadedGender")
+
+    if (LoadedGender == "none") return;
+    event.target.disabled = true;
+
+    id = document.getElementById("id-ipt").value;
+    newname = document.getElementById("cow-name").value;
+    if (!/^[A-Za-z0-9-_ .]+$/.test(newname)) {
+        alertreal("Invalid name", `Letters, numbers  plus -_ . only.`, "ok");
+        event.target.disabled = false;
+        return;
+    }
+
+    data = await fetch(`/set-cow-name/${id}/${LoadedGender.slice(0, -1)}/${newname}`);
+    jsondata = await data.json();
+
+    if (jsondata["successful"]) {
+        cows = getSessionDict("Cows");
+        cows[LoadedGender][id]["name"] = newname;
+        setSessionDict("Cows", cows);
+
+        alertreal("Name Changed", `Name was successfully changed to <br> ${newname}`, "ok");
+    } else {
+        alertreal("Name Change Failed", "Name change was unsuccessful.", "ok");
+    }
+
+    setSortOrder();
+
+    event.target.disabled = false;
+}
+
+async function moveToClassHerd(event) {
+    LoadedGender = sessionStorage.getItem("LoadedGender");
+    if (LoadedGender == "none") return;
+    event.target.disabled = true;
+
+    if (confirm(`Are you sure you want to move this ${gender} to class herd?\nThis action cannot be undone.`)) {
+
+        gender = LoadedGender;
+        id = document.getElementById("id-ipt").value;
+        data = await fetch(`/move-cow/${id}/${gender}`);
+        jsondata = await data.json();
+        jsondata = {
+            "successful": true
+        }
+
+        cows = getSessionDict("Cows");
+        if (jsondata["successful"]) {
+            alertreal("Move Successful", `${cows[gender][id]["name"]} was successfully moved to class herd.`, "ok");
+            delete cows[gender][id];
+            setSessionDict("Cows", cows);
+        } else {
+            alertreal("Move Failed", `${cows[gender][id]["name"]} could not be moved to class herd.`, "ok");
+        }
+
+        setSortOrder();
+        changeDisplayedCow();
+    }
+    event.target.disabled = false;
 }
 
 async function FetchIDChange(target) {
@@ -331,4 +335,14 @@ async function FetchIDChange(target) {
     }
 }
 
-setUp();
+async function setUp() {
+    sessionStorage.setItem("CanChangeId", "true");
+    sessionStorage.setItem("LoadedGender", "none");
+
+    await loadHerdSummary();
+    await loadCows();
+    await loadTraitNames();
+    displayTraits();
+    displayCows();
+    changeDisplayedCow();
+}

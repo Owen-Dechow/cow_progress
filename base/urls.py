@@ -5,13 +5,14 @@ urlpatterns = [
     ########### Page patterns ###########
     path("", views.home, name="home"),
     path("herds", views.herds, name="herds"),
-    path("open-herd/<int:herdID>", views.open_herd, name="openherd"),
+    path("openherd-<int:herdID>", views.open_herd, name="openherd"),
     path("account", views.account, name="account"),
     path("classes", views.classes, name="classes"),
     ########### JSON patterns ###########
     path("traitnames", views.traitnames),
     path("herdsummaries", views.herdsummaries),
-    path("herd-data/<int:herdID>", views.get_herd_data),
+    path("herdsummary-<int:herdID>", views.herdsummary),
+    path("herddata-<int:herdID>", views.get_herd_data),
     path("get-cow-name/<int:cowID>", views.get_bull_name),
     ########### File patterns ###########
     path("herd-file/<int:herdID>", views.get_herd_file),

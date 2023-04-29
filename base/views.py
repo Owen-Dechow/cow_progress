@@ -16,7 +16,7 @@ from . import excel
 ########### Utility functions ##########
 
 
-def auth_herd(request: WSGIRequest, herd: User, error=True, unprotected=True):
+def auth_herd(request: WSGIRequest, herd: models.Herd, error=True, unprotected=True):
     """Authenticate a users herd acceses"""
 
     if unprotected:
@@ -235,16 +235,26 @@ def herdsummaries(request: WSGIRequest):
     for herd in list(publicherdlist) + classherdslist:
         summaries["public"][herd.id] = {
             "name": herd.name,
+            "class": herd.connectedclass.name,
             "traits": herd.get_summary(),
         }
 
     for herd in privateherdlist:
         summaries["private"][herd.id] = {
             "name": str(herd),
+            "class": herd.connectedclass.name,
             "traits": herd.get_summary(),
         }
 
     return JsonResponse(summaries)
+
+
+def herdsummary(request: WSGIRequest, herdID: int):
+    """JSON dict of a herd summary"""
+
+    herd = get_object_or_404(models.Herd, id=herdID)
+    auth_herd(request, herd)
+    return JsonResponse(herd.get_summary())
 
 
 @login_required
@@ -340,7 +350,7 @@ def change_name(request: WSGIRequest, cowID: int, gender: str, name: str):
     """Change the name of a cow"""
 
     try:
-        targetmodel = models.Bull if gender == "bulls" else models.Cow
+        targetmodel = models.Bull if gender == "bull" else models.Cow
 
         string_validation(name, 1, 100, specialchar=" -_.")
 

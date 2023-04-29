@@ -49,3 +49,32 @@ function getcookie(cookie) {
     }
     return "";
 }
+
+function getSessionDict(id) {
+    return JSON.parse(sessionStorage.getItem(id));
+}
+
+async function setSessionDict(id, obj) {
+    sessionStorage.setItem(id, JSON.stringify(obj))
+}
+
+
+(() => {
+    div = document.createElement("div");
+    div2 = document.createElement("div");
+    div.append(div2);
+    div.id = "loading-screen";
+
+    document.getElementsByTagName("html")[0].append(div);
+    setTimeout(() => div.classList.add("solid"), 100);
+
+    window.addEventListener("DOMContentLoaded", async () => {
+        if (window.setUp) {
+            await window.setUp();
+        }
+        div.remove();
+    });
+})()
+
+
+

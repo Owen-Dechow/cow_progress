@@ -117,6 +117,8 @@ class TraitsList(models.Model):
 
 # Holds a group of animals
 class Herd(models.Model):
+    __str__ = lambda self: self.name
+
     name = models.CharField(max_length=255)  # Name of the herd
     owner = models.ForeignKey(
         to=User, on_delete=models.CASCADE, null=True, blank=True
@@ -299,12 +301,6 @@ class Herd(models.Model):
         for bull in Bull.objects.filter(herd=self):
             if self.breedings - bull.generation > MAX_GENERATION:
                 bull.delete()
-
-    def __str__(self):
-        if self.connectedclass:
-            return self.connectedclass.name + ": " + self.name
-        else:
-            return self.name
 
 
 # Single female animal

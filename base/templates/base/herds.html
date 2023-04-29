@@ -2,6 +2,7 @@
 {% load dic %}
 {% load static %}
 {% block title %}
+My Herds
 {% endblock title %}
 {% block links %}
     <script src="{% static 'js/herds.js' %}"></script>
@@ -25,7 +26,8 @@
                 <h2>Create New Herd</h2>
                 <form action="auto-generate-herd" method="POST">
                     {% csrf_token %}
-                    <label>Select Class</label>
+                    <br>
+                    <label>Select Class For Herd</label>
                     <select name="class" required>
                         {% for class in classes %}
                             <option value="{{ class.id }}">

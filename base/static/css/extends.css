@@ -4,6 +4,7 @@
     --neutral: #908070;
     --light: #e0e0e0;
     --dark: #303030;
+    --transparent: #0007;
 }
 
 
@@ -138,4 +139,43 @@ footer span {
 .as_link:hover {
     filter: brightness(90%);
     text-decoration: underline;
+}
+
+#loading-screen {
+    z-index: 99;
+    position: fixed;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    opacity: 0;
+    transition: opacity 1s;
+
+    width: 100%;
+    height: 100%;
+    background-color: var(--transparent);
+}
+
+#loading-screen.solid {
+    opacity: 1;
+}
+
+#loading-screen div {
+    position: absolute;
+    width: 70px;
+    aspect-ratio: 1/1;
+
+    border-radius: 50%;
+    border: 20px dotted var(--light);
+    animation: 1s ease-in-out 0s infinite reverse both running rotate;
+}
+
+@keyframes rotate {
+    from {
+        transform: rotate(0);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
 }

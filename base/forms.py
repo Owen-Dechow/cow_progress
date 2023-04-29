@@ -40,17 +40,7 @@ class JoinClass(forms.Form):
         enrollment.connectedclass = connectedclass[0]
         enrollment.teacher = connectedclass[1]
         enrollment.user = user
-
-        # Create a herd for class
-        herd = models.Herd.get_auto_generated_herd("Personal Herd", connectedclass[0])
-        herd.owner = user
-        herd.connectedclass = connectedclass[0]
-        herd.save()
-
-        # Save herd/enrollment
         enrollment.save()
-        herd.enrollment = enrollment
-        herd.save()
 
     @staticmethod
     def validate_classcode(value):
