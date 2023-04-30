@@ -1,6 +1,6 @@
 async function loadCows() {
-    herdID = sessionStorage.getItem("HerdId");
-    var cows = await fetch("/herddata-" + herdID);
+    let herdID = sessionStorage.getItem("HerdId");
+    let cows = await fetch("/herddata-" + herdID);
 
     if (!cows.ok) {
         alertreal("Error Loading Data", "Error loading herd data. Please try again.", "ok")
@@ -10,7 +10,7 @@ async function loadCows() {
 }
 
 async function loadTraitNames() {
-    var traitNames = await fetch("/traitnames");
+    let traitNames = await fetch("/traitnames");
     if (!traitNames.ok) {
         alertreal("Error Loading Data", "Error loading herd data. Please try again.", "ok")
     }
@@ -19,9 +19,9 @@ async function loadTraitNames() {
 }
 
 async function loadHerdSummary() {
-    herdID = sessionStorage.getItem("HerdId");
+    let herdID = sessionStorage.getItem("HerdId");
 
-    var summary = await fetch("/herdsummary-" + herdID);
+    let summary = await fetch("/herdsummary-" + herdID);
     if (!summary.ok) {
         alertreal("Error Loading Data", "Error loading herd data. Please try again.", "ok")
     }
@@ -30,18 +30,18 @@ async function loadHerdSummary() {
 }
 
 function displayCows() {
-    var cows = getSessionDict("Cows");
+    let cows = getSessionDict("Cows");
 
     displayCowsBy("id", false, "bulls", cows);
     displayCowsBy("id", false, "cows", cows);
 }
 
 function displayCowsBy(orderby, reverse, gender, cowslist) {
-    var cows = document.getElementById("herd-btns-" + gender);
+    let cows = document.getElementById("herd-btns-" + gender);
     cows.replaceChildren();
-    var keylist = [];
+    let keylist = [];
 
-    for (var key in cowslist[gender]) {
+    for (let key in cowslist[gender]) {
         if (cowslist[gender].hasOwnProperty(key)) {
             keylist.push(key)
         }
@@ -55,17 +55,17 @@ function displayCowsBy(orderby, reverse, gender, cowslist) {
 
     if (reverse) keylist.reverse();
 
-    for (var key in keylist) {
+    for (let key in keylist) {
         if (keylist.hasOwnProperty(key)) {
-            key = keylist[key];
-            btn = document.createElement("button");
-            btn.textContent = cowslist[gender][key]["name"];
-            btn.herdid = key;
+            let protectedKey = keylist[key];
+            let btn = document.createElement("button");
+            btn.textContent = cowslist[gender][protectedKey]["name"];
+            btn.herdid = protectedKey;
 
             btn.onclick = (e) => {
                 changeDisplayedCow(gender, e.target.herdid);
                 btns = document.getElementsByClassName("focused-btn");
-                for (var i = 0; i < btns.length; i++) {
+                for (let i = 0; i < btns.length; i++) {
                     btns[i].classList.remove("focused-btn");
                 }
                 e.target.classList.add("focused-btn");
@@ -77,27 +77,27 @@ function displayCowsBy(orderby, reverse, gender, cowslist) {
 }
 
 function displayTraits() {
-    var traitnames = getSessionDict("TraitNames");
+    let traitnames = getSessionDict("TraitNames");
 
-    var herdAverages = document.getElementById("cow-stats");
-    var orderby = document.getElementById("order-by");
+    let herdAverages = document.getElementById("cow-stats");
+    let orderby = document.getElementById("order-by");
 
     function addFromKey(key) {
-        lbl = document.createElement("label");
+        let lbl = document.createElement("label");
         lbl.id = key + "-lbl";
         lbl.textContent = key;
 
-        ipt = document.createElement("input");
+        let ipt = document.createElement("input");
         ipt.id = key + "-ipt";
         ipt.disabled = true;
 
-        p = document.createElement("p");
+        let p = document.createElement("p");
         p.appendChild(lbl);
         p.appendChild(ipt);
 
         herdAverages.appendChild(p);
 
-        opt = document.createElement("option");
+        let opt = document.createElement("option");
         opt.value = key;
         opt.textContent = key;
         orderby.appendChild(opt);
@@ -107,7 +107,7 @@ function displayTraits() {
     addFromKey("Generation")
     addFromKey("Sire")
     addFromKey("Dam")
-    for (var key in traitnames) {
+    for (let key in traitnames) {
         if (traitnames.hasOwnProperty(key)) {
             addFromKey(key)
         }
@@ -115,7 +115,7 @@ function displayTraits() {
 }
 
 function changeDisplayedCow(gender, cowID) {
-    cows = getSessionDict("Cows");
+    let cows = getSessionDict("Cows");
 
     if (gender != undefined) {
         sessionStorage.setItem("LoadedGender", gender);
@@ -124,13 +124,13 @@ function changeDisplayedCow(gender, cowID) {
     }
 
     if (gender != undefined && cowID != undefined) {
-        var cowname = document.getElementById("cow-name");
+        let cowname = document.getElementById("cow-name");
         if (cowname.classList.contains("owner")) {
             cowname.disabled = false;
         }
 
 
-        var stats = cows[gender][cowID];
+        let stats = cows[gender][cowID];
         document.getElementById("cow-name").value = stats["name"]
 
         document.getElementById("id" + "-ipt").value = cowID;
@@ -138,22 +138,35 @@ function changeDisplayedCow(gender, cowID) {
         document.getElementById("Sire" + "-ipt").value = stats["Sire"];
         document.getElementById("Dam" + "-ipt").value = stats["Dam"];
 
-        for (var key in stats["traits"]) {
+        for (let key in stats["traits"]) {
             if (stats["traits"].hasOwnProperty(key)) {
                 document.getElementById(key + "-ipt").value = stats["traits"][key];
             }
         }
+
+        recessives = document.getElementById("cow-recessives");
+        recessives.innerHTML = "";
+        for (let key in stats["recessives"]) {
+            if (stats["recessives"].hasOwnProperty(key)) {
+                let carriercode;
+                let carriernumber = stats["recessives"][key];
+
+                if (carriernumber == 0) carriercode = "--";
+                else if (carriernumber == 1) carriercode = "-+";
+                else if (carriernumber == 2) carriercode = "++";
+
+                recessives.innerHTML += key + " " + carriercode + "<br>";
+            }
+        }
     } else {
-        var cowname = document.getElementById("cow-name").disabled = true;
-
-
         document.getElementById("cow-name").value = "[HERD SUMMARY]"
         document.getElementById("id" + "-ipt").value = "~";
         document.getElementById("Generation" + "-ipt").value = "~";
         document.getElementById("Sire" + "-ipt").value = "~";
         document.getElementById("Dam" + "-ipt").value = "~";
-        var stats = getSessionDict("HerdSummary");
-        for (var key in stats) {
+        document.getElementById("cow-recessives").innerHTML = "~";
+        let stats = getSessionDict("HerdSummary");
+        for (let key in stats) {
             if (stats.hasOwnProperty(key)) {
                 document.getElementById(key + "-ipt").value = stats[key];
             }
@@ -162,9 +175,9 @@ function changeDisplayedCow(gender, cowID) {
 }
 
 function setSortOrder() {
-    var reverse = document.getElementById("sort-pos-neg");
-    var orderby = document.getElementById("order-by");
-    var cows = getSessionDict("Cows");
+    let reverse = document.getElementById("sort-pos-neg");
+    let orderby = document.getElementById("order-by");
+    let cows = getSessionDict("Cows");
 
     displayCowsBy(orderby.value, reverse.value == "neg", "bulls", cows);
     displayCowsBy(orderby.value, reverse.value == "neg", "cows", cows);
@@ -178,16 +191,16 @@ function filterHasName(val) {
 function filterHasNameBy(val, gender) {
     setSortOrder();
 
-    var container = document.getElementById("herd-btns-" + gender);
-    var elements = [];
-    for (var i = 0; i < container.children.length; i++) {
+    let container = document.getElementById("herd-btns-" + gender);
+    let elements = [];
+    for (let i = 0; i < container.children.length; i++) {
         elements.push(container.childNodes[i]);
         container.removeChild(elements[elements.length - 1]);
         i--;
     }
 
-    var elements2 = [];
-    for (var i = 0; i < elements.length; i++) {
+    let elements2 = [];
+    for (let i = 0; i < elements.length; i++) {
         if (elements[i].textContent.toUpperCase().indexOf(val.toUpperCase()) > -1) {
             elements2.push(elements[i]);
         }
@@ -199,15 +212,15 @@ function filterHasNameBy(val, gender) {
 }
 
 function addAnotherBull() {
-    p = document.createElement("p");
+    let p = document.createElement("p");
     p.classList.add("bull");
     p.classList.add("single-bull")
     p.id = "bull-" + document.getElementsByClassName("bull").length;
 
-    p2 = document.createElement("p");
+    let p2 = document.createElement("p");
     p.appendChild(p2);
 
-    ipt = document.createElement("input");
+    let ipt = document.createElement("input");
     p2.appendChild(ipt);
     ipt.type = "number";
     ipt.min = 0;
@@ -217,11 +230,11 @@ function addAnotherBull() {
         IDChange(event.target);
     }
 
-    spn = document.createElement("span");
+    let spn = document.createElement("span");
     p.appendChild(spn)
     spn.textContent = "Enter ID#"
 
-    btn = document.createElement("button");
+    let btn = document.createElement("button");
     p2.appendChild(btn);
     btn.type = "button";
     btn.textContent = "Remove Bull";
@@ -233,13 +246,12 @@ function addAnotherBull() {
 }
 
 function removeBull(target) {
-    var bullsList = document.getElementsByClassName("bull");
+    let bullsList = document.getElementsByClassName("bull");
     if (bullsList.length <= 1) return;
     target.parentNode.remove();
 
-    var bullsList = document.getElementsByClassName("bull");
-    for (var i = 0; i < bullsList.length; i++) {
-        element = bullsList[i];
+    for (let i = 0; i < bullsList.length; i++) {
+        let element = bullsList[i];
         element.id = "bull-" + i;
         element.getElementsByTagName("input")[0].name = "bull-" + i;
     }
@@ -257,25 +269,25 @@ function IDChange(target) {
 }
 
 async function setCowName(event) {
-    LoadedGender = sessionStorage.getItem("LoadedGender")
+    let loadedGender = sessionStorage.getItem("LoadedGender")
 
-    if (LoadedGender == "none") return;
+    if (loadedGender == "none") return;
     event.target.disabled = true;
 
-    id = document.getElementById("id-ipt").value;
-    newname = document.getElementById("cow-name").value;
+    let id = document.getElementById("id-ipt").value;
+    let newname = document.getElementById("cow-name").value;
     if (!/^[A-Za-z0-9-_ .]+$/.test(newname)) {
         alertreal("Invalid name", `Letters, numbers  plus -_ . only.`, "ok");
         event.target.disabled = false;
         return;
     }
 
-    data = await fetch(`/set-cow-name/${id}/${LoadedGender.slice(0, -1)}/${newname}`);
-    jsondata = await data.json();
+    let data = await fetch(`/set-cow-name/${id}/${loadedGender.slice(0, -1)}/${newname}`);
+    let jsondata = await data.json();
 
     if (jsondata["successful"]) {
         cows = getSessionDict("Cows");
-        cows[LoadedGender][id]["name"] = newname;
+        cows[loadedGender][id]["name"] = newname;
         setSessionDict("Cows", cows);
 
         alertreal("Name Changed", `Name was successfully changed to <br> ${newname}`, "ok");
@@ -289,21 +301,18 @@ async function setCowName(event) {
 }
 
 async function moveToClassHerd(event) {
-    LoadedGender = sessionStorage.getItem("LoadedGender");
-    if (LoadedGender == "none") return;
+    let loadedGender = sessionStorage.getItem("LoadedGender");
+    if (loadedGender == "none") return;
     event.target.disabled = true;
 
     if (confirm(`Are you sure you want to move this ${gender} to class herd?\nThis action cannot be undone.`)) {
 
-        gender = LoadedGender;
-        id = document.getElementById("id-ipt").value;
-        data = await fetch(`/move-cow/${id}/${gender}`);
-        jsondata = await data.json();
-        jsondata = {
-            "successful": true
-        }
+        let gender = loadedGender;
+        let id = document.getElementById("id-ipt").value;
+        let data = await fetch(`/move-cow/${id}/${gender}`);
+        let jsondata = await data.json();
 
-        cows = getSessionDict("Cows");
+        let cows = getSessionDict("Cows");
         if (jsondata["successful"]) {
             alertreal("Move Successful", `${cows[gender][id]["name"]} was successfully moved to class herd.`, "ok");
             delete cows[gender][id];
@@ -324,8 +333,8 @@ async function FetchIDChange(target) {
         return;
     };
 
-    var data = await fetch(`/get-cow-name/${target.value}`);
-    var jsonData = await data.json();
+    let data = await fetch(`/get-cow-name/${target.value}`);
+    let jsonData = await data.json();
 
     if (jsonData["name"] == null) {
         target.parentNode.parentNode.getElementsByTagName("span")[0].textContent = "INVALID ID#";

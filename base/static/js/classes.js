@@ -1,15 +1,15 @@
 async function changeinfo(event, classID) {
     event.target.dissabled = true;
-    var classinfo = document.getElementById("classinfo");
-    var text = classinfo.value;
+    let classinfo = document.getElementById("classinfo");
+    let text = classinfo.value;
     if (text == "") {
         text = "<&:none>"
     }
 
     text = text.replace("/", "<&:slash>")
 
-    var promise = await fetch(`/set-classinfo/${classID}/${encodeURIComponent(text)}`);
-    var data = await promise.json();
+    let promise = await fetch(`/set-classinfo/${classID}/${encodeURIComponent(text)}`);
+    let data = await promise.json();
     if (data["successful"]) {
         alertreal("Class Info Saved", "Class info has been successfully saved.", "ok");
     } else {
@@ -21,8 +21,8 @@ async function changeinfo(event, classID) {
 async function deleteuser(event, userID) {
     event.target.dissabled = true;
 
-    var promise = await fetch(`/delete-enrollment/${userID}`);
-    var data = await promise.json();
+    let promise = await fetch(`/delete-enrollment/${userID}`);
+    let data = await promise.json();
 
     if (data["successful"]) {
         document.getElementById("member-" + userID).remove()

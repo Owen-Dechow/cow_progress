@@ -156,3 +156,10 @@ main .panel.right p input {
     text-align: right;
     background-color: inherit;
 }
+
+main .panel.right .cow-recessives {
+    width: 100%;
+    resize: vertical;
+    min-height: fit-content;
+    font-family: monospace;
+}

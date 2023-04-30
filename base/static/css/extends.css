@@ -39,7 +39,8 @@ nav a:hover {
 input,
 button,
 textarea,
-.as-btn {
+.as-btn,
+.as-input {
     margin-top: 2px;
     padding: 5px;
     border-radius: 2px;
@@ -130,60 +131,13 @@ footer span {
     margin-bottom: 10px;
 }
 
-.as_link {
+.as-link {
     filter: brightness(70%);
     color: inherit;
     text-decoration: none
 }
 
-.as_link:hover {
+.as-link:hover {
     filter: brightness(90%);
     text-decoration: underline;
-}
-
-#loading-screen {
-    z-index: 99;
-    position: fixed;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-
-    opacity: 0;
-    transition: opacity 1s;
-
-    width: 100%;
-    height: 100%;
-    background-color: var(--transparent);
-}
-
-#loading-screen.solid {
-    opacity: 1;
-}
-
-#loading-screen div {
-    position: absolute;
-    width: 80px;
-    aspect-ratio: 1/1;
-
-    border-radius: 50%;
-    border: 20px dotted var(--light);
-    animation: 2s ease-in 0s infinite reverse both running rotate;
-}
-
-@keyframes rotate {
-    from {
-        transform: rotate(0turn);
-    }
-
-    25% {
-        transform: rotate(0.25turn) scale(1.25);
-    }
-
-    70% {
-        transform: rotate(0.75turn) scale(0.75);
-    }
-
-    to {
-        transform: rotate(1turn);
-    }
 }

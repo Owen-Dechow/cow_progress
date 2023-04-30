@@ -1,9 +1,7 @@
 from . import traits
+from .traits import RELPATH, DOMAIN
 import numpy as np
 from scipy.linalg import cholesky
-
-RELPATH = traits.RELPATH
-DOMAIN = traits.DOMAIN
 
 
 def get_cor_matrix():

@@ -1,6 +1,7 @@
 from django.contrib.auth.models import User
 from .traitinfo import correlations as cor
-from random import randrange, random
+from .traitinfo import recessives
+from random import randrange, random, randint
 from .traitinfo import traits
 from django.db import models
 from math import prod
@@ -27,6 +28,9 @@ class TraitsList(models.Model):
     data = models.JSONField()  # Stores the unscaled data -1 to 1 form
     scaled = models.JSONField()  # Stores the front end scaled PTA data
 
+    recessives = models.JSONField()  # Stores recessives
+    # [0 = Homozygous Dominant, 1=Heterozygous, 2=Homozygous Recessive]
+
     #### Refrances either the cow or bull connected to PTA list ####
     connected_bull = models.ForeignKey(
         to="Bull",
@@ -48,6 +52,7 @@ class TraitsList(models.Model):
         # Create and initialize new List
         new = TraitsList()
         new.data = {}
+        new.recessives = {}
 
         # Generate mutated uncorrelated values -1 to 1
         uncorrelated = {}
@@ -69,6 +74,12 @@ class TraitsList(models.Model):
         # Scale data for front end
         new.set_scaled_data()
 
+        # Set the genetic recessives for new animal
+        for recessive in recessives.get_recessives():
+            new.recessives[recessive] = recessives.get_result_of_two(
+                a.recessives[recessive], b.recessives[recessive]
+            )
+
         # Connect to animal
         if bull:
             bull.save()
@@ -89,6 +100,11 @@ class TraitsList(models.Model):
 
         # Scale the data
         self.set_scaled_data()
+
+        # Set the genetic recessives for new animal
+        self.recessives = {}
+        for recessive in recessives.get_recessives():
+            self.recessives[recessive] = randint(0, 2)
 
         # Connect to animal and save data
         self.save()
@@ -227,6 +243,7 @@ class Herd(models.Model):
                 "Sire": cow.sire.id if cow.sire else "NA",
                 "Dam": cow.dam.id if cow.dam else "NA",
                 "traits": cow.traits.scaled,
+                "recessives": cow.traits.recessives,
             }
 
         # Adds bulls to dict
@@ -237,6 +254,7 @@ class Herd(models.Model):
                 "Sire": bull.sire.id if bull.sire else "NA",
                 "Dam": bull.dam.id if bull.dam else "NA",
                 "traits": bull.traits.scaled,
+                "recessives": bull.traits.recessives,
             }
 
         return herd
