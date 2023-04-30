@@ -162,20 +162,28 @@ footer span {
 
 #loading-screen div {
     position: absolute;
-    width: 70px;
+    width: 80px;
     aspect-ratio: 1/1;
 
     border-radius: 50%;
     border: 20px dotted var(--light);
-    animation: 1s ease-in-out 0s infinite reverse both running rotate;
+    animation: 2s ease-in 0s infinite reverse both running rotate;
 }
 
 @keyframes rotate {
     from {
-        transform: rotate(0);
+        transform: rotate(0turn);
+    }
+
+    25% {
+        transform: rotate(0.25turn) scale(1.25);
+    }
+
+    70% {
+        transform: rotate(0.75turn) scale(0.75);
     }
 
     to {
-        transform: rotate(360deg);
+        transform: rotate(1turn);
     }
 }

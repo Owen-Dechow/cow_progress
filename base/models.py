@@ -1,11 +1,15 @@
-from django.db import models
 from django.contrib.auth.models import User
+from .traitinfo import correlations as cor
 from random import randrange, random
 from .traitinfo import traits
-from .traitinfo import correlations as cor
+from django.db import models
+from math import prod
 
 PTA_DECIMALS = 3  # Number of decimal placements shown for PTAs on website/ xlsx files
 MUTATION_RATE = 0.25  # Maximum mutation of a PTA in one generation from -1 to 1 value
+ATTRACT_0 = lambda: prod(
+    random() for _ in range(4)
+)  # Returns a number close to 0 | Mean = 0.5^4 = 0.0625, Range = [0, 1)
 
 
 # List of recourses found on front page
@@ -53,7 +57,7 @@ class TraitsList(models.Model):
 
             # Ensure new value is in range -1 to 1
             if abs(newval) > 1:
-                newval += abs(newval) / newval
+                newval = (abs(newval) / newval) * (1 + ATTRACT_0())
 
             uncorrelated[trait.name] = newval
 

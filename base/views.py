@@ -437,7 +437,7 @@ def breed_herd(request: WSGIRequest, herdID: int):
     auth_herd(request, herd, unprotected=False)
 
     herd.run_breeding(sires)
-    return HttpResponseRedirect(f"/open-herd/{herd.id}")
+    return HttpResponseRedirect(f"/openherd-{herd.id}")
 
 
 @login_required
@@ -457,7 +457,7 @@ def auto_generate_herd(request: WSGIRequest):
     herd = models.Herd.get_auto_generated_herd(name, _class, enrollment=enrollment)
     herd.owner = request.user
     herd.save()
-    return HttpResponseRedirect(f"/open-herd/{herd.id}")
+    return HttpResponseRedirect(f"/openherd-{herd.id}")
 
 
 @login_required
