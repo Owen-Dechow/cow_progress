@@ -8,6 +8,7 @@ urlpatterns = [
     path("openherd-<int:herdID>", views.open_herd, name="openherd"),
     path("account", views.account, name="account"),
     path("classes", views.classes, name="classes"),
+    path("recessives", views.recessives, name="recessives"),
     ########### JSON patterns ###########
     path("traitnames", views.traitnames),
     path("herdsummaries", views.herdsummaries),

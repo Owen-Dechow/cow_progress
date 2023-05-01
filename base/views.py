@@ -206,6 +206,10 @@ def classes(request: WSGIRequest):
     )
 
 
+def recessives(request: WSGIRequest):
+    return render(request, "base/recessives.html")
+
+
 ########## JSON requests ##########
 @login_required
 def traitnames(request: WSGIRequest):

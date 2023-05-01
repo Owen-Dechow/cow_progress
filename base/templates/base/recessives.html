@@ -1,0 +1,49 @@
+{% extends "../extends.html" %}
+{% load dic %}
+{% load static %}
+{% block title %}
+ Recessives
+{% endblock title %}
+{% block links %}
+    <link rel="stylesheet" href="{% static 'css/recessives.css' %}">
+{% endblock links %}
+{% block body %}
+    <h1>Recessives</h1>
+    <div class="table-container">
+        <table>
+            <tr>
+                <th>Abbreviation</th>
+                <th>Full Name</th>
+            </tr>
+            <tr>
+                <td>BLAD</td>
+                <td>Bovine leukocyte adhesion deficiency</td>
+            </tr>
+            <tr>
+                <td>DUMPS</td>
+                <td>Deficiency of Uridine Monophosphate Synthase</td>
+            </tr>
+            <tr>
+                <td>MF</td>
+                <td>Mulefoot</td>
+            </tr>
+            <tr>
+                <td>CD</td>
+                <td>Cholesterol Deficiency</td>
+            </tr>
+            <tr>
+                <td>POLLED</td>
+                <td>Polled Condition</td>
+            </tr>
+            <tr>
+                <td>CVM</td>
+                <td>Complex Vertebral Malformation</td>
+            </tr>
+            <tr>
+                <td>BY</td>
+                <td>Brachyspina</td>
+            </tr>
+
+        </table>
+    </div>
+{% endblock body %}
