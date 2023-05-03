@@ -242,3 +242,17 @@ class Passwordcheck(forms.Form):
         widget=forms.PasswordInput(),
         help_text="Reconfirm password to continue.",
     )
+
+
+# Get a animal for pedagree information
+class PullForPedigree(forms.Form):
+    MALE = "Male"
+    FEMALE = "Female"
+
+    animalid = forms.IntegerField(min_value=0, label="Animal Id")
+    sex = forms.ChoiceField(
+        choices=(
+            (MALE, MALE),
+            (FEMALE, FEMALE),
+        )
+    )

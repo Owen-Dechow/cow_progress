@@ -47,7 +47,7 @@ function displayCowsBy(orderby, reverse, gender, cowslist) {
         }
     }
 
-    if (orderby == "id") keylist.sort().reverse();
+    if (orderby == "id") keylist.sort((a, b) => b - a)
     else if (orderby == "Generation") keylist.sort((a, b) => cowslist[gender][b]["Generation"] - cowslist[gender][a]["Generation"])
     else if (orderby == "Sire") keylist.sort((a, b) => cowslist[gender][b]["Sire"] - cowslist[gender][a]["Sire"])
     else if (orderby == "Dam") keylist.sort((a, b) => cowslist[gender][b]["Dam"] - cowslist[gender][a]["Dam"])
@@ -138,6 +138,8 @@ function changeDisplayedCow(gender, cowID) {
         document.getElementById("Sire" + "-ipt").value = stats["Sire"];
         document.getElementById("Dam" + "-ipt").value = stats["Dam"];
 
+
+
         for (let key in stats["traits"]) {
             if (stats["traits"].hasOwnProperty(key)) {
                 document.getElementById(key + "-ipt").value = stats["traits"][key];
@@ -158,8 +160,13 @@ function changeDisplayedCow(gender, cowID) {
                 recessives.innerHTML += key + " " + carriercode + "<br>";
             }
         }
+
+        let sex = gender == "bulls" ? "Male" : "Female"
+        document.getElementById("pedigree-link").href = `/pedigree?animalid=${cowID}&sex=${sex}`;
+
     } else {
-        document.getElementById("cow-name").value = "[HERD SUMMARY]"
+        document.getElementById("pedigree-link").href = "javascript:void(0)";
+        document.getElementById("cow-name").value = "[HERD SUMMARY]";
         document.getElementById("id" + "-ipt").value = "~";
         document.getElementById("Generation" + "-ipt").value = "~";
         document.getElementById("Sire" + "-ipt").value = "~";

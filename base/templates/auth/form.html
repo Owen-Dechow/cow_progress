@@ -1,9 +1,10 @@
 {% extends "../extends.html" %}
+
 {% load dic %}
 {% load static %}
 
 {% block title %}
-Auth Form
+    Auth Form
 {% endblock title %}
 
 {% block links %}
@@ -12,12 +13,13 @@ Auth Form
 
 {% block body %}
     <form method="POST">
-
         {% csrf_token %}
+
         {% if form.non_field_errors %}
             {{ form.non_field_errors }}
             <br>
         {% endif %}
+
         {% for field in form %}
             {{ field.label }}
             {{ field }}
@@ -25,6 +27,7 @@ Auth Form
             <div class="help">{{ field.help_text }}</div>
             <br>
         {% endfor %}
+
         <button type="submit">Submit</button>
     </form>
 {% endblock body %}

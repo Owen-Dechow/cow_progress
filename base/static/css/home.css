@@ -68,3 +68,9 @@ main .info-panel .poptext {
 main .info-panel .lines {
     white-space: pre-line;
 }
+
+main .pedigree-btn {
+    width: calc(100% - 20px);
+    margin: 10px 0 0 10px;
+    box-sizing: border-box;
+}

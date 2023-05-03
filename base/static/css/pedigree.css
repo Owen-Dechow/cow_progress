@@ -1,0 +1,56 @@
+main .pedigree {
+    background-color: var(--prime);
+    margin: 10px;
+    padding: 20px
+}
+
+main .pedigree details div {
+    padding-left: 20px;
+    border-left: 1px dotted;
+}
+
+main .pedigree details summary {
+    padding: 5px;
+}
+
+main .pedigree details summary a {
+    margin-left: 5px;
+}
+
+main .pedigree h1 {
+    text-align: center;
+}
+
+main table {
+    margin: 10px;
+    width: calc(100% - 20px);
+    background-color: var(--prime);
+    border-collapse: collapse;
+}
+
+main table tr:nth-child(even) {
+    background-color: var(--secondary);
+}
+
+main table td,
+main table th {
+    padding: 5px;
+}
+
+main table td.leftcol {
+    width: 70%;
+}
+
+main .recessive-info {
+    background-color: var(--prime);
+    margin-inline: 10px;
+    padding: 5px;
+}
+
+main .hide {
+    display: none;
+}
+
+main h2 {
+    text-align: center;
+}

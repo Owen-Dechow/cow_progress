@@ -59,6 +59,17 @@ async function setSessionDict(id, obj) {
 }
 
 window.addEventListener("DOMContentLoaded", async () => {
+    if (getcookie("acceptedcookie") != "true") {
+        alertreal(
+            "Waring",
+            "This website depends on cookies to function. Please accept cookies before use.",
+            "Accept Cookies",
+            () => {
+                setcookie("acceptedcookie", "true", 1)
+            },
+        )
+    }
+
     if (window.setUp) {
         await window.setUp();
     }

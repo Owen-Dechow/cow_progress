@@ -40,7 +40,8 @@ input,
 button,
 textarea,
 .as-btn,
-.as-input {
+.as-input,
+select {
     margin-top: 2px;
     padding: 5px;
     border-radius: 2px;

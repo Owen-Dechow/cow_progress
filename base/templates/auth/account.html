@@ -1,9 +1,10 @@
 {% extends "../extends.html" %}
+
 {% load dic %}
 {% load static %}
 
 {% block title %}
-My Account
+    My Account
 {% endblock title %}
 
 {% block links %}
@@ -16,10 +17,12 @@ My Account
         <span>Username: <span class="pow">{{ request.user.username }}</span></span>
         <br>
         {% csrf_token %}
+
         {% if form.non_field_errors %}
             {{ form.non_field_errors }}
             <br>
         {% endif %}
+
         {% for field in form %}
             {{ field.label }}
             {{ field }}
@@ -27,6 +30,7 @@ My Account
             <div class="help">{{ field.help_text }}</div>
             <br>
         {% endfor %}
+
         <button type="submit">Edit Info</button>
     </form>
     <form>
@@ -37,14 +41,15 @@ My Account
         <h1>Delete Account</h1>
         {{ passwordcheck.password.label }}
         {{ passwordcheck.password }}
+
         {% if passworderror %}
             <ul class="errorlist">
                 <li>Incorrect Password</li>
             </ul>
         {% endif %}
+
         <span>{{ passwordcheck.password.help_text }}</span>
         <br>
-
         <button href="/auth/delete-account"
                 onclick="return confirm('Are you sure you want to delete you account? \nThis action cannot be undone.')">
             Delete

@@ -23,10 +23,14 @@ def auth_herd(request: WSGIRequest, herd: models.Herd, error=True, unprotected=T
         if herd.unrestricted:
             return True
 
-        classes = [
-            x.connectedclass
-            for x in models.Enrollment.objects.filter(user=request.user)
-        ]
+        classes = (
+            [
+                x.connectedclass
+                for x in models.Enrollment.objects.filter(user=request.user)
+            ]
+            if request.user.is_authenticated
+            else []
+        )
         for connectedclass in classes:
             if herd == connectedclass.herd:
                 return True
@@ -69,6 +73,17 @@ def string_validation(
 def JSONSuccess(success: bool):
     """Returns a success dict"""
     return JsonResponse({"successful": success})
+
+
+def get_pedigree_dict(pedigree_object):
+    sex = "Male" if pedigree_object.male else "Female"
+    pedigree = {"dam": None, "sire": None, "id": pedigree_object.animal_id, "sex": sex}
+    if pedigree_object.dam:
+        pedigree["dam"] = get_pedigree_dict(pedigree_object.dam)
+    if pedigree_object.sire:
+        pedigree["sire"] = get_pedigree_dict(pedigree_object.sire)
+
+    return pedigree
 
 
 ########## Page views ##########
@@ -210,6 +225,32 @@ def recessives(request: WSGIRequest):
     return render(request, "base/recessives.html")
 
 
+def pedigree(request: WSGIRequest):
+    status = "get"
+    dataid = -1
+
+    if request.GET:
+        form = forms.PullForPedigree(request.GET)
+        if form.is_valid():
+            data = form.cleaned_data
+            sex = data["sex"] == forms.PullForPedigree.MALE
+            try:
+                dataid = models.Pedigree.objects.get(
+                    animal_id=data["animalid"], male=sex
+                ).id
+                status = "successful"
+            except:
+                status = "failed"
+    else:
+        form = forms.PullForPedigree()
+
+    return render(
+        request,
+        "base/pedigree.html",
+        {"status": status, "form": form, "dataID": dataid},
+    )
+
+
 ########## JSON requests ##########
 @login_required
 def traitnames(request: WSGIRequest):
@@ -281,6 +322,36 @@ def get_bull_name(request: WSGIRequest, cowID: int):
 
     accessible = auth_herd(request, bull.herd, error=False)
     return JsonResponse({"name": bull.name if accessible else None})
+
+
+def get_pedigree(request: WSGIRequest, pedigreeID: int):
+    pedigree = get_object_or_404(models.Pedigree, id=pedigreeID)
+    return JsonResponse(get_pedigree_dict(pedigree))
+
+
+def get_cow_data(request: WSGIRequest, sex: str, cowID: int):
+    if sex == "Male":
+        model = models.Bull
+    if sex == "Female":
+        model = models.Cow
+
+    try:
+        cow = model.objects.get(id=cowID)
+    except:
+        return JSONSuccess(False)
+
+    can_give_data = auth_herd(request, cow.herd, False)
+
+    if can_give_data:
+        return JsonResponse(
+            {
+                "successful": True,
+                "traits": cow.traits.scaled,
+                "recessives": cow.traits.recessives,
+            }
+        )
+    else:
+        return JSONSuccess(False)
 
 
 ########## File requests ##########

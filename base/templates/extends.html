@@ -1,4 +1,5 @@
 {% load static %}
+
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -6,46 +7,43 @@
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>
-            {% block titleprefix %}Cow Progress |{% endblock %}
-            {% block title %}{% endblock %}
-        </title>
 
+            {% block titleprefix %}Cow Progress |{% endblock %}
+
+            {% block title %}{% endblock %}
+
+        </title>
         <link rel="stylesheet" href="{% static 'css/extends.css' %}">
         <script src="{% static 'js/util.js' %}"></script>
- 
+
         {% block links %}{% endblock %}
+
     </head>
     <body>
         <nav>
             <a class="home-link" href="/">Cow Progress</a>
+
             {% if user.is_authenticated %}
                 <a href="/herds">Herds</a>
                 <a href="/classes">Classes</a>
+
                 {% if user.is_staff %}<a href="/admin">Admin</a>{% endif %}
+
                 <a href="/account">Account</a>
                 <a onclick="return confirm(`Confirm logout.`)" href="/auth/logout">Logout</a>
             {% else %}
                 <a href="/auth/register">Create Account</a>
                 <a href="/auth/login">Login</a>
             {% endif %}
+
         </nav>
         <main>
+
             {% block body %}
             {% endblock body %}
+
         </main>
         <footer id="footer">
-            <script>
-                if (getcookie("acceptedcookie") != "true") {
-                    alertreal(
-                        "Waring",
-                        "This website depends on cookies to function. Please accept cookies before use.",
-                        "Accept Cookies",
-                        () => {
-                            setcookie("acceptedcookie", "true", 1)
-                        },
-                    )
-                }
-            </script>
         </footer>
     </body>
 </html>

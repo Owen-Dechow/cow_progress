@@ -1,13 +1,17 @@
 {% extends "../extends.html" %}
+
 {% load dic %}
 {% load static %}
+
 {% block title %}
-My Herds
+    My Herds
 {% endblock title %}
+
 {% block links %}
     <script src="{% static 'js/herds.js' %}"></script>
     <link rel="stylesheet" href="{% static 'css/herds.css' %}">
 {% endblock links %}
+
 {% block body %}
     <div class="panel left" id="left-panel" style="--flowdir: column;">
         <div class="title">
@@ -21,6 +25,7 @@ My Herds
             <h2>Private Herds</h2>
             <div id="herd-btns-private" class="col"></div>
         </div>
+
         {% if classes %}
             <div class="new-herd">
                 <h2>Create New Herd</h2>
@@ -29,11 +34,9 @@ My Herds
                     <br>
                     <label>Select Class For Herd</label>
                     <select name="class" required>
-                        {% for class in classes %}
-                            <option value="{{ class.id }}">
-                                {{ class.name }}
-                            </option>
-                        {% endfor %}
+
+                        {% for class in classes %}<option value="{{ class.id }}">{{ class.name }}</option>{% endfor %}
+
                     </select>
                     <label>Herd Name</label>
                     <div>
@@ -43,6 +46,7 @@ My Herds
                 </form>
             </div>
         {% endif %}
+
     </div>
     <div class="panel right" id="right-panel">
         <h1 id="herd-name">~</h1>

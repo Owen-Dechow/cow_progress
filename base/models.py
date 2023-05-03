@@ -1,3 +1,4 @@
+from typing import Iterable, Optional
 from django.contrib.auth.models import User
 from .traitinfo import correlations as cor
 from .traitinfo import recessives
@@ -24,25 +25,30 @@ class Resource(models.Model):
 
 
 # Holds the PTAs on single animal
-class TraitsList(models.Model):
+class Bovine(models.Model):
     data = models.JSONField()  # Stores the unscaled data -1 to 1 form
     scaled = models.JSONField()  # Stores the front end scaled PTA data
 
-    recessives = models.JSONField()  # Stores recessives
-    # [0 = Homozygous Dominant, 1=Heterozygous, 2=Homozygous Recessive]
+    # Stores recessives [0 = Homozygous Dominant, 1=Heterozygous, 2=Homozygous Recessive]
+    recessives = models.JSONField()
+
+    # Stores the pedigree object for animal
+    pedigree = models.ForeignKey(to="Pedigree", on_delete=models.CASCADE)
 
     #### Refrances either the cow or bull connected to PTA list ####
     connected_bull = models.ForeignKey(
         to="Bull",
         on_delete=models.CASCADE,
-        related_name="_connectedbull",
+        related_name="_connected_bull",
         null=True,
+        blank=True,
     )
     connected_cow = models.ForeignKey(
         to="Cow",
         on_delete=models.CASCADE,
-        related_name="_connectedcow",
+        related_name="_connected_cow",
         null=True,
+        blank=True,
     )
 
     @staticmethod
@@ -50,7 +56,7 @@ class TraitsList(models.Model):
         """Takes in two TraitsLists and creates a child List from the data"""
 
         # Create and initialize new List
-        new = TraitsList()
+        new = Bovine()
         new.data = {}
         new.recessives = {}
 
@@ -134,6 +140,31 @@ class TraitsList(models.Model):
         else:
             return "NONE"
 
+    def save(self, *args, **kwargs):
+        if not hasattr(self, "pedigree"):
+            self.pedigree = Pedigree()
+
+        if self.connected_bull:
+            male = True
+            animal = self.connected_bull
+        elif self.connected_cow:
+            male = False
+            animal = self.connected_cow
+        else:
+            animal = None
+
+        if animal is not None:
+            self.pedigree.animal_id = animal.id
+            self.pedigree.male = male
+            if animal.sire:
+                self.pedigree.sire = animal.sire.traits.pedigree
+            if animal.dam:
+                self.pedigree.dam = animal.dam.traits.pedigree
+
+        self.pedigree.save()
+
+        super().save(*args, **kwargs)
+
 
 # Holds a group of animals
 class Herd(models.Model):
@@ -186,7 +217,7 @@ class Herd(models.Model):
         for _ in range(NUMBER_OF_COWS):
             cow = Cow()
 
-            cow.traits = TraitsList()
+            cow.traits = Bovine()
             cow.traits.auto_data(cow=cow)
             cow.herd = herd
             cow.name = cow.get_name()
@@ -196,7 +227,7 @@ class Herd(models.Model):
         for _ in range(NUMBER_OF_BULLS):
             bull = Bull()
 
-            bull.traits = TraitsList()
+            bull.traits = Bovine()
             bull.traits.auto_data(bull=bull)
             bull.herd = herd
             bull.name = bull.get_name()
@@ -339,7 +370,7 @@ class Cow(models.Model):
 
     # Connects a trait list to cow
     traits = models.OneToOneField(
-        to=TraitsList,
+        to=Bovine,
         on_delete=models.SET_NULL,
         related_name="Cull_traits_TraitsList",
         null=True,
@@ -358,7 +389,7 @@ class Cow(models.Model):
     def get_name(self):
         """Autogenerates a name for cow"""
 
-        return f"X Id-{self.id} Gen-{self.generation}"
+        return f"X{self.id} G{self.generation}"
 
     def get_sexed_id(self):
         """Gets the int id of cow with the 'f' prefix"""
@@ -370,7 +401,7 @@ class Cow(models.Model):
         """Creates a cow from a breeding"""
 
         cow = Cow()
-        cow.traits = TraitsList.get_mutated_average(sire.traits, dam.traits, cow=cow)
+        cow.traits = Bovine.get_mutated_average(sire.traits, dam.traits, cow=cow)
         cow.generation = herd.breedings
         cow.herd = herd
         cow.name = cow.get_name()
@@ -378,6 +409,7 @@ class Cow(models.Model):
         cow.dam = dam
 
         cow.save()
+        cow.traits.save()
 
 
 # Single male animal
@@ -394,7 +426,7 @@ class Bull(models.Model):
 
     # Connects a trait list to bull
     traits = models.OneToOneField(
-        to=TraitsList,
+        to=Bovine,
         on_delete=models.SET_NULL,
         related_name="Bull_traits_TraitsList",
         null=True,
@@ -413,7 +445,7 @@ class Bull(models.Model):
     def get_name(self):
         """Autogenerates a name for bull"""
 
-        return f"Y id-{self.id} Gen-{self.generation}"
+        return f"Y{self.id} G{self.generation}"
 
     def get_sexed_id(self):
         """Gets the int id of cow with the 'm' prefix"""
@@ -425,13 +457,15 @@ class Bull(models.Model):
         """Creates a bull from a breeding"""
 
         bull = Bull()
-        bull.traits = TraitsList.get_mutated_average(sire.traits, dam.traits, bull=bull)
+        bull.traits = Bovine.get_mutated_average(sire.traits, dam.traits, bull=bull)
         bull.generation = herd.breedings
         bull.herd = herd
         bull.name = bull.get_name()
         bull.sire = sire
         bull.dam = dam
+
         bull.save()
+        bull.traits.save()
 
 
 # Class object
@@ -535,3 +569,14 @@ class Enrollment(models.Model):
         while len(enrollments) > 1:
             e = enrollments.pop()
             e.delete()
+
+
+class Pedigree(models.Model):
+    animal_id = models.CharField(max_length=255, null=True)
+    male = models.BooleanField(null=True)
+    dam = models.ForeignKey(
+        to="Pedigree", related_name="_dam", on_delete=models.CASCADE, null=True
+    )
+    sire = models.ForeignKey(
+        to="Pedigree", related_name="_sire", on_delete=models.CASCADE, null=True
+    )

@@ -1,9 +1,10 @@
 {% extends "../extends.html" %}
+
 {% load dic %}
 {% load static %}
 
 {% block title %}
-Login
+    Login
 {% endblock title %}
 
 {% block links %}
@@ -14,10 +15,12 @@ Login
     <form method="POST">
         <h1>Login</h1>
         {% csrf_token %}
+
         {% if form.non_field_errors %}
             {{ form.non_field_errors }}
             <br>
         {% endif %}
+
         {% for field in form %}
             {{ field.label }}
             {{ field }}
@@ -25,6 +28,7 @@ Login
             <div class="help">{{ field.help_text }}</div>
             <br>
         {% endfor %}
+
         <button type="submit">Login</button>
         <a class="as-btn" href="/auth/password-reset">Can't Remember Password</a>
     </form>

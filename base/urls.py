@@ -9,12 +9,15 @@ urlpatterns = [
     path("account", views.account, name="account"),
     path("classes", views.classes, name="classes"),
     path("recessives", views.recessives, name="recessives"),
+    path("pedigree", views.pedigree, name="pedigree"),
     ########### JSON patterns ###########
     path("traitnames", views.traitnames),
     path("herdsummaries", views.herdsummaries),
     path("herdsummary-<int:herdID>", views.herdsummary),
     path("herddata-<int:herdID>", views.get_herd_data),
     path("get-cow-name/<int:cowID>", views.get_bull_name),
+    path("get-pedigree-<int:pedigreeID>", views.get_pedigree),
+    path("get-<str:sex>-data-<int:cowID>", views.get_cow_data),
     ########### File patterns ###########
     path("herd-file/<int:herdID>", views.get_herd_file),
     ########### Actions -> success dict ###########

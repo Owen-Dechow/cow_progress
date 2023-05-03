@@ -63,12 +63,6 @@ main .panel.left .sort form {
     margin-bottom: 3px;
 }
 
-main .panel.left .sort form select {
-    padding: 3px;
-    color: inherit;
-    background-color: var(--secondary);
-}
-
 main .panel.left .sort form input {
     width: 100%;
     margin-top: 5px;
