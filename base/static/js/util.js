@@ -114,8 +114,13 @@ async function setSessionDict(id, obj) {
 window.addEventListener("DOMContentLoaded", async () => {
     if (getcookie("acceptedcookie") != "true") {
         alertreal(
-            "Waring",
-            "This website depends on cookies to function. Please accept cookies before use.",
+            "COOKIES IN USE!",
+            `
+                This program utilizes cookies for security and user authentication.
+                All cookies used are required for website functionality.
+                At no time will any cookies be used to collect information about you.
+                By using this website you recognize and accept the use of cookies.
+            `,
             "Accept Cookies",
             null,
             () => {
