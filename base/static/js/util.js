@@ -1,3 +1,37 @@
+async function cancelNav(object, headerText, messageText, okText, cancelText) {
+    let result = await alertreal(headerText, messageText, okText, cancelText);
+    if (result) {
+        window.location = object.href;
+    }
+}
+
+async function cancelClick(object, headerText, messageText, okText, cancelText) {
+    let result = await alertreal(headerText, messageText, okText, cancelText);
+    if (result) {
+        let clickMethod = object.onclick;
+        object.onclick = () => true;
+        object.click();
+        object.onclick = clickMethod;
+    }
+}
+
+async function cancelSubmit(object, headerText, messageText, okText, cancelText) {
+    let result = await alertreal(headerText, messageText, okText, cancelText);
+    console.log(result);
+    if (result) {
+        object.submit();
+    }
+}
+
+function waitFor(conditionFunc) {
+    const poll = resolve => {
+        if (conditionFunc()) resolve();
+        else setTimeout(_ => poll(resolve), 400);
+    }
+
+    return new Promise(poll);
+}
+
 function Copy(text) {
     let copyText = document.createElement("input");
     copyText.value = text;
@@ -6,7 +40,9 @@ function Copy(text) {
     alertreal("Copied Text", text, "ok")
 }
 
-function alertreal(headerText, messageText, okText, func = () => { }) {
+async function alertreal(headerText, messageText, okText, cancelText = null, func = () => { }) {
+    let response = null;
+
     let div = document.createElement("div");
 
     h1 = document.createElement("h1");
@@ -19,13 +55,30 @@ function alertreal(headerText, messageText, okText, func = () => { }) {
 
     let btn = document.createElement("button");
     btn.textContent = okText;
-    btn.onclick = (event) => {
-        func();
-        event.target.parentNode.remove();
+    btn.onclick = () => {
+        response = true;
     };
     div.append(btn);
+    document.activeElement.blur();
 
-    document.getElementById("footer").append(div);
+    if (cancelText != null) {
+        let btn2 = document.createElement("button");
+        btn2.textContent = cancelText;
+        btn2.onclick = () => {
+            response = false;
+        };
+        div.append(btn2);
+    }
+
+    let alert = document.getElementById("alert");
+    alert.append(div);
+    alert.classList.add("on");
+
+    await waitFor(() => response != null)
+    func();
+    div.remove();
+    document.getElementById("alert").classList.remove("on");
+    return response;
 }
 
 function setcookie(name, value, days) {
@@ -64,6 +117,7 @@ window.addEventListener("DOMContentLoaded", async () => {
             "Waring",
             "This website depends on cookies to function. Please accept cookies before use.",
             "Accept Cookies",
+            null,
             () => {
                 setcookie("acceptedcookie", "true", 1)
             },

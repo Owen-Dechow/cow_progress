@@ -157,3 +157,7 @@ main .panel.right .cow-recessives {
     min-height: fit-content;
     font-family: monospace;
 }
+
+main .padleft {
+    margin-left: 5px;
+}

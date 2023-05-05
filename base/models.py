@@ -110,7 +110,7 @@ class Bovine(models.Model):
         # Set the genetic recessives for new animal
         self.recessives = {}
         for recessive in recessives.get_recessives():
-            self.recessives[recessive] = randint(0, 2)
+            self.recessives[recessive] = randint(0, randint(0, 2))
 
         # Connect to animal and save data
         self.save()
@@ -233,6 +233,9 @@ class Herd(models.Model):
             bull.name = bull.get_name()
             bull.save()
 
+        # Remove any animals dead from recessives
+        herd.remove_deaths_from_recessives()
+
         herd.save()
         return herd
 
@@ -271,8 +274,12 @@ class Herd(models.Model):
             herd["cows"][cow.id] = {
                 "name": cow.name,
                 "Generation": cow.generation,
-                "Sire": cow.sire.id if cow.sire else "NA",
-                "Dam": cow.dam.id if cow.dam else "NA",
+                "Sire": cow.traits.pedigree.sire.animal_id
+                if cow.traits.pedigree.sire
+                else "~",
+                "Dam": cow.traits.pedigree.dam.animal_id
+                if cow.traits.pedigree.dam
+                else "~",
                 "traits": cow.traits.scaled,
                 "recessives": cow.traits.recessives,
             }
@@ -282,8 +289,12 @@ class Herd(models.Model):
             herd["bulls"][bull.id] = {
                 "name": bull.name,
                 "Generation": bull.generation,
-                "Sire": bull.sire.id if bull.sire else "NA",
-                "Dam": bull.dam.id if bull.dam else "NA",
+                "Sire": bull.traits.pedigree.sire.animal_id
+                if bull.traits.pedigree.sire
+                else "~",
+                "Dam": bull.traits.pedigree.dam.animal_id
+                if bull.traits.pedigree.dam
+                else "~",
                 "traits": bull.traits.scaled,
                 "recessives": bull.traits.recessives,
             }
@@ -354,6 +365,29 @@ class Herd(models.Model):
         for bull in Bull.objects.filter(herd=self):
             if self.breedings - bull.generation > MAX_GENERATION:
                 bull.delete()
+
+        # Remove any animals dead from recessives
+        return self.remove_deaths_from_recessives()
+
+    def remove_deaths_from_recessives(self):
+        recessives_list = recessives.get_recessives_fatal()
+        deaths = 0
+
+        for cow in Cow.objects.filter(herd=self):
+            for recessive in recessives_list:
+                if cow.traits.recessives[recessive[0]] == 2 and recessive[1]:
+                    if cow.id:
+                        deaths += 1
+                        cow.delete()
+
+        for bull in Bull.objects.filter(herd=self):
+            for recessive in recessives_list:
+                if bull.traits.recessives[recessive[0]] == 2 and recessive[1]:
+                    if bull.id:
+                        deaths += 1
+                        bull.delete()
+
+        return deaths
 
 
 # Single female animal

@@ -1,7 +1,8 @@
-BLAD
-DUMPS
-MF
-CD
-POLLED
-CVM
-BY
+BLAD:f
+DUMPS:f
+MF:n
+CD:f
+POLLED:n
+CVM:f
+BY:f
+CR:f

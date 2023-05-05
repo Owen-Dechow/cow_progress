@@ -255,7 +255,7 @@ function addAnotherBull() {
 function removeBull(target) {
     let bullsList = document.getElementsByClassName("bull");
     if (bullsList.length <= 1) return;
-    target.parentNode.remove();
+    target.parentNode.parentNode.remove();
 
     for (let i = 0; i < bullsList.length; i++) {
         let element = bullsList[i];
@@ -312,7 +312,14 @@ async function moveToClassHerd(event) {
     if (loadedGender == "none") return;
     event.target.disabled = true;
 
-    if (confirm(`Are you sure you want to move this ${gender} to class herd?\nThis action cannot be undone.`)) {
+    let confirm = await alertreal(
+        `Move ${gender}`,
+        `Are you sure you want to move this ${gender} to class herd?\nThis action cannot be undone.`,
+        `Move ${gender}`,
+        "Cancel"
+    )
+
+    if (confirm) {
 
         let gender = loadedGender;
         let id = document.getElementById("id-ipt").value;

@@ -20,6 +20,7 @@
 
     </head>
     <body>
+        <div class="alert" id="alert"></div>
         <nav>
             <a class="home-link" href="/">Cow Progress</a>
 
@@ -30,7 +31,8 @@
                 {% if user.is_staff %}<a href="/admin">Admin</a>{% endif %}
 
                 <a href="/account">Account</a>
-                <a onclick="return confirm(`Confirm logout.`)" href="/auth/logout">Logout</a>
+                <a onclick=" cancelNav(this, 'Confirm logout', 'Are you sure you want to log out?', 'Logout', 'Cancel'); return false;"
+                   href="/auth/logout">Logout</a>
             {% else %}
                 <a href="/auth/register">Create Account</a>
                 <a href="/auth/login">Login</a>
@@ -43,7 +45,7 @@
             {% endblock body %}
 
         </main>
-        <footer id="footer">
+        <footer>
         </footer>
     </body>
 </html>

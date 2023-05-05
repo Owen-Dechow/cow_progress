@@ -18,7 +18,7 @@
         <details class="title">
             <summary>{{ herd.name }}</summary>
             <form action="/delete-herd/{{ herd.id }}"
-                  onsubmit="return confirm('Are you sure you want to delete this herd?\nThis action cannot be undone.')">
+                  onsubmit="cancelSubmit(this, 'Delete Herd?', 'Are you sure you want to delete this herd?\nThis action cannot be undone.', 'Delete Herd', 'Cancel'); return false">
                 {{ herdstatus }} Herd
                 <button type="button" onclick="changeDisplayedCow()">Show Herd Summary</button>
                 <a class="as-btn" href="/herd-file/{{ herd.id }}">Download as .xlsx</a>
@@ -37,7 +37,7 @@
                 <form action="/breed-herd/{{ herd.id }}"
                       id="new-herd-form"
                       method="POST"
-                      onsubmit="return confirm('Are you sure you want to breed this herd?\nThis action cannot be undone.')">
+                      onsubmit="cancelSubmit(this, 'Breed Herd?', 'Are you sure you want to breed this herd?\nThis action cannot be undone.', 'Breed Herd', 'Cancel'); return false">
                     {% csrf_token %}
                     <div id="bulls" class="bulls"></div>
                     <script>addAnotherBull();</script>
@@ -71,24 +71,33 @@
     </div>
     <div class="panel right" id="right-panel">
         <div class="cow-name">
-            <input id="cow-name" value="~" maxlength="{{ maxlen }}" class="cow-name 
-                {% if herdstatus == 'Private' %}owner{% endif %}
-                 " disabled>
-            </div>
+            <input id="cow-name"
+                   value="~"
+                   maxlength="{{ maxlen }}"
+                   class="cow-name"
+                   disabled>
 
-            {% if herdstatus == "Private" %}
-                <button type="button" onclick="setCowName(event)">Change Name</button>
-                <button type="button" onclick="moveToClassHerd(event)">Move to Class Herd</button>
-                <a href="javascript:void(0)" class="as-btn" id="pedigree-link">Open Pedigree</a>
+            {% if deaths == 0 %}
+                <code class="padleft">There where no deaths due to genetic recessives.</code>
+            {% elif deaths > 0 %}
+                <code class="padleft">There where {{ deaths }} deaths due to genetic recessives.</code>
             {% endif %}
 
-            <div id="cow-stats" class="cow-stats"></div>
-            <br>
-            <code>
-                -- Homozygous Dominant |
-                -+ Heterozygous |
-                ++ Homozygous Recessive
-            </code> <a href="/recessives" class="as-btn">Genetic Recessive Information</a>
-            <div id="cow-recessives" class="cow-recessives as-input"></div>
         </div>
-    {% endblock body %}
+
+        {% if herdstatus == "Private" %}
+            <button type="button" onclick="setCowName(event)">Change Name</button>
+            <button type="button" onclick="moveToClassHerd(event)">Move to Class Herd</button>
+            <a href="javascript:void(0)" class="as-btn" id="pedigree-link">Open Pedigree</a>
+        {% endif %}
+
+        <div id="cow-stats" class="cow-stats"></div>
+        <br>
+        <code>
+            -- Homozygous Dominant |
+            -+ Heterozygous |
+            ++ Homozygous Recessive
+        </code> <a href="/recessives" class="as-btn">Genetic Recessive Information</a>
+        <div id="cow-recessives" class="cow-recessives as-input"></div>
+    </div>
+{% endblock body %}

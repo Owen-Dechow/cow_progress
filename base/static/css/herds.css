@@ -61,6 +61,10 @@ main .panel.left .new-herd h2 {
     text-align: center;
 }
 
+main .panel.left .new-herd a {
+    width: 100%;
+}
+
 main .panel.left .new-herd form select {
     padding: 3px;
     color: inherit;

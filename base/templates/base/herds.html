@@ -41,9 +41,14 @@
                     <label>Herd Name</label>
                     <div>
                         <input type="text" maxlength=100 name="name" required>
-                        <button type="submit">New Herd</button>
+                        <button onclick="this.onclick = () => false" type="submit">New Herd</button>
                     </div>
                 </form>
+            </div>
+        {% else %}
+            <div class="new-herd">
+                <h2>You must be enrolled in at least one class to create a herd.</h2>
+                <a class="as-btn" href="/classes">Go To Classes</a>
             </div>
         {% endif %}
 

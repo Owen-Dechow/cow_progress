@@ -175,10 +175,19 @@ def open_herd(request: WSGIRequest, herdID: int):
     else:
         herdstatus = "Private"
 
+    deaths = None
+    for message in messages.get_messages(request):
+        if "deaths:" in str(message):
+            deaths = int(str(message).split(":")[1])
+
     return render(
         request,
         "base/open_herd.html",
-        {"herd": herd, "herdstatus": herdstatus},
+        {
+            "herd": herd,
+            "herdstatus": herdstatus,
+            "deaths": deaths,
+        },
     )
 
 
@@ -286,7 +295,7 @@ def herdsummaries(request: WSGIRequest):
 
     for herd in privateherdlist:
         summaries["private"][herd.id] = {
-            "name": str(herd),
+            "name": herd.name,
             "class": herd.connectedclass.name,
             "traits": herd.get_summary(),
         }
@@ -511,7 +520,8 @@ def breed_herd(request: WSGIRequest, herdID: int):
     herd = models.Herd.objects.get(id=herdID)
     auth_herd(request, herd, unprotected=False)
 
-    herd.run_breeding(sires)
+    deaths = herd.run_breeding(sires)
+    messages.info(request, f"deaths:{deaths}")
     return HttpResponseRedirect(f"/openherd-{herd.id}")
 
 

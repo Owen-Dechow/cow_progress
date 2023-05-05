@@ -1,7 +1,7 @@
 async function loadTraitNames() {
     let traitNames = await fetch("/traitnames");
     if (!traitNames.ok) {
-        alert("Error loading herd data. Please try again.")
+        alertreal("Error Loading Data", "Error loading herd data. Please try again.", "ok")
         return false;
     }
 
@@ -12,7 +12,7 @@ async function loadTraitNames() {
 async function loadHerds() {
     let herds = await fetch("/herdsummaries");
     if (!herds.ok) {
-        alert("Error loading herd data. Please try again.")
+        alertreal("Error Loading Data", "Error loading herd data. Please try again.", "ok")
         return false;
     }
 
@@ -52,7 +52,11 @@ function displayHerdsBy(orderby, reverse, protection, summaries) {
             let className = summaries[protection][protectedKey]["class"];
 
             let btn = document.createElement("button");
-            btn.textContent = `[${className}] ${herdName}`;
+            if (protection == "private") {
+                btn.textContent = `[${className}] ${herdName}`;
+            } else {
+                btn.textContent = `${herdName}`;
+            }
 
             btn.herdid = protectedKey;
 

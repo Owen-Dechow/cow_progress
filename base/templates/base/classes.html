@@ -74,6 +74,7 @@
                             <button type="hidden">Promote Enrollment to Teacher</button>
                         </form>
                     {% endif %}
+
                     <br>
                     <details>
                         <summary>Class Members</summary>
@@ -84,63 +85,69 @@
                                     {{ member.user.get_full_name }}
 
                                     {% if member.teacher %}
-                                        : <span class="pow">Teacher
+                                        <span class="pow">
+                                            : Teacher
 
-                                        {% if member.connectedclass.owner == member.user %}| Owner{% endif %}
+                                            {% if member.connectedclass.owner == member.user %}| Owner{% endif %}
 
-                                    </span>
-                                {% endif %}
+                                        </span>
+                                    {% endif %}
 
-                                {% if enrollment.teacher or member.teacher %}
-                                    <br>
-                                    {{ member.user.email }}
-                                {% endif %}
+                                    {% if enrollment.teacher or member.teacher %}
+                                        <br>
+                                        {{ member.user.email }}
+                                    {% endif %}
 
-                                {% if enrollment.teacher %}
+                                    {% if enrollment.teacher %}
 
-                                    {% if member.user != request.user %}
-                                        {% if not member.teacher %}
-                                            <button onclick="deleteuser(event, '{{ member.id }}')">Remove From Class</button>
-                                        {% elif enrollment.connectedclass.owner == request.user %}
-                                            <button onclick="deleteuser(event, '{{ member.id }}')">Remove From Class</button>
+                                        {% if member.user != request.user %}
+
+                                            {% if not member.teacher %}
+                                                <button onclick="deleteuser(event, '{{ member.id }}')">Remove From Class</button>
+                                            {% elif enrollment.connectedclass.owner == request.user %}
+                                                <button onclick="deleteuser(event, '{{ member.id }}')">Remove From Class</button>
+                                            {% endif %}
                                         {% endif %}
                                     {% endif %}
-                                {% endif %}
 
-                            </div>
-                        {% endfor %}
+                                </div>
+                            {% endfor %}
 
-                    </div>
-                </details>
-                <br>
 
-                {% if enrollment.connectedclass.owner == request.user %}
-                    <form method="POST">
-                        {% csrf_token %}
-                        {{ deleteclass.formid }}
-                        <input type="hidden"
-                               value="{{ enrollment.connectedclass.id }}"
-                               name="{{ deleteclass.connectedclass.name }}">
-                        <button onclick="return confirm(`Are you sure you want to delete {{ enrollment.connectedclass.name }}? \nThis action cannot be undone.`)"
-                                type="submit">Delete Class</button>
-                    </form>
-                {% else %}
-                    <form method="POST">
-                        {% csrf_token %}
-                        {{ exitclass.formid }}
-                        <input type="hidden"
-                               value="{{ enrollment.connectedclass.id }}"
-                               name="{{ exitclass.connectedclass.name }}">
-                        <button type="submit"
-                                onclick="return confirm(`Are you sure you want to leave {{ enrollment.connectedclass.name }}? \nThis action cannot be undone.`)">
-                            Exit Class
-                        </button>
-                    </form>
-                {% endif %}
+                        </div>
+                    </details>
+                    <br>
 
-            </div>
-        {% endfor %}
+                    {% if enrollment.connectedclass.owner == request.user %}
+                        <form method="POST">
+                            {% csrf_token %}
+                            {{ deleteclass.formid }}
+                            <input type="hidden"
+                                   value="{{ enrollment.connectedclass.id }}"
+                                   name="{{ deleteclass.connectedclass.name }}">
+                            <button type="submit"
+                                    onclick="cancelClick(this, 'Delete Class?', 'Are you sure you want to delete {{ enrollment.connectedclass.name }}? This will delete all herds, animals and enrollments connected to class.', 'Delete {{ enrollment.connectedclass.name }}', 'Cancel'); return false;">
+                                Delete Class
+                            </button>
+                        </form>
+                    {% else %}
+                        <form method="POST">
+                            {% csrf_token %}
+                            {{ exitclass.formid }}
+                            <input type="hidden"
+                                   value="{{ enrollment.connectedclass.id }}"
+                                   name="{{ exitclass.connectedclass.name }}">
+                            <button type="submit"
+                                    onclick="cancelClick(this, 'Leave Class?', 'Are you sure you want to leave {{ enrollment.connectedclass.name }}? This will delete all herds and animals you have connected to class.', 'Leave {{ enrollment.connectedclass.name }}', 'Cancel'); return false;">
+                                Exit Class
+                            </button>
+                        </form>
+                    {% endif %}
 
+                </div>
+            {% endfor %}
+
+
+        </div>
     </div>
-</div>
-{% endblock body %}
+{% endblock %}
