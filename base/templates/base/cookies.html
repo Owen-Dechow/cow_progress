@@ -1,0 +1,41 @@
+{% extends "../extends.html" %}
+
+{% load dic %}
+{% load static %}
+
+{% block title %}
+    Cookies
+{% endblock title %}
+
+{% block links %}
+    <link rel="stylesheet" href="{% static 'css/recessives.css' %}">
+{% endblock links %}
+
+
+{% block body %}
+    <h1>List of cookies used on website</h1>
+    <div class="table-container">
+        <table>
+            <tr>
+                <th>Cookie Name</th>
+                <th>Purpose</th>
+            </tr>
+            <tr>
+                <td>csrftoken</td>
+                <td class="center">
+                    <b>Cross-Site Request Forgery</b> Prevention
+                    <br>
+                    Used to prevent malicious websites from preforming actions on you behalf.
+                </td>
+            </tr>
+            <tr>
+                <td>sessionid</td>
+                <td class="center">Keeps you logged in.</td>
+            </tr>
+            <tr>
+                <td>acceptedcookie</td>
+                <td class="center">Prevents the cookie acceptance form from showing up again.</td>
+            </tr>
+        </table>
+    </div>
+{% endblock body %}

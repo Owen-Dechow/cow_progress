@@ -260,6 +260,9 @@ def pedigree(request: WSGIRequest):
     )
 
 
+def cookies(request: WSGIRequest):
+    return render(request, "base/cookies.html")
+
 ########## JSON requests ##########
 @login_required
 def traitnames(request: WSGIRequest):

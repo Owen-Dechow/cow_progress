@@ -1,28 +1,36 @@
-body .table-container {
+main .table-container {
     padding: 20px;
 }
 
-body h1 {
+main h1 {
     text-align: center;
     background-color: var(--prime);
     margin: 20px 20px 0 20px;
     padding: 10px;
 }
 
-body table {
+main table {
     width: 100%;
     border-collapse: collapse;
 }
 
-body table tr {
+main table tr {
     background-color: var(--prime);
 }
 
-body table tr:nth-child(even) {
+main table tr:nth-child(even) {
     background-color: var(--secondary);
 }
 
-body table td,
-body table th {
+main table td:first-child {
+    width: 30%;
+}
+
+main table td,
+main table th {
     padding: 5px;
+}
+
+main .center {
+    text-align: justify;
 }

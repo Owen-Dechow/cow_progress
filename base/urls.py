@@ -10,6 +10,7 @@ urlpatterns = [
     path("classes", views.classes, name="classes"),
     path("recessives", views.recessives, name="recessives"),
     path("pedigree", views.pedigree, name="pedigree"),
+    path("cookies", views.cookies, name="cookies"),
     ########### JSON patterns ###########
     path("traitnames", views.traitnames),
     path("herdsummaries", views.herdsummaries),
