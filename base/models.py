@@ -614,3 +614,15 @@ class Pedigree(models.Model):
     sire = models.ForeignKey(
         to="Pedigree", related_name="_sire", on_delete=models.CASCADE, null=True
     )
+
+    def get_as_dict(self):
+        """Get a JSON serializable pedagree"""
+
+        sex = "Male" if self.male else "Female"
+        pedigree = {"dam": None, "sire": None, "id": self.animal_id, "sex": sex}
+        if self.dam:
+            pedigree["dam"] = self.dam.get_as_dict()
+        if self.sire:
+            pedigree["sire"] = self.sire.get_as_dict()
+
+        return pedigree

@@ -75,17 +75,6 @@ def JSONSuccess(success: bool):
     return JsonResponse({"successful": success})
 
 
-def get_pedigree_dict(pedigree_object):
-    sex = "Male" if pedigree_object.male else "Female"
-    pedigree = {"dam": None, "sire": None, "id": pedigree_object.animal_id, "sex": sex}
-    if pedigree_object.dam:
-        pedigree["dam"] = get_pedigree_dict(pedigree_object.dam)
-    if pedigree_object.sire:
-        pedigree["sire"] = get_pedigree_dict(pedigree_object.sire)
-
-    return pedigree
-
-
 ########## Page views ##########
 
 
@@ -263,6 +252,7 @@ def pedigree(request: WSGIRequest):
 def cookies(request: WSGIRequest):
     return render(request, "base/cookies.html")
 
+
 ########## JSON requests ##########
 @login_required
 def traitnames(request: WSGIRequest):
@@ -338,7 +328,7 @@ def get_bull_name(request: WSGIRequest, cowID: int):
 
 def get_pedigree(request: WSGIRequest, pedigreeID: int):
     pedigree = get_object_or_404(models.Pedigree, id=pedigreeID)
-    return JsonResponse(get_pedigree_dict(pedigree))
+    return JsonResponse(pedigree.get_as_dict())
 
 
 def get_cow_data(request: WSGIRequest, sex: str, cowID: int):
