@@ -1,4 +1,6 @@
-RELPATH = "base/resources/"
+from django.conf import settings
+
+RELPATH = settings.BASE_DIR / "base/resources/"
 
 
 class Resource:
@@ -10,7 +12,7 @@ class Resource:
 def get_resources():
     resources = []
 
-    with open(RELPATH + "resources.txt") as f:
+    with open(RELPATH / "resources.txt") as f:
         for line in f.readlines():
             data = line.strip().removesuffix("\n").split("==")
             if data:

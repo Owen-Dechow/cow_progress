@@ -6,7 +6,7 @@ from scipy.linalg import cholesky
 
 def get_cor_matrix():
     matrix = []
-    with open(RELPATH + "correlations.txt") as cor_data:
+    with open(RELPATH / "correlations.txt") as cor_data:
         for line in cor_data:
             linedata = line.strip().removesuffix("\n").split(" ")
             while "" in linedata:

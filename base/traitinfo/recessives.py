@@ -3,14 +3,14 @@ from .traits import RELPATH
 
 
 def get_recessives():
-    with open(RELPATH + "recessives.txt") as f:
+    with open(RELPATH / "recessives.txt") as f:
         recessives = [x.split(":")[0] for x in f.readlines()]
 
     return recessives
 
 
 def get_recessives_fatal():
-    with open(RELPATH + "recessives.txt") as f:
+    with open(RELPATH / "recessives.txt") as f:
         recessives = [x.removesuffix("\n").split(":") for x in f.readlines()]
 
     for x in recessives:

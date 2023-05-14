@@ -1,7 +1,8 @@
 from random import random
 from django.core.exceptions import ObjectDoesNotExist
+from django.conf import settings
 
-RELPATH = "base/traitinfo/"
+RELPATH = settings.BASE_DIR / "base/traitinfo/"
 DOMAIN = lambda: random() * 2 - 1
 
 
@@ -18,7 +19,7 @@ class Trait:
     @classmethod
     def Get_All(cls):
         traits = []
-        with open(RELPATH + "ptas.txt") as PTAs:
+        with open(RELPATH / "ptas.txt") as PTAs:
             for line in PTAs.readlines():
                 data = line.split(":")
                 name = data[0]
