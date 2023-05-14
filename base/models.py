@@ -14,16 +14,6 @@ ATTRACT_0 = lambda: prod(
 )  # Returns a number close to 0 | Mean = 0.5^4 = 0.0625, Range = [0, 1)
 
 
-# List of recourses found on front page
-class Resource(models.Model):
-    __str__ = lambda self: self.title
-
-    title = models.CharField(
-        max_length=255
-    )  # The text that will be displayed for resource
-    link = models.CharField(max_length=255)  # Url to the resource itself
-
-
 # Holds the PTAs on single animal
 class Bovine(models.Model):
     data = models.JSONField()  # Stores the unscaled data -1 to 1 form
