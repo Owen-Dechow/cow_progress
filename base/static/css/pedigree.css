@@ -38,17 +38,7 @@ main table th {
 }
 
 main table td.leftcol {
-    width: 70%;
-}
-
-main .recessive-info {
-    background-color: var(--prime);
-    margin-inline: 10px;
-    padding: 5px;
-}
-
-main .hide {
-    display: none;
+    width: 30%;
 }
 
 main h2 {

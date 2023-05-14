@@ -24,7 +24,7 @@
                 <a class="as-btn" href="/herd-file/{{ herd.id }}">Download as .xlsx</a>
 
                 {% if herdstatus == "Private" %}
-                    <a class="as-btn" href="/open-herd/{{ herd.connectedclass.herd.id }}">Open Class Herd</a>
+                    <a class="as-btn" href="/openherd-{{ herd.connectedclass.herd.id }}">Open Class Herd</a>
                     <button class="delete" type="submit">Delete Herd</button>
                 {% endif %}
 
@@ -74,7 +74,7 @@
             <input id="cow-name"
                    value="~"
                    maxlength="{{ maxlen }}"
-                   class="cow-name"
+                   class="cow-name {% if herd.owner == request.user %}owner{% endif %}"
                    disabled>
 
             {% if deaths == 0 %}
@@ -94,9 +94,9 @@
         <div id="cow-stats" class="cow-stats"></div>
         <br>
         <code>
-            -- Homozygous Dominant |
-            -+ Heterozygous |
-            ++ Homozygous Recessive
+            -- Tested Free (Homozygous Dominant) |
+            -+ Carrier (Heterozygous) |
+            ++ Positive (Homozygous Recessive)
         </code> <a href="/recessives" class="as-btn">Genetic Recessive Information</a>
         <div id="cow-recessives" class="cow-recessives as-input"></div>
     </div>

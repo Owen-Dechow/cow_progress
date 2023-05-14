@@ -19,13 +19,13 @@ urlpatterns = [
     path("herddata-<int:herdID>", views.get_herd_data),
     path("get-cow-name/<int:cowID>", views.get_bull_name),
     path("get-pedigree-<int:pedigreeID>", views.get_pedigree),
-    path("get-<str:sex>-data-<int:cowID>", views.get_cow_data),
+    path("get-data-<int:cowID>", views.get_cow_data),
     ########### File patterns ###########
     path("herd-file/<int:herdID>", views.get_herd_file),
     ########### Actions -> success dict ###########
-    path("move-cow/<int:cowID>/<str:gender>", views.move_cow),
+    path("move-cow/<int:cowID>", views.move_cow),
     path("set-classinfo/<int:classID>/<str:info>", views.setclassinfo),
-    path("set-cow-name/<int:cowID>/<str:gender>/<str:name>", views.change_name),
+    path("set-cow-name/<int:cowID>/<str:name>", views.change_name),
     path("delete-enrollment/<int:enrollmentID>", views.delete_enrollment),
     ########### Actions -> redirect ###########
     path("breed-herd/<int:herdID>", views.breed_herd, name="new-herd"),

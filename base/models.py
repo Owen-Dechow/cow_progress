@@ -14,162 +14,21 @@ ATTRACT_0 = lambda: prod(
 )  # Returns a number close to 0 | Mean = 0.5^4 = 0.0625, Range = [0, 1)
 
 
-# Holds the PTAs on single animal
-class Bovine(models.Model):
-    data = models.JSONField()  # Stores the unscaled data -1 to 1 form
-    scaled = models.JSONField()  # Stores the front end scaled PTA data
-
-    # Stores recessives [0 = Homozygous Dominant, 1=Heterozygous, 2=Homozygous Recessive]
-    recessives = models.JSONField()
-
-    # Stores the pedigree object for animal
-    pedigree = models.ForeignKey(to="Pedigree", on_delete=models.CASCADE)
-
-    #### Refrances either the cow or bull connected to PTA list ####
-    connected_bull = models.ForeignKey(
-        to="Bull",
-        on_delete=models.CASCADE,
-        related_name="_connected_bull",
-        null=True,
-        blank=True,
-    )
-    connected_cow = models.ForeignKey(
-        to="Cow",
-        on_delete=models.CASCADE,
-        related_name="_connected_cow",
-        null=True,
-        blank=True,
-    )
-
-    @staticmethod
-    def get_mutated_average(a, b, bull=None, cow=None):
-        """Takes in two TraitsLists and creates a child List from the data"""
-
-        # Create and initialize new List
-        new = Bovine()
-        new.data = {}
-        new.recessives = {}
-
-        # Generate mutated uncorrelated values -1 to 1
-        uncorrelated = {}
-        for trait in traits.Trait.Get_All():
-            val = (a.data[trait.name] + b.data[trait.name]) / 2
-            newval = val + MUTATION_RATE * traits.DOMAIN()
-
-            # Ensure new value is in range -1 to 1
-            if abs(newval) > 1:
-                newval = (abs(newval) / newval) * (1 + ATTRACT_0())
-
-            uncorrelated[trait.name] = newval
-
-        # Correlate data
-        initial_val_list = [uncorrelated[key.name] for key in traits.Trait.Get_All()]
-        corelated_data = cor.get_result(initial_values=initial_val_list)
-        new.data = cor.convert_data(corelated_data)
-
-        # Scale data for front end
-        new.set_scaled_data()
-
-        # Set the genetic recessives for new animal
-        for recessive in recessives.get_recessives():
-            new.recessives[recessive] = recessives.get_result_of_two(
-                a.recessives[recessive], b.recessives[recessive]
-            )
-
-        # Connect to animal
-        if bull:
-            bull.save()
-            new.connected_bull = bull
-        if cow:
-            cow.save()
-            new.connected_cow = cow
-
-        new.save()
-        return new
-
-    def auto_data(self, cow=None, bull=None):
-        """Auto generates the data for one TraitsList"""
-
-        # Get data -1 to 1
-        correlated_data = cor.get_result()
-        self.data = cor.convert_data(correlated_data)
-
-        # Scale the data
-        self.set_scaled_data()
-
-        # Set the genetic recessives for new animal
-        self.recessives = {}
-        for recessive in recessives.get_recessives():
-            self.recessives[recessive] = randint(0, randint(0, 2))
-
-        # Connect to animal and save data
-        self.save()
-        if bull:
-            bull.save()
-            self.connected_bull = bull
-        if cow:
-            cow.save()
-            self.connected_cow = cow
-        self.save()
-
-    def set_scaled_data(self):
-        """Scales the data field into the scaled field"""
-
-        scaled_data = {}
-        for key, val in self.data.items():
-            standard_deviation = traits.Trait.get(key).standard_deviation
-            scaled_data[key] = round(standard_deviation * val, PTA_DECIMALS)
-
-        self.scaled = scaled_data
-
-    def __str__(self):
-        if self.connected_cow is not None:
-            return "Cow: " + str(self.connected_cow.id)
-        elif self.connected_bull is not None:
-            return "Bull: " + str(self.connected_bull.id)
-        else:
-            return "NONE"
-
-    def save(self, *args, **kwargs):
-        if not hasattr(self, "pedigree"):
-            self.pedigree = Pedigree()
-
-        if self.connected_bull:
-            male = True
-            animal = self.connected_bull
-        elif self.connected_cow:
-            male = False
-            animal = self.connected_cow
-        else:
-            animal = None
-
-        if animal is not None:
-            self.pedigree.animal_id = animal.id
-            self.pedigree.male = male
-            if animal.sire:
-                self.pedigree.sire = animal.sire.traits.pedigree
-            if animal.dam:
-                self.pedigree.dam = animal.dam.traits.pedigree
-
-        self.pedigree.save()
-
-        super().save(*args, **kwargs)
-
-
 # Holds a group of animals
 class Herd(models.Model):
     __str__ = lambda self: self.name
 
-    name = models.CharField(max_length=255)  # Name of the herd
-    owner = models.ForeignKey(
-        to=User, on_delete=models.CASCADE, null=True, blank=True
-    )  # Owner of the herd
-    breedings = models.IntegerField(
-        default=0
-    )  # Number of breedings that have been run on herd
-    unrestricted = models.BooleanField(
-        default=False
-    )  # Tells if herd can be accessed by anyone
+    # Name of the herd
+    name = models.CharField(max_length=255)
+
+    # Owner of the herd
+    owner = models.ForeignKey(to=User, on_delete=models.CASCADE, null=True, blank=True)
+
+    # Number of breedings that have been run on herd
+    breedings = models.IntegerField(default=0)
+
+    # Tells if herd can be accessed by anyone
+    unrestricted = models.BooleanField(default=False)
 
     # Stores the class this herd is part of
     connectedclass = models.ForeignKey(
@@ -205,23 +64,11 @@ class Herd(models.Model):
 
         # Create cows
         for _ in range(NUMBER_OF_COWS):
-            cow = Cow()
-
-            cow.traits = Bovine()
-            cow.traits.auto_data(cow=cow)
-            cow.herd = herd
-            cow.name = cow.get_name()
-            cow.save()
+            Bovine.auto_generate(herd, False)
 
         # Create bulls
         for _ in range(NUMBER_OF_BULLS):
-            bull = Bull()
-
-            bull.traits = Bovine()
-            bull.traits.auto_data(bull=bull)
-            bull.herd = herd
-            bull.name = bull.get_name()
-            bull.save()
+            Bovine.auto_generate(herd, True)
 
         # Remove any animals dead from recessives
         herd.remove_deaths_from_recessives()
@@ -235,12 +82,10 @@ class Herd(models.Model):
         summary = {}
 
         # Get all animals
-        cows = [t.traits for t in Cow.objects.filter(herd=self)]
-        bulls = [t.traits for t in Bull.objects.filter(herd=self)]
-        traitgroups = cows + bulls
+        animals = Bovine.objects.filter(herd=self)
 
         # Add animals PTAs together
-        for trait in traitgroups:
+        for trait in animals:
             for key in trait.data:
                 if key in summary:
                     summary[key] += trait.scaled[key]
@@ -248,9 +93,9 @@ class Herd(models.Model):
                     summary[key] = trait.scaled[key]
 
         # Divide each PTA by number of animals
-        n = len(traitgroups)
+        number_of_animals = len(animals)
         for key in summary:
-            summary[key] = round(summary[key] / n, PTA_DECIMALS)
+            summary[key] = round(summary[key] / number_of_animals, PTA_DECIMALS)
 
         return summary
 
@@ -259,37 +104,13 @@ class Herd(models.Model):
 
         herd = {"cows": {}, "bulls": {}}
 
-        # Adds cows to dict
-        for cow in Cow.objects.filter(herd=self):
-            herd["cows"][cow.id] = {
-                "name": cow.name,
-                "Generation": cow.generation,
-                "Sire": cow.traits.pedigree.sire.animal_id
-                if cow.traits.pedigree.sire
-                else "~",
-                "Dam": cow.traits.pedigree.dam.animal_id
-                if cow.traits.pedigree.dam
-                else "~",
-                "traits": cow.traits.scaled,
-                "Inbreeding Coefficient": cow.traits.pedigree.inbreeding,
-                "recessives": cow.traits.recessives,
-            }
-
         # Adds bulls to dict
-        for bull in Bull.objects.filter(herd=self):
-            herd["bulls"][bull.id] = {
-                "name": bull.name,
-                "Generation": bull.generation,
-                "Sire": bull.traits.pedigree.sire.animal_id
-                if bull.traits.pedigree.sire
-                else "~",
-                "Dam": bull.traits.pedigree.dam.animal_id
-                if bull.traits.pedigree.dam
-                else "~",
-                "traits": bull.traits.scaled,
-                "Inbreeding Coefficient": bull.traits.pedigree.inbreeding,
-                "recessives": bull.traits.recessives,
-            }
+        for bull in Bovine.objects.filter(herd=self, male=True):
+            herd["bulls"][bull.id] = bull.get_dict()
+
+        # Adds cows to dict
+        for cow in Bovine.objects.filter(herd=self, male=False):
+            herd["cows"][cow.id] = cow.get_dict()
 
         return herd
 
@@ -298,7 +119,7 @@ class Herd(models.Model):
 
         NUMBER_OF_COWS = 100  # Planed number of cows generated
         NUMBER_OF_BULLS = 10  # Planed number of bulls generated
-        MAX_GENERATION = 5  # Max age of animal before its removed
+        MAX_GENERATION = 5  # Max age of animal before its culled
 
         # Update the herd generation
         self.breedings += 1
@@ -312,7 +133,7 @@ class Herd(models.Model):
             breedings_Female.append({"sire": sire, "cows": []})
 
         # Get cows in herd
-        cows = list(Cow.objects.filter(herd=self))
+        cows = list(Bovine.objects.filter(herd=self, male=False))
 
         # Get real number of cows and bulls in generated
         n_cows = NUMBER_OF_COWS
@@ -343,155 +164,169 @@ class Herd(models.Model):
         # Generate new bulls
         for breeding in breedings_Male:
             for dam in breeding["cows"]:
-                Bull.from_breeding(breeding["sire"], dam, self)
+                Bovine.create_from_breeding(breeding["sire"], dam, self, True)
 
         # Generate new cows
         for breeding in breedings_Female:
             for dam in breeding["cows"]:
-                Cow.from_breeding(breeding["sire"], dam, self)
+                Bovine.create_from_breeding(breeding["sire"], dam, self, False)
 
         #### Remove any animals over the max age ####
-        for cow in Cow.objects.filter(herd=self):
-            if self.breedings - cow.generation > MAX_GENERATION:
-                cow.delete()
-        for bull in Bull.objects.filter(herd=self):
-            if self.breedings - bull.generation > MAX_GENERATION:
-                bull.delete()
+        for bovine in Bovine.objects.filter(herd=self):
+            if self.breedings - bovine.generation > MAX_GENERATION:
+                bovine.delete()
 
         # Remove any animals dead from recessives
         return self.remove_deaths_from_recessives()
 
     def remove_deaths_from_recessives(self):
         recessives_list = recessives.get_recessives_fatal()
-        deaths = 0
+        number_of_deaths = 0
 
-        for cow in Cow.objects.filter(herd=self):
+        for bovine in Bovine.objects.filter(herd=self):
             for recessive in recessives_list:
-                if cow.traits.recessives[recessive[0]] == 2 and recessive[1]:
-                    if cow.id:
-                        deaths += 1
-                        cow.delete()
+                if bovine.recessives[recessive[0]] == 2 and recessive[1]:
+                    if bovine.id:
+                        number_of_deaths += 1
+                        bovine.delete()
 
-        for bull in Bull.objects.filter(herd=self):
-            for recessive in recessives_list:
-                if bull.traits.recessives[recessive[0]] == 2 and recessive[1]:
-                    if bull.id:
-                        deaths += 1
-                        bull.delete()
-
-        return deaths
+        return number_of_deaths
 
 
-# Single female animal
-class Cow(models.Model):
+# Holds the PTAs on single animal
+class Bovine(models.Model):
     __str__ = lambda self: self.name
 
-    name = models.CharField(max_length=255)  # Holds the name of the cow
-    herd = models.ForeignKey(
-        to=Herd, on_delete=models.CASCADE, null=True
-    )  # Holds the herd the cow is part of
-    generation = models.IntegerField(
-        default=0
-    )  # Holds the generation the cow was born in
+    # Stores the name of the animal
+    name = models.CharField(max_length=255, null=True)
 
-    # Connects a trait list to cow
-    traits = models.OneToOneField(
-        to=Bovine,
-        on_delete=models.SET_NULL,
-        related_name="Cull_traits_TraitsList",
-        null=True,
-    )
+    # Stores the herd animal belongs to
+    herd = models.ForeignKey(to=Herd, on_delete=models.CASCADE, null=True)
 
-    # Connects dam to cow
-    dam = models.ForeignKey(
-        to="Cow", on_delete=models.SET_NULL, null=True, default=None
-    )
+    # Stores the generation the animal was born in
+    generation = models.IntegerField(default=0)
 
-    # Connects sire to cow
-    sire = models.ForeignKey(
-        to="Bull", on_delete=models.SET_NULL, null=True, default=None
-    )
+    # True = Male, False = Female
+    male = models.BooleanField(null=True)
 
-    def get_name(self):
-        """Autogenerates a name for cow"""
+    # Stores the pedigree object for animal
+    pedigree = models.ForeignKey(to="Pedigree", on_delete=models.CASCADE, null=True)
 
-        return f"X{self.id} G{self.generation}"
-
-    def get_sexed_id(self):
-        """Gets the int id of cow with the 'f' prefix"""
-
-        return "f" + str(self.id)
+    data = models.JSONField(default=dict)  # Stores the unscaled data -1 to 1 form
+    scaled = models.JSONField(default=dict)  # Stores the front end scaled PTA data
+    recessives = models.JSONField(default=dict)  # Recessive information
 
     @staticmethod
-    def from_breeding(sire, dam, herd):
-        """Creates a cow from a breeding"""
+    def create_from_breeding(sire, dam, herd, male):
+        """Takes in two animals and creates a child List from the data"""
 
-        cow = Cow()
-        cow.traits = Bovine.get_mutated_average(sire.traits, dam.traits, cow=cow)
-        cow.generation = herd.breedings
-        cow.herd = herd
-        cow.name = cow.get_name()
-        cow.sire = sire
-        cow.dam = dam
+        # Create and initialize new animal
+        new = Bovine()
+        new.save()
 
-        cow.save()
-        cow.traits.save()
+        new.herd = herd
+        new.male = male
+        new.generation = herd.breedings
 
+        new.pedigree = Pedigree()
+        new.pedigree.sire = Pedigree.objects.get(animal_id=sire.id, male=True)
+        new.pedigree.dam = Pedigree.objects.get(animal_id=dam.id, male=False)
+        new.pedigree.animal_id = new.id
+        new.pedigree.male = male
+        new.pedigree.save()
 
-# Single male animal
-class Bull(models.Model):
-    __str__ = lambda self: self.name
+        # Generate mutated uncorrelated values -1 to 1
+        uncorrelated = {}
+        for trait in traits.Trait.Get_All():
+            val = (sire.data[trait.name] + dam.data[trait.name]) / 2
+            newval = val + MUTATION_RATE * traits.DOMAIN()
 
-    name = models.CharField(max_length=255)  # Holds the name of the bull
-    herd = models.ForeignKey(
-        to=Herd, on_delete=models.CASCADE, null=True
-    )  # Holds the herd the bull is part of
-    generation = models.IntegerField(
-        default=0
-    )  # Holds the generation the bull was born in
+            # Ensure new value is in range -1 to 1
+            if abs(newval) > 1:
+                newval = (abs(newval) / newval) * (1 + ATTRACT_0())
 
-    # Connects a trait list to bull
-    traits = models.OneToOneField(
-        to=Bovine,
-        on_delete=models.SET_NULL,
-        related_name="Bull_traits_TraitsList",
-        null=True,
-    )
+            uncorrelated[trait.name] = newval
 
-    # Connects dam to bull
-    dam = models.ForeignKey(
-        to="Cow", on_delete=models.SET_NULL, null=True, default=None
-    )
+        # Correlate data
+        initial_val_list = [uncorrelated[key.name] for key in traits.Trait.Get_All()]
+        corelated_data = cor.get_result(initial_values=initial_val_list)
+        new.data = cor.convert_data(corelated_data)
 
-    # Connects sire to bull
-    sire = models.ForeignKey(
-        to="Bull", on_delete=models.SET_NULL, null=True, default=None
-    )
+        # Scale data for front end
+        new.set_scaled_data()
 
-    def get_name(self):
-        """Autogenerates a name for bull"""
+        # Set the genetic recessives for new animal
+        for recessive in recessives.get_recessives():
+            new.recessives[recessive] = recessives.get_result_of_two(
+                sire.recessives[recessive], dam.recessives[recessive]
+            )
 
-        return f"Y{self.id} G{self.generation}"
-
-    def get_sexed_id(self):
-        """Gets the int id of cow with the 'm' prefix"""
-
-        return "m" + str(self.id)
+        new.name = new.auto_generate_name()
+        new.save()
+        return new
 
     @staticmethod
-    def from_breeding(sire, dam, herd):
-        """Creates a bull from a breeding"""
+    def auto_generate(herd, male):
+        """Auto generates the data for an animal"""
 
-        bull = Bull()
-        bull.traits = Bovine.get_mutated_average(sire.traits, dam.traits, bull=bull)
-        bull.generation = herd.breedings
-        bull.herd = herd
-        bull.name = bull.get_name()
-        bull.sire = sire
-        bull.dam = dam
+        # Create and initialize new animal
+        new = Bovine()
+        new.save()
 
-        bull.save()
-        bull.traits.save()
+        new.herd = herd
+        new.male = male
+
+        new.pedigree = Pedigree()
+        new.pedigree.animal_id = new.id
+        new.pedigree.male = male
+        new.pedigree.save()
+
+        # Get data -1 to 1
+        correlated_data = cor.get_result()
+        new.data = cor.convert_data(correlated_data)
+
+        # Scale the data
+        new.set_scaled_data()
+
+        # Set the genetic recessives for new animal
+        new.recessives = {}
+        for recessive in recessives.get_recessives():
+            new.recessives[recessive] = randint(0, randint(0, 2))
+
+        new.name = new.auto_generate_name()
+        new.save()
+        return new
+
+    def set_scaled_data(self):
+        """Scales the data field into the scaled field"""
+
+        scaled_data = {}
+        for key, val in self.data.items():
+            standard_deviation = traits.Trait.get(key).standard_deviation
+            scaled_data[key] = round(standard_deviation * val, PTA_DECIMALS)
+
+        self.scaled = scaled_data
+
+    def auto_generate_name(self):
+        """Autogenerates a name for animal"""
+
+        if self.herd.name[-1] == "s":
+            return self.herd.name + f"' {self.id}"
+        else:
+            return self.herd.name + f"'s {self.id}"
+
+    def get_dict(self):
+        """Returns a JSON serializable summary of animal"""
+
+        return {
+            "name": self.name,
+            "traits": self.scaled,
+            "recessives": self.recessives,
+            "Generation": self.generation,
+            "Sire": self.pedigree.sire.animal_id if self.pedigree.sire else "~",
+            "Dam": self.pedigree.dam.animal_id if self.pedigree.dam else "~",
+            "Inbreeding Coefficient": self.pedigree.inbreeding,
+        }
 
 
 # Class object
@@ -598,8 +433,8 @@ class Enrollment(models.Model):
 
 
 class Pedigree(models.Model):
-    animal_id = models.CharField(max_length=255, null=True)
-    male = models.BooleanField(null=True)
+    animal_id = models.CharField(max_length=255)
+    male = models.BooleanField()
     dam = models.ForeignKey(
         to="Pedigree", related_name="_dam", on_delete=models.CASCADE, null=True
     )
@@ -622,7 +457,6 @@ class Pedigree(models.Model):
 
     def save(self, *args, **kwargs):
         if self.sire and self.dam:
-            print(self.animal_id)
             self.inbreeding = calculate_inbreeding(self.get_as_dict())
         else:
             self.inbreeding = 0

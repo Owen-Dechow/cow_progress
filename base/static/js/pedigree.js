@@ -28,7 +28,7 @@ function unpackDictToNode(node, dict, textprefix, textsuffix) {
     summary.textContent = textprefix + dict["id"] + textsuffix;
     details.append(summary);
 
-    a.href = `/pedigree?animalid=${dict["id"]}&sex=${dict["sex"]}`;
+    a.href = `/pedigree?animal_id=${dict["id"]}`;
     a.textContent = "Open Pedigree";
     a.classList.add("as-link");
     summary.append(a);
@@ -56,9 +56,9 @@ function addTableRows(table, dict, overide) {
 
             let text;
             if (overide) {
-                if (dict[key] == 0) text = "--";
-                else if (dict[key] == 1) text = "-+";
-                else if (dict[key] == 2) text = "++";
+                if (dict[key] == 0) text = "Tested Free";
+                else if (dict[key] == 1) text = "Carrier";
+                else if (dict[key] == 2) text = "Positive";
             } else {
                 text = dict[key];
             }
@@ -86,12 +86,21 @@ function addTableToNode(node, dict, title, overide) {
 
 async function loadCowData() {
     let tree = getSessionDict("Pedigree");
-    let response = await fetch(`get-${tree["sex"]}-data-${tree["id"]}`);
+    let response = await fetch(`get-data-${tree["id"]}`);
     let data = await response.json();
 
 
     if (data["successful"]) {
         let container = document.getElementById("cow-data");
+
+        let infoDict = {};
+        infoDict["Name"] = data["name"];
+        infoDict["Generation"] = data["Generation"];
+        infoDict["Dam"] = data["Dam"];
+        infoDict["Sire"] = data["Sire"];
+        infoDict["Inbreeding Coefficient"] = data[["Inbreeding Coefficient"]];
+
+        addTableToNode(container, infoDict, "Info", false)
         addTableToNode(container, data["traits"], "PTAs", false);
         addTableToNode(container, data["recessives"], "Recessives", true);
     } else {

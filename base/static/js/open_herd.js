@@ -164,11 +164,12 @@ function changeDisplayedCow(gender, cowID) {
             }
         }
 
-        let sex = gender == "bulls" ? "Male" : "Female"
-        document.getElementById("pedigree-link").href = `/pedigree?animalid=${cowID}&sex=${sex}`;
+        document.getElementById("pedigree-link").href = `/pedigree?animal_id=${cowID}`;
 
     } else {
-        document.getElementById("pedigree-link").href = "javascript:void(0)";
+        pedigreeLink = document.getElementById("pedigree-link")
+        if (pedigreeLink) pedigreeLink.href = "javascript:void(0)";
+
         document.getElementById("cow-name").value = "[HERD SUMMARY]";
         document.getElementById("id" + "-ipt").value = "~";
         document.getElementById("Inbreeding Coefficient" + "-ipt").value = "~";
@@ -286,13 +287,13 @@ async function setCowName(event) {
 
     let id = document.getElementById("id-ipt").value;
     let newname = document.getElementById("cow-name").value;
-    if (!/^[A-Za-z0-9-_ .]+$/.test(newname)) {
-        alertreal("Invalid name", `Letters, numbers  plus -_ . only.`, "ok");
+    if (!/^[A-Za-z0-9-_ .']+$/.test(newname)) {
+        alertreal("Invalid name", `-_'. letters, numbers and spaces only.`, "ok");
         event.target.disabled = false;
         return;
     }
 
-    let data = await fetch(`/set-cow-name/${id}/${loadedGender.slice(0, -1)}/${newname}`);
+    let data = await fetch(`/set-cow-name/${id}/${newname}`);
     let jsondata = await data.json();
 
     if (jsondata["successful"]) {
@@ -313,6 +314,9 @@ async function setCowName(event) {
 async function moveToClassHerd(event) {
     let loadedGender = sessionStorage.getItem("LoadedGender");
     if (loadedGender == "none") return;
+
+    let gender = loadedGender == "bulls" ? "bull" : "cow";
+
     event.target.disabled = true;
 
     let confirm = await alertreal(
@@ -324,15 +328,14 @@ async function moveToClassHerd(event) {
 
     if (confirm) {
 
-        let gender = loadedGender;
         let id = document.getElementById("id-ipt").value;
-        let data = await fetch(`/move-cow/${id}/${gender}`);
+        let data = await fetch(`/move-cow/${id}`);
         let jsondata = await data.json();
 
         let cows = getSessionDict("Cows");
         if (jsondata["successful"]) {
-            alertreal("Move Successful", `${cows[gender][id]["name"]} was successfully moved to class herd.`, "ok");
-            delete cows[gender][id];
+            alertreal("Move Successful", `${cows[loadedGender][id]["name"]} was successfully moved to class herd.`, "ok");
+            delete cows[loadedGender][id];
             setSessionDict("Cows", cows);
         } else {
             alertreal("Move Failed", `${cows[gender][id]["name"]} could not be moved to class herd.`, "ok");

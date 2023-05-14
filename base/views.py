@@ -225,28 +225,21 @@ def recessives(request: WSGIRequest):
 
 
 def pedigree(request: WSGIRequest):
-    status = "get"
-    dataid = -1
+    animal_id = -1
+    data_id = -1
 
-    if request.GET:
-        form = forms.PullForPedigree(request.GET)
-        if form.is_valid():
-            data = form.cleaned_data
-            sex = data["sex"] == forms.PullForPedigree.MALE
-            try:
-                dataid = models.Pedigree.objects.get(
-                    animal_id=data["animalid"], male=sex
-                ).id
-                status = "successful"
-            except:
-                status = "failed"
-    else:
-        form = forms.PullForPedigree()
+    if "animal_id" in request.GET:
+        animal_id = int(request.GET["animal_id"])
+
+        try:
+            data_id = models.Pedigree.objects.get(animal_id=animal_id).id
+        except:
+            data_id = -1
 
     return render(
         request,
         "base/pedigree.html",
-        {"status": status, "form": form, "dataID": dataid},
+        {"animal_id": animal_id, "data_id": data_id},
     )
 
 
@@ -323,12 +316,13 @@ def get_bull_name(request: WSGIRequest, cowID: int):
     """Get the name if a bull from id"""
 
     try:
-        bull = models.Bull.objects.get(id=cowID)
+        animal = models.Bovine.objects.get(id=cowID)
+        assert animal.male
+        assert auth_herd(request, animal.herd, error=False)
     except Exception:
         return JsonResponse({"name": None})
 
-    accessible = auth_herd(request, bull.herd, error=False)
-    return JsonResponse({"name": bull.name if accessible else None})
+    return JsonResponse({"name": animal.name})
 
 
 def get_pedigree(request: WSGIRequest, pedigreeID: int):
@@ -336,27 +330,16 @@ def get_pedigree(request: WSGIRequest, pedigreeID: int):
     return JsonResponse(pedigree.get_as_dict())
 
 
-def get_cow_data(request: WSGIRequest, sex: str, cowID: int):
-    if sex == "Male":
-        model = models.Bull
-    if sex == "Female":
-        model = models.Cow
-
+def get_cow_data(request: WSGIRequest, cowID: int):
     try:
-        cow = model.objects.get(id=cowID)
+        animal = models.Bovine.objects.get(id=cowID)
     except:
         return JSONSuccess(False)
 
-    can_give_data = auth_herd(request, cow.herd, False)
+    can_give_data = auth_herd(request, animal.herd, False)
 
     if can_give_data:
-        return JsonResponse(
-            {
-                "successful": True,
-                "traits": cow.traits.scaled,
-                "recessives": cow.traits.recessives,
-            }
-        )
+        return JsonResponse({"successful": True} | animal.get_dict())
     else:
         return JSONSuccess(False)
 
@@ -371,35 +354,43 @@ def get_herd_file(request: WSGIRequest, herdID: int):
     herd = get_object_or_404(models.Herd, id=herdID)
     auth_herd(request, herd)
 
-    special = ["Id", "Name", "Sex", "Generation", "Sire", "Dam"]
+    special = [
+        "Id",
+        "Name",
+        "Sex",
+        "Generation",
+        "Sire",
+        "Dam",
+        "Inbreeding Coefficient",
+    ]
     block = [special + [x.name for x in traits.Trait.Get_All()]]
 
-    for cow in list(models.Bull.objects.filter(herd=herd)) + list(
-        models.Cow.objects.filter(herd=herd)
-    ):
+    for animal in models.Bovine.objects.filter(herd=herd):
         row = []
         for attr in block[0]:
             match attr:
                 case "Id":
-                    row.append(cow.get_sexed_id())
+                    row.append(animal.id)
                 case "Name":
-                    row.append(cow.name)
+                    row.append(animal.name)
                 case "Sex":
-                    row.append("male" if type(cow) is models.Bull else "female")
+                    row.append("male" if animal.male else "female")
                 case "Generation":
-                    row.append(cow.generation)
+                    row.append(animal.generation)
                 case "Sire":
-                    if cow.sire:
-                        row.append(cow.sire.get_sexed_id())
+                    if animal.pedigree.sire:
+                        row.append(animal.pedigree.sire.animal_id)
                     else:
                         row.append("NA")
                 case "Dam":
-                    if cow.dam:
-                        row.append(cow.dam.get_sexed_id())
+                    if animal.pedigree.dam:
+                        row.append(animal.pedigree.dam.animal_id)
                     else:
                         row.append("NA")
+                case "Inbreeding Coefficient":
+                    row.append(animal.pedigree.inbreeding)
                 case _:
-                    row.append(cow.traits.data[attr])
+                    row.append(animal.data[attr])
         block.append(row)
 
     output = BytesIO()
@@ -428,35 +419,32 @@ def get_herd_file(request: WSGIRequest, herdID: int):
 
 
 @login_required
-def change_name(request: WSGIRequest, cowID: int, gender: str, name: str):
+def change_name(request: WSGIRequest, cowID: int, name: str):
     """Change the name of a cow"""
 
     try:
-        targetmodel = models.Bull if gender == "bull" else models.Cow
+        string_validation(name, 1, 100, specialchar=" -_.'")
 
-        string_validation(name, 1, 100, specialchar=" -_.")
+        animal = get_object_or_404(models.Bovine, id=cowID)
+        auth_herd(request, animal.herd, unprotected=False)
 
-        cow = get_object_or_404(targetmodel, id=cowID)
-        auth_herd(request, cow.herd, unprotected=False)
-
-        cow.name = name
-        cow.save()
+        animal.name = name
+        animal.save()
         return JSONSuccess(True)
     except:
         return JSONSuccess(False)
 
 
 @login_required
-def move_cow(request: WSGIRequest, cowID: int, gender: str):
+def move_cow(request: WSGIRequest, cowID: int):
     """Move an animal to class herd"""
 
     try:
-        targetmodel = models.Bull if gender == "bulls" else models.Cow
-        cow = get_object_or_404(targetmodel, id=cowID)
-        auth_herd(request, cow.herd, unprotected=False)
-        cow.herd = cow.herd.connectedclass.herd
-        cow.name = f"[{request.user.get_full_name()}] {cow.name}"
-        cow.save()
+        animal = get_object_or_404(models.Bovine, id=cowID)
+        auth_herd(request, animal.herd, unprotected=False)
+        animal.herd = animal.herd.connectedclass.herd
+        animal.name = f"[{request.user.get_full_name()}] {animal.name}"
+        animal.save()
         return JSONSuccess(True)
     except:
         return JSONSuccess(False)
@@ -509,7 +497,9 @@ def breed_herd(request: WSGIRequest, herdID: int):
     sires = []
     for key in request.POST:
         if key[:5] == "bull-":
-            sire = get_object_or_404(models.Bull, id=int(request.POST[key]))
+            sire = get_object_or_404(
+                models.Bovine, id=int(request.POST[key]), male=True
+            )
             sires.append(sire)
             auth_herd(request, sire.herd)
     if len(sires) == 0:

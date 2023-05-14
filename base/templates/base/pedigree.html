@@ -14,9 +14,9 @@
 {% endblock links %}
 
 {% block body %}
-    <script>sessionStorage.setItem("Pedigree", '{{dataID}}')</script>
+    <script>sessionStorage.setItem("Pedigree", '{{data_id}}');</script>
 
-    {% if status == "successful" %}
+    {% if animal_id >= 0 and data_id >= 0 %}
         <div class="pedigree" id="pedigree">
             <h1>Pedigree</h1>
 
@@ -24,49 +24,25 @@
 
         </div>
         <div id="cow-data" class="cow-data"></div>
-        <div class="recessive-info" id="recessive-info">
-            <code>
-                -- Homozygous Dominant |
-                -+ Heterozygous |
-                ++ Homozygous Recessive
-            </code> <a href="/recessives" class="as-btn">Genetic Recessive Information</a>
-        </div>
     {% endif %}
 
     <form class="form">
         <h1>Find Pedigree for Animal</h1>
 
-        {% if status == "failed" %}
+        {% if animal_id >= 0 and data_id <= 0 %}
             <ul class="errorlist">
                 <li>
-                    No
-
-                    {% if form.sex.value == "Male" %}
-                        Bull
-                    {% else %}
-                        Cow
-                    {% endif %}
-
-                    of Id {{ form.animalid.value }} Could be found.
-                    Ensure you have the right Id & Sex then try again.
+                    No of animal of ID {{ animal_id }} Could be found.
+                    Ensure you entered the right ID then try again.
                 </li>
             </ul>
             <br>
         {% endif %}
 
-        {% if form.non_field_errors %}
-            {{ form.non_field_errors }}
-            <br>
-        {% endif %}
+        <form>
+            Animal Id
+            <input type="text" min="0" name="animal_id">
 
-        {% for field in form %}
-            {{ field.label }}
-            {{ field }}
-            {{ field.errors }}
-            <div class="help">{{ field.help_text }}</div>
-            <br>
-        {% endfor %}
-
-        <button type="submit">Submit</button>
-    </form>
-{% endblock body %}
+            <button type="submit">Search</button>
+        </form>
+    {% endblock body %}
