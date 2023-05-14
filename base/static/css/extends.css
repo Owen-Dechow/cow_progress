@@ -5,8 +5,16 @@
     --light: #e0e0e0;
     --dark: #303030;
     --transparent: #000b;
+    --select: #ffffff80;
 }
 
+::-moz-selection {
+    background: var(--select);
+}
+
+::selection {
+    background: var(--select);
+}
 
 body {
     margin: 0;
@@ -78,14 +86,6 @@ h1 {
     margin: 20px 0;
 }
 
-.ns {
-    -webkit-user-select: none;
-    -khtml-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
-    -webkit-touch-callout: none;
-}
 
 .pow {
     font-style: italic;

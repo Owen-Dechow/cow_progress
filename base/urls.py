@@ -11,6 +11,7 @@ urlpatterns = [
     path("recessives", views.recessives, name="recessives"),
     path("pedigree", views.pedigree, name="pedigree"),
     path("cookies", views.cookies, name="cookies"),
+    path("credits", views.app_credits, name="credits"),
     ########### JSON patterns ###########
     path("traitnames", views.traitnames),
     path("herdsummaries", views.herdsummaries),

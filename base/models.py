@@ -1,4 +1,3 @@
-from typing import Iterable, Optional
 from django.contrib.auth.models import User
 from .traitinfo import correlations as cor
 from .traitinfo import recessives
@@ -6,6 +5,7 @@ from random import randrange, random, randint
 from .traitinfo import traits
 from django.db import models
 from math import prod
+from .inbreeding import calculate_inbreeding
 
 PTA_DECIMALS = 3  # Number of decimal placements shown for PTAs on website/ xlsx files
 MUTATION_RATE = 0.25  # Maximum mutation of a PTA in one generation from -1 to 1 value
@@ -281,6 +281,7 @@ class Herd(models.Model):
                 if cow.traits.pedigree.dam
                 else "~",
                 "traits": cow.traits.scaled,
+                "Inbreeding Coefficient": cow.traits.pedigree.inbreeding,
                 "recessives": cow.traits.recessives,
             }
 
@@ -296,6 +297,7 @@ class Herd(models.Model):
                 if bull.traits.pedigree.dam
                 else "~",
                 "traits": bull.traits.scaled,
+                "Inbreeding Coefficient": bull.traits.pedigree.inbreeding,
                 "recessives": bull.traits.recessives,
             }
 
@@ -614,6 +616,7 @@ class Pedigree(models.Model):
     sire = models.ForeignKey(
         to="Pedigree", related_name="_sire", on_delete=models.CASCADE, null=True
     )
+    inbreeding = models.FloatField()
 
     def get_as_dict(self):
         """Get a JSON serializable pedagree"""
@@ -626,3 +629,12 @@ class Pedigree(models.Model):
             pedigree["sire"] = self.sire.get_as_dict()
 
         return pedigree
+
+    def save(self, *args, **kwargs):
+        if self.sire and self.dam:
+            print(self.animal_id)
+            self.inbreeding = calculate_inbreeding(self.get_as_dict())
+        else:
+            self.inbreeding = 0
+
+        super().save(*args, **kwargs)

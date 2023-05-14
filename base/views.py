@@ -7,6 +7,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth import login
 from django.contrib import messages
 from .traitinfo import traits
+from .resources.resources import get_resources
 from io import BytesIO
 from . import models
 from . import forms
@@ -81,7 +82,7 @@ def JSONSuccess(success: bool):
 def home(request: WSGIRequest):
     """Home page"""
 
-    args = {"resources": models.Resource.objects.all()}
+    args = {"resources": get_resources()}
     return render(request, "base/home.html", args)
 
 
@@ -251,6 +252,10 @@ def pedigree(request: WSGIRequest):
 
 def cookies(request: WSGIRequest):
     return render(request, "base/cookies.html")
+
+
+def app_credits(request: WSGIRequest):
+    return render(request, "base/credits.html")
 
 
 ########## JSON requests ##########

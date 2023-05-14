@@ -1,6 +1,6 @@
 def calculate_inbreeding(p):
-    paternal = map_parents(p["sire"], {}, 0)
-    fraternal = map_parents(p["dam"], {}, 0)
+    paternal = map_parents(p["sire"], {}, 0, "Y")
+    fraternal = map_parents(p["dam"], {}, 0, "X")
 
     inbreeding = 0
     for animal_paternal, depths_paternal in paternal.items():
@@ -12,16 +12,16 @@ def calculate_inbreeding(p):
     return inbreeding
 
 
-def map_parents(p, dic, depth):
+def map_parents(p, dic, depth, sex):
     if p["id"] + p["sex"] in dic:
-        dic[p["id"] + p["sex"]].append(depth)
+        dic[p["id"] + sex].append(depth)
     else:
-        dic[p["id"] + p["sex"]] = [depth]
+        dic[p["id"] + sex] = [depth]
 
     if p["sire"]:
-        dic = map_parents(p["sire"], dic, depth + 1)
+        dic = map_parents(p["sire"], dic, depth + 1, "Y")
 
     if p["dam"]:
-        dic = map_parents(p["dam"], dic, depth + 1)
+        dic = map_parents(p["dam"], dic, depth + 1, "X")
 
     return dic

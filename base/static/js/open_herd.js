@@ -49,6 +49,7 @@ function displayCowsBy(orderby, reverse, gender, cowslist) {
 
     if (orderby == "id") keylist.sort((a, b) => b - a)
     else if (orderby == "Generation") keylist.sort((a, b) => cowslist[gender][b]["Generation"] - cowslist[gender][a]["Generation"])
+    else if (orderby == "Inbreeding Coefficient") keylist.sort((a, b) => cowslist[gender][b]["Inbreeding Coefficient"] - cowslist[gender][a]["Inbreeding Coefficient"])
     else if (orderby == "Sire") keylist.sort((a, b) => cowslist[gender][b]["Sire"] - cowslist[gender][a]["Sire"])
     else if (orderby == "Dam") keylist.sort((a, b) => cowslist[gender][b]["Dam"] - cowslist[gender][a]["Dam"])
     else keylist.sort((a, b) => cowslist[gender][b]["traits"][orderby] - cowslist[gender][a]["traits"][orderby])
@@ -107,6 +108,7 @@ function displayTraits() {
     addFromKey("Generation")
     addFromKey("Sire")
     addFromKey("Dam")
+    addFromKey("Inbreeding Coefficient")
     for (let key in traitnames) {
         if (traitnames.hasOwnProperty(key)) {
             addFromKey(key)
@@ -135,6 +137,7 @@ function changeDisplayedCow(gender, cowID) {
 
         document.getElementById("id" + "-ipt").value = cowID;
         document.getElementById("Generation" + "-ipt").value = stats["Generation"];
+        document.getElementById("Inbreeding Coefficient" + "-ipt").value = stats["Inbreeding Coefficient"];
         document.getElementById("Sire" + "-ipt").value = stats["Sire"];
         document.getElementById("Dam" + "-ipt").value = stats["Dam"];
 
@@ -168,7 +171,7 @@ function changeDisplayedCow(gender, cowID) {
         document.getElementById("pedigree-link").href = "javascript:void(0)";
         document.getElementById("cow-name").value = "[HERD SUMMARY]";
         document.getElementById("id" + "-ipt").value = "~";
-        document.getElementById("Generation" + "-ipt").value = "~";
+        document.getElementById("Inbreeding Coefficient" + "-ipt").value = "~";
         document.getElementById("Sire" + "-ipt").value = "~";
         document.getElementById("Dam" + "-ipt").value = "~";
         document.getElementById("cow-recessives").innerHTML = "~";
