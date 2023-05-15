@@ -23,3 +23,6 @@ urlpatterns = [
     path("", include("base.urls")),
     path("auth/", include("base.urls_auth")),
 ]
+
+handler404 = "base.views.error_404_handler"
+handler500 = "base.views.error_500_handler"

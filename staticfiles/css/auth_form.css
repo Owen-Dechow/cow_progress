@@ -37,7 +37,3 @@ main form .text {
     white-space: pre-line;
     text-align: center;
 }
-
-main form .no-pre {
-    white-space: wrap;
-}

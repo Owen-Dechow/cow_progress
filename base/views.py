@@ -17,10 +17,12 @@ from . import excel
 ########### Utility functions ##########
 
 
-def auth_herd(request: WSGIRequest, herd: models.Herd, error=True, unprotected=True):
+def auth_herd(
+    request: WSGIRequest, herd: models.Herd, error=True, use_unprotected=True
+):
     """Authenticate a users herd acceses"""
 
-    if unprotected:
+    if use_unprotected:
         if herd.unrestricted:
             return True
 
@@ -77,6 +79,14 @@ def JSONSuccess(success: bool):
 
 
 ########## Page views ##########
+
+
+def error_404_handler(request, exception):
+    return render(request, "base/404.html")
+
+
+def error_500_handler(request):
+    return render(request, "base/500.html")
 
 
 def home(request: WSGIRequest):
@@ -330,6 +340,7 @@ def get_pedigree(request: WSGIRequest, pedigreeID: int):
     return JsonResponse(pedigree.get_as_dict())
 
 
+@login_required
 def get_cow_data(request: WSGIRequest, cowID: int):
     try:
         animal = models.Bovine.objects.get(id=cowID)
@@ -426,7 +437,7 @@ def change_name(request: WSGIRequest, cowID: int, name: str):
         string_validation(name, 1, 100, specialchar=" -_.'")
 
         animal = get_object_or_404(models.Bovine, id=cowID)
-        auth_herd(request, animal.herd, unprotected=False)
+        auth_herd(request, animal.herd, use_unprotected=False)
 
         animal.name = name
         animal.save()
@@ -441,7 +452,7 @@ def move_cow(request: WSGIRequest, cowID: int):
 
     try:
         animal = get_object_or_404(models.Bovine, id=cowID)
-        auth_herd(request, animal.herd, unprotected=False)
+        auth_herd(request, animal.herd, use_unprotected=False)
         animal.herd = animal.herd.connectedclass.herd
         animal.name = f"[{request.user.get_full_name()}] {animal.name}"
         animal.save()
@@ -506,7 +517,7 @@ def breed_herd(request: WSGIRequest, herdID: int):
         raise Http404()
 
     herd = models.Herd.objects.get(id=herdID)
-    auth_herd(request, herd, unprotected=False)
+    auth_herd(request, herd, use_unprotected=False)
 
     deaths = herd.run_breeding(sires)
     messages.info(request, f"deaths:{deaths}")
@@ -538,7 +549,7 @@ def delete_herd(request: WSGIRequest, herdID: int):
     """Delete a herd"""
 
     herd = get_object_or_404(models.Herd, id=herdID)
-    auth_herd(request, herd, unprotected=False)
+    auth_herd(request, herd, use_unprotected=False)
     herd.delete()
     return HttpResponseRedirect("/herds")
 

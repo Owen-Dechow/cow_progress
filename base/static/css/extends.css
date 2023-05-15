@@ -1,13 +1,3 @@
-:root {
-    --prime: rgb(80, 80, 112);
-    --secondary: #507050;
-    --neutral: #908070;
-    --light: #e0e0e0;
-    --dark: #303030;
-    --transparent: #000b;
-    --select: #ffffff80;
-}
-
 ::-moz-selection {
     background: var(--select);
 }

@@ -35,9 +35,19 @@ function unpackDictToNode(node, dict, textprefix, textsuffix) {
 
     if (dict["sire"]) {
         unpackDictToNode(div, dict["sire"], "sire (", ")");
+    } else {
+        let span = document.createElement("span");
+        span.style.display = "block";
+        span.textContent = "[Sire Unknown]";
+        div.append(span);
     }
     if (dict["dam"]) {
         unpackDictToNode(div, dict["dam"], "dam (", ")");
+    } else {
+        let span = document.createElement("span");
+        span.style.display = "block";
+        span.textContent = "[Dam Unknown]";
+        div.append(span);
     }
     details.append(div);
 
@@ -103,8 +113,5 @@ async function loadCowData() {
         addTableToNode(container, infoDict, "Info", false)
         addTableToNode(container, data["traits"], "PTAs", false);
         addTableToNode(container, data["recessives"], "Recessives", true);
-    } else {
-        document.getElementById("recessive-info").classList.add("hide");
     }
-
 }
