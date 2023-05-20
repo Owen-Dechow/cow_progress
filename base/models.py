@@ -291,7 +291,7 @@ class Bovine(models.Model):
         # Set the genetic recessives for new animal
         new.recessives = {}
         for recessive in recessives.get_recessives():
-            new.recessives[recessive] = randint(0, randint(0, 2))
+            new.recessives[recessive] = randint(0, randint(0, 1))
 
         new.name = new.auto_generate_name()
         new.save()

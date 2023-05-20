@@ -290,7 +290,7 @@ def herdsummaries(request: WSGIRequest):
     for herd in list(publicherdlist) + classherdslist:
         summaries["public"][herd.id] = {
             "name": herd.name,
-            "class": herd.connectedclass.name,
+            "class": "",
             "traits": herd.get_summary(),
         }
 
