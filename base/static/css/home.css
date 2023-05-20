@@ -74,3 +74,8 @@ main .pedigree-btn {
     margin: 10px 0 0 10px;
     box-sizing: border-box;
 }
+
+main .hero-text {
+    font-size: min(2rem, 3.5vw);
+    text-align: center;
+}
