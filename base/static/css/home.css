@@ -1,35 +1,37 @@
 main .info-panel {
-    overflow: hidden;
     position: relative;
     display: flex;
-    flex-direction: row;
     justify-content: space-between;
-    margin-inline: 10px;
+    overflow: hidden;
+    flex-direction: row;
     margin-top: 10px;
+    margin-inline: 10px;
 }
 
 main .info-panel .large {
+    position: relative;
     width: calc(100% - 310px);
-    background-color: var(--prime);
     margin: 0;
     padding: 10px;
-    position: relative;
+    background-color: var(--prime);
 }
 
 main .info-panel .small {
-    width: 300px;
-    object-fit: scale-down;
-    background-color: var(--prime);
-    margin: 0;
     position: relative;
+    object-fit: cover;
+    object-position: 0% 0%;
+    width: 300px;
+    filter: brightness(90%);
+    margin: 0;
+    background-color: var(--prime);
 }
 
 main .info-panel .full {
+    position: relative;
     width: 100%;
-    background-color: var(--prime);
     margin: 0;
     padding: 10px;
-    position: relative;
+    background-color: var(--prime);
 }
 
 main .info-panel .subnote {
@@ -71,8 +73,8 @@ main .info-panel .lines {
 
 main .pedigree-btn {
     width: calc(100% - 20px);
-    margin: 10px 0 0 10px;
     box-sizing: border-box;
+    margin: 10px 0 0 10px;
 }
 
 main .hero-text {
