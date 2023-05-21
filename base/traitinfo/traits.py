@@ -12,6 +12,7 @@ class Trait:
     name: str = ""
     standard_deviation: float = 0
     net_merit_dollars: float = 0
+    top_bull_name: str = ""
 
     def __init__(self, name, standard_deviation, net_merit_dollars):
         self.name = str(name.strip())
@@ -20,14 +21,11 @@ class Trait:
 
     @classmethod
     def get_all(cls):
-        traits = []
+        traits: list[Trait] = []
         with open(RELPATH / "ptas.txt") as PTAs:
             for line in PTAs.readlines():
                 data = line.split(":")
-                name = data[0]
-                standard_deviation = data[1]
-                nmd = data[2]
-                traits.append(Trait(name, standard_deviation, nmd))
+                traits.append(Trait(*data))
 
         return traits
 

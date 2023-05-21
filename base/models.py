@@ -70,11 +70,39 @@ class Herd(models.Model):
         for _ in range(NUMBER_OF_BULLS):
             Bovine.auto_generate(herd, True)
 
-        # Remove any animals dead from recessives
-        herd.remove_deaths_from_recessives()
-
         herd.save()
         return herd
+
+    @staticmethod
+    def make_public_herd(name, animal_name_prefix, star_word):
+        """Builds public herds"""
+
+        herd = Herd.get_auto_generated_herd(name, None)
+        herd.unrestricted = True
+        herd.save()
+
+        do_not_use = set()
+        for trait in traits.Trait.get_all():
+            top = None
+            for animal in Bovine.objects.filter(herd=herd):
+                if animal not in do_not_use:
+                    if top is not None:
+                        nmd = trait.net_merit_dollars
+                        top_val = top.data[trait.name] * nmd
+                        animal_val = animal.data[trait.name] * nmd
+
+                    if top is None or animal_val > top_val:
+                        top = animal
+
+            top.name = animal_name_prefix + " " + trait.name + " " + star_word
+            top.male = True
+            top.save()
+            do_not_use.add(top)
+
+        for animal in Bovine.objects.filter(herd=herd):
+            if animal not in do_not_use:
+                animal.name = animal_name_prefix + " " + str(animal.id)
+                animal.save()
 
     def get_summary(self):
         """Gets a JSON serializable dict of all PTAs average among animals"""
