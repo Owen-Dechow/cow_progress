@@ -141,8 +141,6 @@ function changeDisplayedCow(gender, cowID) {
         document.getElementById("Sire" + "-ipt").value = stats["Sire"];
         document.getElementById("Dam" + "-ipt").value = stats["Dam"];
 
-
-
         for (let key in stats["traits"]) {
             if (stats["traits"].hasOwnProperty(key)) {
                 document.getElementById(key + "-ipt").value = stats["traits"][key];
@@ -175,6 +173,7 @@ function changeDisplayedCow(gender, cowID) {
         document.getElementById("Inbreeding Coefficient" + "-ipt").value = "~";
         document.getElementById("Sire" + "-ipt").value = "~";
         document.getElementById("Dam" + "-ipt").value = "~";
+
         document.getElementById("cow-recessives").innerHTML = "~";
         let stats = getSessionDict("HerdSummary");
         for (let key in stats) {

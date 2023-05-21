@@ -1,8 +1,8 @@
-BLAD:f
-DUMPS:f
-MF:n
-CD:f
-POLLED:n
-CVM:f
-BY:f
-CR:f
+BLAD    :   f
+DUMPS   :   f
+MF      :   n
+CD      :   f
+POLLED  :   n
+CVM     :   f
+BY      :   f
+CR      :   f

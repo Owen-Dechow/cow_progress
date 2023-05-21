@@ -85,12 +85,12 @@ class Herd(models.Model):
         animals = Bovine.objects.filter(herd=self)
 
         # Add animals PTAs together
-        for trait in animals:
-            for key in trait.data:
+        for animal in animals:
+            for key in animal.scaled:
                 if key in summary:
-                    summary[key] += trait.scaled[key]
+                    summary[key] += animal.scaled[key]
                 else:
-                    summary[key] = trait.scaled[key]
+                    summary[key] = animal.scaled[key]
 
         # Divide each PTA by number of animals
         number_of_animals = len(animals)
@@ -237,7 +237,7 @@ class Bovine(models.Model):
 
         # Generate mutated uncorrelated values -1 to 1
         uncorrelated = {}
-        for trait in traits.Trait.Get_All():
+        for trait in traits.Trait.get_all():
             val = (sire.data[trait.name] + dam.data[trait.name]) / 2
             newval = val + MUTATION_RATE * traits.DOMAIN()
 
@@ -248,7 +248,7 @@ class Bovine(models.Model):
             uncorrelated[trait.name] = newval
 
         # Correlate data
-        initial_val_list = [uncorrelated[key.name] for key in traits.Trait.Get_All()]
+        initial_val_list = [uncorrelated[key.name] for key in traits.Trait.get_all()]
         corelated_data = cor.get_result(initial_values=initial_val_list)
         new.data = cor.convert_data(corelated_data)
 
@@ -306,6 +306,7 @@ class Bovine(models.Model):
             scaled_data[key] = round(standard_deviation * val, PTA_DECIMALS)
 
         self.scaled = scaled_data
+        self.set_net_merit()
 
     def auto_generate_name(self):
         """Autogenerates a name for animal"""
@@ -327,6 +328,11 @@ class Bovine(models.Model):
             "Dam": self.pedigree.dam.animal_id if self.pedigree.dam else "~",
             "Inbreeding Coefficient": self.pedigree.inbreeding,
         }
+
+    def set_net_merit(self):
+        self.scaled["Net Merit"] = round(
+            traits.Trait.calculate_net_merit(self.scaled), PTA_DECIMALS
+        )
 
 
 # Class object

@@ -111,6 +111,18 @@ async function setSessionDict(id, obj) {
     sessionStorage.setItem(id, JSON.stringify(obj))
 }
 
+function toggleTheme() {
+    if (getcookie("theme") == "dark") {
+        setcookie("theme", "light", 365);
+    } else {
+        setcookie("theme", "dark", 365);
+    }
+
+    document.body.classList.remove("dark");
+    document.body.classList.remove("light");
+    document.body.classList.add(getcookie("theme"));
+}
+
 window.addEventListener("DOMContentLoaded", async () => {
     if (getcookie("acceptedcookie") != "true" && window.location.pathname != "/cookies") {
         alertreal(
@@ -124,7 +136,7 @@ window.addEventListener("DOMContentLoaded", async () => {
             "Accept Cookies",
             null,
             () => {
-                setcookie("acceptedcookie", "true", 1)
+                setcookie("acceptedcookie", "true", 365)
             },
         );
 

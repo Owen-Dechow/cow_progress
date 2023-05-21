@@ -1,4 +1,5 @@
 {% load static %}
+{% load dic %}
 
 <!DOCTYPE html>
 <html lang="en">
@@ -24,10 +25,22 @@
         {% block links %}{% endblock %}
 
     </head>
-    <body>
+    <body class="{{ request.COOKIES|dic:'theme' }}">
         <div class="alert" id="alert"></div>
         <nav>
             <a class="home-link" href="/">Cow Progress</a>
+            <button onclick="toggleTheme()" class="theme-toggle">
+                <svg version="1.0"
+                     xmlns="http://www.w3.org/2000/svg"
+                     width="272.000000pt"
+                     height="272.000000pt"
+                     viewBox="0 0 272.000000 272.000000"
+                     preserveAspectRatio="xMidYMid meet">
+                    <g transform="translate(0.000000,272.000000) scale(0.100000,-0.100000)" stroke="none">
+                    <path d="M1185 2709 c-415 -53 -812 -318 -1017 -679 -115 -202 -175 -465 -165 -715 13 -325 123 -606 330 -844 543 -626 1511 -626 2054 0 492 567 430 1424 -138 1916 -291 253 -680 370 -1064 322z m425 -136 c420 -83 783 -403 923 -813 47 -138 62 -232 62 -400 0 -168 -15 -262 -62 -400 -122 -357 -416 -651 -773 -773 -80 -27 -188 -51 -282 -62 l-58 -6 0 1241 0 1241 58 -6 c31 -4 91 -14 132 -22z" />
+                    </g>
+                </svg>
+            </button>
 
             {% if user.is_authenticated %}
                 <a href="/herds">Herds</a>
@@ -45,10 +58,8 @@
 
         </nav>
         <main>
-
             {% block body %}
             {% endblock body %}
-
         </main>
         <footer>
         </footer>

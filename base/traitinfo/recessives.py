@@ -4,17 +4,19 @@ from .traits import RELPATH
 
 def get_recessives():
     with open(RELPATH / "recessives.txt") as f:
-        recessives = [x.split(":")[0] for x in f.readlines()]
+        recessives = [x.split(":")[0].strip() for x in f.readlines()]
 
     return recessives
 
 
 def get_recessives_fatal():
     with open(RELPATH / "recessives.txt") as f:
-        recessives = [x.removesuffix("\n").split(":") for x in f.readlines()]
+        recessives = [
+            [y.strip() for y in x.removesuffix("\n").split(":")] for x in f.readlines()
+        ]
 
     for x in recessives:
-        x[1] = x[1] == "f"
+        x[1] = "f" in x[1]
     return recessives
 
 

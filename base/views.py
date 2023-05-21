@@ -262,14 +262,15 @@ def app_credits(request: WSGIRequest):
 
 
 ########## JSON requests ##########
-@login_required
 def traitnames(request: WSGIRequest):
     """JSON dict of all trait names"""
 
     traitdict = {}
 
-    for trait in traits.Trait.Get_All():
-        traitdict[trait.name] = trait.standard_deviation
+    traitdict["Net Merit"] = 0
+
+    for trait in traits.Trait.get_all():
+        traitdict[trait.name] = trait.net_merit_dollars
 
     return JsonResponse(traitdict)
 
@@ -374,7 +375,7 @@ def get_herd_file(request: WSGIRequest, herdID: int):
         "Dam",
         "Inbreeding Coefficient",
     ]
-    block = [special + [x.name for x in traits.Trait.Get_All()]]
+    block = [special + [x.name for x in traits.Trait.get_all()]]
 
     for animal in models.Bovine.objects.filter(herd=herd):
         row = []

@@ -18,7 +18,7 @@ def get_cor_matrix():
 
 def get_result(initial_values: list = None):
     cor_matrix = get_cor_matrix()
-    traitlist = traits.Trait.Get_All()
+    traitlist = traits.Trait.get_all()
 
     r = np.array(cor_matrix)
 
