@@ -90,6 +90,8 @@ class Herd(models.Model):
                         top = animal
 
             top.name = animal_name_prefix + " " + trait.name + " " + star_word
+            top.pedigree.male = True
+            top.pedigree.save()
             top.male = True
             top.save()
             do_not_use.add(top)

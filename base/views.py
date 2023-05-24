@@ -18,11 +18,11 @@ from . import excel
 
 
 def auth_herd(
-    request: WSGIRequest, herd: models.Herd, error=True, use_unprotected=True
+    request: WSGIRequest, herd: models.Herd, error=True, use_class_herds=True
 ):
     """Authenticate a users herd acceses"""
 
-    if use_unprotected:
+    if use_class_herds:
         classes = (
             [
                 x.connectedclass
@@ -32,10 +32,10 @@ def auth_herd(
             else []
         )
 
-        for connectedclass in classes:
-            if herd.connectedclass == connectedclass and herd.owner == None:
-                return True
+        if herd.connectedclass in classes and herd.owner == None:
+            return True
 
+    print(herd.owner)
     if herd.owner == request.user:
         return True
 
@@ -263,6 +263,7 @@ def app_credits(request: WSGIRequest):
 
 
 ########## JSON requests ##########
+@login_required
 def traitnames(request: WSGIRequest):
     """JSON dict of all trait names"""
 
@@ -436,7 +437,7 @@ def change_name(request: WSGIRequest, cowID: int, name: str):
         string_validation(name, 1, 100, specialchar=" -_.'")
 
         animal = get_object_or_404(models.Bovine, id=cowID)
-        auth_herd(request, animal.herd, use_unprotected=False)
+        auth_herd(request, animal.herd, use_class_herds=False)
 
         animal.name = name
         animal.save()
@@ -451,7 +452,7 @@ def move_cow(request: WSGIRequest, cowID: int):
 
     try:
         animal = get_object_or_404(models.Bovine, id=cowID)
-        auth_herd(request, animal.herd, use_unprotected=False)
+        auth_herd(request, animal.herd, use_class_herds=False)
         animal.herd = animal.herd.connectedclass.herd
         animal.name = f"[{request.user.get_full_name()}] {animal.name}"
         animal.save()
@@ -515,11 +516,11 @@ def breed_herd(request: WSGIRequest, herdID: int):
     if len(sires) == 0:
         raise Http404()
 
-    herd = models.Herd.objects.get(id=herdID)
-    auth_herd(request, herd, use_unprotected=False)
+    herd = get_object_or_404(models.Herd, id=herdID)
+    auth_herd(request, herd, use_class_herds=False)
 
     if herd.breedings >= herd.connectedclass.breeding_limit:
-        raise Http404()
+        raise Exception(f"{herd.breedings=}, {herd.connectedclass.breeding_limit=}")
 
     deaths = herd.run_breeding(sires)
     messages.info(request, f"deaths:{deaths}")
@@ -551,7 +552,7 @@ def delete_herd(request: WSGIRequest, herdID: int):
     """Delete a herd"""
 
     herd = get_object_or_404(models.Herd, id=herdID)
-    auth_herd(request, herd, use_unprotected=False)
+    auth_herd(request, herd, use_class_herds=False)
     herd.delete()
     return HttpResponseRedirect("/herds")
 

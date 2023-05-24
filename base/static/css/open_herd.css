@@ -140,6 +140,10 @@ main .panel.right p:nth-child(even) {
     background-color: var(--secondary);
 }
 
+main .panel.right p.hide {
+    filter: blur(2px);
+}
+
 main .panel.right p label {
     display: block;
 }

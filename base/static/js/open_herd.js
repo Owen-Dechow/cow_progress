@@ -91,6 +91,7 @@ function displayTraits() {
         let ipt = document.createElement("input");
         ipt.id = key + "-ipt";
         ipt.disabled = true;
+        ipt.classList.add("trait-ipt");
 
         let p = document.createElement("p");
         p.appendChild(lbl);
@@ -170,6 +171,7 @@ function changeDisplayedCow(gender, cowID) {
 
         document.getElementById("cow-name").value = "[HERD SUMMARY]";
         document.getElementById("id" + "-ipt").value = "~";
+        document.getElementById("Generation" + "-ipt").value = "~";
         document.getElementById("Inbreeding Coefficient" + "-ipt").value = "~";
         document.getElementById("Sire" + "-ipt").value = "~";
         document.getElementById("Dam" + "-ipt").value = "~";
@@ -180,6 +182,16 @@ function changeDisplayedCow(gender, cowID) {
             if (stats.hasOwnProperty(key)) {
                 document.getElementById(key + "-ipt").value = stats[key];
             }
+        }
+    }
+
+    for (let input of document.getElementsByClassName("trait-ipt")) {
+        if (input.value == "~") {
+            input.parentNode.classList.add("hide");
+            input.parentNode.classList.remove("show");
+        } else {
+            input.parentNode.classList.remove("hide");
+            input.parentNode.classList.add("show");
         }
     }
 }
