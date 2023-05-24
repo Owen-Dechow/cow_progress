@@ -23,9 +23,6 @@ def auth_herd(
     """Authenticate a users herd acceses"""
 
     if use_unprotected:
-        if herd.unrestricted:
-            return True
-
         classes = (
             [
                 x.connectedclass
@@ -34,8 +31,9 @@ def auth_herd(
             if request.user.is_authenticated
             else []
         )
+
         for connectedclass in classes:
-            if herd == connectedclass.herd:
+            if herd.connectedclass == connectedclass and herd.owner == None:
                 return True
 
     if herd.owner == request.user:
@@ -168,9 +166,7 @@ def open_herd(request: WSGIRequest, herdID: int):
     herd = get_object_or_404(models.Herd, id=herdID)
     auth_herd(request, herd)
 
-    if herd.unrestricted:
-        herdstatus = "Public"
-    elif herd.connectedclass.herd == herd:
+    if herd.connectedclass.herd == herd:
         herdstatus = "Class"
     else:
         herdstatus = "Private"
@@ -201,6 +197,7 @@ def classes(request: WSGIRequest):
         "exitclass": forms.ExitClass,
         "deleteclass": forms.DeleteClass,
         "promoteclass": forms.PromoteClass,
+        "updateclass": forms.UpdateClass,
     }
 
     if request.method == "POST":
@@ -208,11 +205,12 @@ def classes(request: WSGIRequest):
             formid = request.POST["formid"]
             form = view_forms[formid](request.POST)
             view_forms[formid] = form
+
             if form.is_valid(request.user):
                 form.save(request.user)
 
             return HttpResponseRedirect("/classes")
-        except Exception as e:
+        except:
             raise Http404()
 
     enrollments = models.Enrollment.objects.filter(user=request.user)
@@ -239,7 +237,10 @@ def pedigree(request: WSGIRequest):
     data_id = -1
 
     if "animal_id" in request.GET:
-        animal_id = int(request.GET["animal_id"])
+        try:
+            animal_id = int(request.GET["animal_id"])
+        except:
+            animal_id = float("inf")
 
         try:
             data_id = models.Pedigree.objects.get(animal_id=animal_id).id
@@ -279,16 +280,17 @@ def traitnames(request: WSGIRequest):
 def herdsummaries(request: WSGIRequest):
     """JSON dict of all accessable herd summaries"""
 
-    publicherdlist = models.Herd.objects.filter(unrestricted=True)
     privateherdlist = models.Herd.objects.filter(owner=request.user)
-    classherdslist = [
-        x.connectedclass.herd
-        for x in models.Enrollment.objects.filter(user=request.user)
-    ]
+
+    publicherdlist = []
+    for enrollment in models.Enrollment.objects.filter(user=request.user):
+        connectedclass = enrollment.connectedclass
+        publicherdlist.append(connectedclass.herd)
+        publicherdlist.append(connectedclass.publicherd)
 
     summaries = {"public": {}, "private": {}, "class": {}}
 
-    for herd in list(publicherdlist) + classherdslist:
+    for herd in publicherdlist:
         summaries["public"][herd.id] = {
             "name": herd.name,
             "class": "",
@@ -366,43 +368,39 @@ def get_herd_file(request: WSGIRequest, herdID: int):
     herd = get_object_or_404(models.Herd, id=herdID)
     auth_herd(request, herd)
 
-    special = [
-        "Id",
-        "Name",
-        "Sex",
-        "Generation",
-        "Sire",
-        "Dam",
-        "Inbreeding Coefficient",
-    ]
-    block = [special + [x.name for x in traits.Trait.get_all()]]
+    row1 = []
+    animals = models.Bovine.objects.filter(herd=herd)
+    for key, val in animals[0].get_dict().items():
+        if key == "traits":
+            for traitkey in val:
+                row1.append(traitkey)
+        elif key == "recessives":
+            for traitkey in val:
+                row1.append(traitkey)
+        else:
+            row1.append(key)
 
-    for animal in models.Bovine.objects.filter(herd=herd):
+    block = [row1]
+    row1[0] = "Name"
+
+    for animal in animals:
         row = []
-        for attr in block[0]:
-            match attr:
-                case "Id":
-                    row.append(animal.id)
-                case "Name":
-                    row.append(animal.name)
-                case "Sex":
-                    row.append("male" if animal.male else "female")
-                case "Generation":
-                    row.append(animal.generation)
-                case "Sire":
-                    if animal.pedigree.sire:
-                        row.append(animal.pedigree.sire.animal_id)
+        for key, val in animal.get_dict().items():
+            if key == "traits":
+                for traitkey, traitval in val.items():
+                    row.append(traitval)
+            elif key == "recessives":
+                for traitkey, traitval in val.items():
+                    if traitval == 0:
+                        realval = "--"
+                    elif traitval == 1:
+                        realval = "-+"
                     else:
-                        row.append("NA")
-                case "Dam":
-                    if animal.pedigree.dam:
-                        row.append(animal.pedigree.dam.animal_id)
-                    else:
-                        row.append("NA")
-                case "Inbreeding Coefficient":
-                    row.append(animal.pedigree.inbreeding)
-                case _:
-                    row.append(animal.data[attr])
+                        realval = "++"
+                    row.append(realval)
+            else:
+                row.append(val)
+
         block.append(row)
 
     output = BytesIO()
@@ -519,6 +517,9 @@ def breed_herd(request: WSGIRequest, herdID: int):
 
     herd = models.Herd.objects.get(id=herdID)
     auth_herd(request, herd, use_unprotected=False)
+
+    if herd.breedings >= herd.connectedclass.breeding_limit:
+        raise Http404()
 
     deaths = herd.run_breeding(sires)
     messages.info(request, f"deaths:{deaths}")

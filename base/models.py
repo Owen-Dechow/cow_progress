@@ -27,9 +27,6 @@ class Herd(models.Model):
     # Number of breedings that have been run on herd
     breedings = models.IntegerField(default=0)
 
-    # Tells if herd can be accessed by anyone
-    unrestricted = models.BooleanField(default=False)
-
     # Stores the class this herd is part of
     connectedclass = models.ForeignKey(
         to="Class",
@@ -78,8 +75,6 @@ class Herd(models.Model):
         """Builds public herds"""
 
         herd = Herd.get_auto_generated_herd(name, None)
-        herd.unrestricted = True
-        herd.save()
 
         do_not_use = set()
         for trait in traits.Trait.get_all():
@@ -104,6 +99,8 @@ class Herd(models.Model):
                 animal.name = animal_name_prefix + " " + str(animal.id)
                 animal.save()
 
+        return herd
+
     def get_summary(self):
         """Gets a JSON serializable dict of all PTAs average among animals"""
 
@@ -124,6 +121,15 @@ class Herd(models.Model):
         number_of_animals = len(animals)
         for key in summary:
             summary[key] = round(summary[key] / number_of_animals, PTA_DECIMALS)
+
+        if self.connectedclass:
+            for key, val in self.connectedclass.viewable_traits.items():
+                if not val:
+                    summary[key] = "~"
+
+        for trait in traits.Trait.get_all() + [traits.Trait("Net Merit", "0", "0")]:
+            if trait.name not in summary:
+                summary[trait.name] = "~"
 
         return summary
 
@@ -347,14 +353,20 @@ class Bovine(models.Model):
     def get_dict(self):
         """Returns a JSON serializable summary of animal"""
 
+        scaled = dict(self.scaled)
+        if self.herd.connectedclass:
+            for key, val in self.herd.connectedclass.viewable_traits.items():
+                if not val:
+                    scaled[key] = "~"
+
         return {
             "name": self.name,
-            "traits": self.scaled,
-            "recessives": self.recessives,
             "Generation": self.generation,
             "Sire": self.pedigree.sire.animal_id if self.pedigree.sire else "~",
             "Dam": self.pedigree.dam.animal_id if self.pedigree.dam else "~",
             "Inbreeding Coefficient": self.pedigree.inbreeding,
+            "traits": scaled,
+            "recessives": self.recessives,
         }
 
     def set_net_merit(self):
@@ -378,6 +390,9 @@ class Class(models.Model):
         unique=True, max_length=255
     )  # Holds the teacher enrollment code
 
+    viewable_traits = models.JSONField()
+    breeding_limit = models.IntegerField(default=0)
+
     # Connects the owner of the class
     owner = models.ForeignKey(
         to=User, on_delete=models.CASCADE, related_name="classowner"
@@ -385,7 +400,12 @@ class Class(models.Model):
 
     # Connects a class herd
     herd = models.OneToOneField(
-        to=Herd, on_delete=models.CASCADE, related_name="classherd"
+        to=Herd, on_delete=models.CASCADE, related_name="classherd", null=True
+    )
+
+    # Connects a class to public herd
+    publicherd = models.OneToOneField(
+        to=Herd, on_delete=models.CASCADE, related_name="classpublicherd", null=True
     )
 
     @staticmethod
@@ -466,6 +486,7 @@ class Enrollment(models.Model):
             e.delete()
 
 
+# Saves the pedigree of an animal
 class Pedigree(models.Model):
     animal_id = models.CharField(max_length=255)
     male = models.BooleanField()

@@ -44,13 +44,61 @@
             {% for enrollment in enrollmentinfo %}
                 <div class="enrollment">
                     <h2>{{ enrollment.connectedclass.name }}</h2>
+
                     <div class="classinfo">
 
                         {% if enrollment.teacher %}
-                            <textarea id="classinfo">{{enrollment.connectedclass.info}}</textarea>
-                            <button onclick="changeinfo(event, '{{ enrollment.connectedclass.id }}')">Update Info</button>
+                            <form method="POST">
+                                {% csrf_token %}
+                                <input type="hidden" name="formid" value="updateclass">
+                                <input type="hidden"
+                                       name="connectedclass"
+                                       value="{{ enrollment.connectedclass.id }}">
+ 
+                                <label for="classinfo">Class Info</label>
+                                <textarea name="classinfo" id="classinfo">{{enrollment.connectedclass.info}}</textarea>
+
+                                <label for="maxgen">Max number of breedings</label>
+                                <input type="number"
+                                       min="0"
+                                       name="maxgen"
+                                       value="{{ enrollment.connectedclass.breeding_limit }}">
+ 
+                                <details class="ptas">
+                                    <summary>Viewable PTAs</summary>
+                                    <div>
+                                        {% for pta in enrollment.connectedclass.viewable_traits %}
+                                            <span>
+                                                <label for="trait-{{ pta }}">{{ pta }}</label>
+                                                <input type="checkbox"
+                                                       name="trait-{{ pta }}"
+                                                       {% if enrollment.connectedclass.viewable_traits|dic:pta %}checked{% endif %}>
+                                            </span>
+                                        {% endfor %}
+                                    </div>
+                                </details>
+
+                                <button type="submit">Update Class</button>
+                            </form>
                         {% else %}
+                            <label>Class Info</label>
                             <textarea readonly>{{enrollment.connectedclass.info}}</textarea>
+ 
+                            <label>Max number of breedings</label>
+                            <input readonly value="{{ enrollment.connectedclass.breeding_limit }}">
+
+                            <details class="ptas">
+                                <summary>Viewable PTAs</summary>
+                                <div>
+                                    {% for pta in enrollment.connectedclass.viewable_traits %}
+                                        {% if enrollment.connectedclass.viewable_traits|dic:pta %}
+                                            <span>
+                                                <label>{{ pta }}</label>
+                                            </span>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                            </details>
                         {% endif %}
 
                     </div>
@@ -66,7 +114,7 @@
                         <form method="POST">
                             {% csrf_token %}
                             {{ promoteclass.formid }}
-                            {{ promoteclass.classcode.label }}
+                            <label>{{ promoteclass.classcode.label }}</label>
                             {{ promoteclass.classcode }}
                             <input type="hidden"
                                    value="{{ enrollment.connectedclass.id }}"
@@ -75,7 +123,6 @@
                         </form>
                     {% endif %}
 
-                    <br>
                     <details>
                         <summary>Class Members</summary>
                         <div class="members">
@@ -102,10 +149,8 @@
 
                                         {% if member.user != request.user %}
 
-                                            {% if not member.teacher %}
-                                                <button onclick="deleteuser(event, '{{ member.id }}')">Remove From Class</button>
-                                            {% elif enrollment.connectedclass.owner == request.user %}
-                                                <button onclick="deleteuser(event, '{{ member.id }}')">Remove From Class</button>
+                                            {% if not member.teacher or enrollment.connectedclass.owner == request.user %}
+                                                <button onclick="deleteuser(event, '{{ member.id }}', '{{ member.user.get_full_name }}')">Remove From Class</button>
                                             {% endif %}
                                         {% endif %}
                                     {% endif %}
@@ -116,7 +161,6 @@
 
                         </div>
                     </details>
-                    <br>
 
                     {% if enrollment.connectedclass.owner == request.user %}
                         <form method="POST">

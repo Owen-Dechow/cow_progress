@@ -34,17 +34,24 @@
         {% if herdstatus == "Private" %}
             <details class="breed-herd">
                 <summary>Breed Herd</summary>
-                <form action="/breed-herd/{{ herd.id }}"
-                      id="new-herd-form"
-                      method="POST"
-                      onsubmit="cancelSubmit(this, 'Breed Herd?', 'Are you sure you want to breed this herd?\nThis action cannot be undone.', 'Breed Herd', 'Cancel'); return false">
-                    {% csrf_token %}
-                    <div id="bulls" class="bulls"></div>
-                    <script>addAnotherBull();</script>
-                    <br>
-                    <button type="button" onclick="addAnotherBull()">Add Another Bull</button>
-                    <button type="submit">Submit Breeding</button>
-                </form>
+                {% if herd.breedings < herd.connectedclass.breeding_limit %}
+                    <form action="/breed-herd/{{ herd.id }}"
+                          id="new-herd-form"
+                          method="POST"
+                          onsubmit="cancelSubmit(this, 'Breed Herd?', 'Are you sure you want to breed this herd?\nThis action cannot be undone.', 'Breed Herd', 'Cancel'); return false">
+                        {% csrf_token %}
+                        <div id="bulls" class="bulls"></div>
+                        <script>addAnotherBull();</script>
+                        <br>
+                        <button type="button" onclick="addAnotherBull()">Add Another Bull</button>
+                        <button type="submit">Submit Breeding</button>
+                    </form>
+                {% else %}
+                    <form>
+                        Herd already at max generation.
+                        Cannot breed herd at this time.
+                    </form>
+                {% endif %}
             </details>
         {% endif %}
 

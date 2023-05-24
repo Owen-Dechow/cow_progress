@@ -20,10 +20,13 @@ main .forms form {
     margin-inline: auto;
 }
 
+main textarea {
+    resize: vertical
+}
+
 main .forms form input,
 main .forms form textarea {
     margin-bottom: 20px;
-    resize: vertical;
 }
 
 main .forms form .helptext {
@@ -76,34 +79,53 @@ main .enrollment:nth-child(even) {
 
 main .enrollment h2 {
     margin: 0;
-    margin-bottom: 10px;
     text-align: center;
 }
 
 main .enrollment .classinfo {
     display: flex;
     flex-direction: column;
-    width: 100%;
-    margin-bottom: 10px;
 }
 
-main .enrollment .classinfo textarea {
-    resize: vertical;
+main .enrollment form {
+    display: flex;
+    flex-direction: column;
 }
 
-main .enrollment input,
-main .enrollment button {
-    width: 100%;
+main .enrollment details {
+    margin-top: 20px;
+}
+
+main .enrollment label {
+    margin-top: 20px;
+}
+
+main .enrollment button[type=submit] {
+    margin-top: 20px;
+}
+
+main .enrollment .ptas div {
+    display: flex;
+    flex-direction: column;
+}
+
+
+main .enrollment .ptas span {
+    padding: 5px;
+}
+
+main .enrollment .ptas span:nth-child(even) {
+    background-color: var(--prime);
+}
+
+main .enrollment .ptas span:nth-child(odd) {
+    background-color: var(--secondary);
 }
 
 main .enrollment:nth-child(even) input,
 main .enrollment:nth-child(even) button,
 main .enrollment:nth-child(even) textarea {
     background-color: var(--prime);
-}
-
-main .enrollment input {
-    margin-bottom: 3px;
 }
 
 main .enrollment details summary {
@@ -119,10 +141,14 @@ main .enrollment details .members {
 }
 
 main .enrollment details .members .member {
-    margin: 5px 0 10px 5px;
+    margin: 5px 0 5px 5px;
     padding: 10px 0 10px 10px;
     border-radius: 10px;
     border-left: 2px solid;
+}
+
+main .enrollment details .members .member button {
+    width: 100%;
 }
 
 main .enrollments form {

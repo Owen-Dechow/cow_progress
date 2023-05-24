@@ -18,18 +18,22 @@ async function changeinfo(event, classID) {
     event.target.dissabled = false;
 }
 
-async function deleteuser(event, userID) {
+async function deleteuser(event, userID, studentname) {
     event.target.dissabled = true;
 
-    let promise = await fetch(`/delete-enrollment/${userID}`);
-    let data = await promise.json();
+    let remove = await alertreal(`Remove Student`, `Are you sure you want to remove ${studentname} from this class?`, "Remove Student", "Cancel");
+    if (remove) {
+        let promise = await fetch(`/delete-enrollment/${userID}`);
+        let data = await promise.json();
 
-    if (data["successful"]) {
-        document.getElementById("member-" + userID).remove()
-        alertreal("Enrollment Deleted", "Enrollment was successfully deleted.", "ok");
-    } else {
-        alertreal("Delete Failed", "Enrollment could not be deleted.", "ok");
+        if (data["successful"]) {
+            document.getElementById("member-" + userID).remove()
+            alertreal("Enrollment Deleted", "Enrollment was successfully deleted.", "ok");
+        } else {
+            alertreal("Delete Failed", "Enrollment could not be deleted.", "ok");
+        }
     }
+
 
     event.target.dissabled = false;
 }

@@ -1,6 +1,7 @@
 from django.contrib.auth.forms import UserCreationForm
 from django import forms
 from . import models
+from .traitinfo import traits
 
 
 # User registration form
@@ -83,17 +84,30 @@ class AddClass(forms.Form):
         connectedclass.classcode = models.Class.get_class_code()
         connectedclass.owner = user
         connectedclass.info = self.cleaned_data["info"]
+        connectedclass.viewable_traits = {
+            x.name: True for x in traits.Trait.get_all()
+        } | {"Net Merit": True}
+        connectedclass.save()
 
         # Create class herd
         herd = models.Herd()
-        herd.name = connectedclass.name
+        herd.name = f"[{connectedclass.name}] Class Herd"
+        herd.connectedclass = connectedclass
         herd.save()
+
+        # Create class public herd
+        name_prefix = connectedclass.name
+        name_prefix += "'" if connectedclass.name[-1] == "s" else "'s"
+        publicherd = models.Herd.make_public_herd(
+            f"[{connectedclass.name}] Public Herd", name_prefix, "Star"
+        )
+        publicherd.connectedclass = connectedclass
+        publicherd.save()
 
         # Connect class to heard
         connectedclass.herd = herd
+        connectedclass.publicherd = publicherd
         connectedclass.save()
-        herd.connectedclass = connectedclass
-        herd.save()
 
         # Enroll owner as teacher
         enrollment = models.Enrollment()
@@ -206,6 +220,33 @@ class PromoteClass(forms.Form):
         )
         enrollment.teacher = True
         enrollment.save()
+
+
+# Updates class info
+class UpdateClass(forms.Form):
+    def is_valid(self, user) -> bool:
+        try:
+            connectedclass = models.Class.objects.get(id=self.data["connectedclass"])
+            enrollment = models.Enrollment.objects.get(
+                user=user, connectedclass=connectedclass
+            )
+
+            assert enrollment.teacher
+            assert "classinfo" in self.data
+            assert int(self.data["maxgen"]) >= 0
+            return True
+        except:
+            return False
+
+    def save(self, user):
+        connectedclass = models.Class.objects.get(id=self.data["connectedclass"])
+
+        for trait in connectedclass.viewable_traits:
+            connectedclass.viewable_traits[trait] = "trait-" + trait in self.data
+
+        connectedclass.info = self.data["classinfo"]
+        connectedclass.breeding_limit = self.data["maxgen"]
+        connectedclass.save()
 
 
 # Change user info form
