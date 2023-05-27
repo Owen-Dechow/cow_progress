@@ -27,9 +27,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = env("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = env("DEBUG") == "True"
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = eval(env("ALLOWED_HOSTS"))
 
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
