@@ -210,8 +210,7 @@ def classes(request: WSGIRequest):
                 form.save(request.user)
 
             return HttpResponseRedirect("/classes")
-        except Exception as e:
-            raise e
+        except:
             raise Http404()
 
     enrollments = models.Enrollment.objects.filter(user=request.user)
@@ -334,7 +333,7 @@ def get_bull_name(request: WSGIRequest, cowID: int):
         animal = models.Bovine.objects.get(id=cowID)
         assert animal.male
         assert auth_herd(request, animal.herd, error=False)
-    except Exception:
+    except:
         return JsonResponse({"name": None})
 
     return JsonResponse({"name": animal.name})
