@@ -373,9 +373,11 @@ class Bovine(models.Model):
         }
 
     def set_net_merit(self):
-        self.scaled["Net Merit"] = round(
-            traits.Trait.calculate_net_merit(self.scaled), PTA_DECIMALS
-        )
+        self.scaled = {
+            "Net Merit": round(
+                traits.Trait.calculate_net_merit(self.scaled), PTA_DECIMALS
+            )
+        } | self.scaled
 
 
 # Class object
@@ -400,7 +402,7 @@ class Class(models.Model):
     breeding_limit = models.IntegerField(default=0)
 
     # Holds the population average after each breeding
-    trend_log = models.JSONField(default={})
+    trend_log = models.JSONField(default=dict)
 
     # Connects the owner of the class
     owner = models.ForeignKey(
@@ -430,6 +432,12 @@ class Class(models.Model):
                         summary[key] = value
                     else:
                         summary[key] += value
+
+                for key, value in animal.data.items():
+                    if "_" + key not in summary:
+                        summary["_" + key] = value
+                    else:
+                        summary["_" + key] += value
 
         for key, value in summary.items():
             summary[key] = round(summary[key] / animal_count, PTA_DECIMALS)
