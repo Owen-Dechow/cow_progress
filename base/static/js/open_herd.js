@@ -287,6 +287,10 @@ function IDChange(target) {
         FetchIDChange(target).finally(() => {
             sessionStorage.setItem("CanChangeId", "true");
         });
+    } else {
+        setTimeout(() => {
+            IDChange(target)
+        }, 100);
     }
 }
 
