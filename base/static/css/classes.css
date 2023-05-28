@@ -76,9 +76,14 @@ main .enrollment:nth-child(even) {
     background-color: var(--secondary);
 }
 
+main .enrollment:nth-child(even) a.as-btn {
+    background-color: var(--prime);
+}
+
 
 main .enrollment h2 {
     margin: 0;
+    margin-bottom: 10px;
     text-align: center;
 }
 

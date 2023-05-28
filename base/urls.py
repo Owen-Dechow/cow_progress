@@ -22,6 +22,7 @@ urlpatterns = [
     path("get-data-<int:cowID>", views.get_cow_data),
     ########### File patterns ###########
     path("herd-file/<int:herdID>", views.get_herd_file),
+    path("classtrend-file/<int:classID>", views.get_class_tendchart),
     ########### Actions -> success dict ###########
     path("move-cow/<int:cowID>", views.move_cow),
     path("set-classinfo/<int:classID>/<str:info>", views.setclassinfo),

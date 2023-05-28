@@ -116,6 +116,8 @@ class AddClass(forms.Form):
         enrollment.user = user
         enrollment.save()
 
+        connectedclass.update_trend_log("Initial Population")
+
 
 # Delete a class form
 class DeleteClass(forms.Form):

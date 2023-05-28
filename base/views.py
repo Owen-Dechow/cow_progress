@@ -5,6 +5,7 @@ from django.contrib.auth.hashers import check_password
 from django.core.handlers.wsgi import WSGIRequest
 from django.contrib.auth.models import User
 from django.contrib.auth import login
+from django.utils.text import slugify
 from django.contrib import messages
 from .traitinfo import traits
 from .resources.resources import get_resources
@@ -35,7 +36,6 @@ def auth_herd(
         if herd.connectedclass in classes and herd.owner == None:
             return True
 
-    print(herd.owner)
     if herd.owner == request.user:
         return True
 
@@ -210,7 +210,8 @@ def classes(request: WSGIRequest):
                 form.save(request.user)
 
             return HttpResponseRedirect("/classes")
-        except:
+        except Exception as e:
+            raise e
             raise Http404()
 
     enrollments = models.Enrollment.objects.filter(user=request.user)
@@ -406,9 +407,7 @@ def get_herd_file(request: WSGIRequest, herdID: int):
 
     output = BytesIO()
 
-    file = excel.ExcelDoc(
-        output, [f"Herd-{herd.id}"], overridename=True, in_memory=True
-    )
+    file = excel.ExcelDoc(output, ["Sheet1"], overridename=True, in_memory=True)
     file.add_format("header", {"bold": True})
     file.write_block(0, block, (1, 1), "header")
     file.freeze_cells(0, (1, 0))
@@ -419,7 +418,53 @@ def get_herd_file(request: WSGIRequest, herdID: int):
     response = HttpResponse(
         output.read(),
     )
-    response["Content-Disposition"] = f"attachment; filename={herd.name}.xlsx"
+    response["Content-Disposition"] = f"attachment; filename={slugify(herd.name)}.xlsx"
+
+    output.close()
+
+    return response
+
+
+@login_required
+def get_class_tendchart(request: WSGIRequest, classID: int):
+    """Get XLSX trend file"""
+
+    connectedclass = get_object_or_404(models.Class, id=classID)
+
+    # Authenticate user enrollment
+    get_object_or_404(
+        models.Enrollment, connectedclass=connectedclass, user=request.user
+    )
+
+    row1 = ["Action ID"]
+    block = [row1]
+
+    for key in connectedclass.trend_log["Initial Population"]:
+        row1.append(key)
+
+    for row_id, row_info in connectedclass.trend_log.items():
+        row = [row_id]
+        for key in row1[1:]:
+            row.append(row_info[key])
+
+        block.append(row)
+
+    output = BytesIO()
+
+    file = excel.ExcelDoc(output, [f"Sheet1"], overridename=True, in_memory=True)
+    file.add_format("header", {"bold": True})
+    file.write_block(0, block, (1, 1), "header")
+    file.freeze_cells(0, (1, 0))
+    file.close()
+
+    output.seek(0)
+
+    response = HttpResponse(
+        output.read(),
+    )
+    response[
+        "Content-Disposition"
+    ] = f"attachment; filename={slugify(connectedclass.name)}.xlsx"
 
     output.close()
 
@@ -520,9 +565,13 @@ def breed_herd(request: WSGIRequest, herdID: int):
     auth_herd(request, herd, use_class_herds=False)
 
     if herd.breedings >= herd.connectedclass.breeding_limit:
-        raise Exception(f"{herd.breedings=}, {herd.connectedclass.breeding_limit=}")
+        raise Http404()
 
     deaths = herd.run_breeding(sires)
+    herd.connectedclass.update_trend_log(
+        f"{request.user.get_full_name()} [{request.user.username}] {herd.name}: {herd.breedings}"
+    )
+
     messages.info(request, f"deaths:{deaths}")
     return HttpResponseRedirect(f"/openherd-{herd.id}")
 

@@ -6,6 +6,7 @@ from .traitinfo import traits
 from django.db import models
 from math import prod
 from .inbreeding import calculate_inbreeding
+from datetime import datetime
 
 PTA_DECIMALS = 3  # Number of decimal placements shown for PTAs on website/ xlsx files
 MUTATION_RATE = 0.25  # Maximum mutation of a PTA in one generation from -1 to 1 value
@@ -392,8 +393,14 @@ class Class(models.Model):
         unique=True, max_length=255
     )  # Holds the teacher enrollment code
 
+    # Holds the traits that the students can see
     viewable_traits = models.JSONField()
+
+    # Maximun number of breedings allowed on a class herd
     breeding_limit = models.IntegerField(default=0)
+
+    # Holds the population average after each breeding
+    trend_log = models.JSONField(default={})
 
     # Connects the owner of the class
     owner = models.ForeignKey(
@@ -409,6 +416,29 @@ class Class(models.Model):
     publicherd = models.OneToOneField(
         to=Herd, on_delete=models.CASCADE, related_name="classpublicherd", null=True
     )
+
+    def update_trend_log(self, entry_name: str):
+        summary = {}
+        animal_count = 0
+
+        herds = Herd.objects.filter(connectedclass=self)
+        for herd in herds:
+            for animal in Bovine.objects.filter(herd=herd):
+                animal_count += 1
+                for key, value in animal.scaled.items():
+                    if key not in summary:
+                        summary[key] = value
+                    else:
+                        summary[key] += value
+
+        for key, value in summary.items():
+            summary[key] = round(summary[key] / animal_count, PTA_DECIMALS)
+
+        self.trend_log[entry_name] = {
+            "Timestamp": str(datetime.now()),
+            "Population Size": animal_count,
+        } | summary
+        self.save()
 
     @staticmethod
     def get_class_code():
