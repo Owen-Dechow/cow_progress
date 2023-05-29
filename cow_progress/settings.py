@@ -99,7 +99,7 @@ DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql_psycopg2",
         "NAME": env("DB_NAME"),
-        "USER": "",
+        "USER": env("DB_USER"),
         "PASSWORD": env("DB_PASSWORD"),
         "HOST": env("DB_HOST"),
         "PORT": "5432",
@@ -154,3 +154,5 @@ LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/"
 
 LOGIN_URL = "/auth/login"
+
+django_heroku.settings()
