@@ -168,6 +168,8 @@ def open_herd(request: WSGIRequest, herdID: int):
 
     if herd.connectedclass.herd == herd:
         herdstatus = "Class"
+    elif herd.owner is None:
+        herdstatus = "Public"
     else:
         herdstatus = "Private"
 
@@ -333,6 +335,7 @@ def get_bull_name(request: WSGIRequest, cowID: int):
         animal = models.Bovine.objects.get(id=cowID)
         assert animal.male
         assert auth_herd(request, animal.herd, error=False)
+        assert animal.herd.connectedclass == animal.herd.connectedclass
     except:
         return JsonResponse({"name": None})
 
@@ -525,7 +528,7 @@ def setclassinfo(request: WSGIRequest, classID: int, info: str):
 
 @login_required
 def delete_enrollment(request: WSGIRequest, enrollmentID: int):
-    """Unenroll user in class"""
+    """Un-enroll user in class"""
 
     try:
         enrollment = models.Enrollment.objects.get(id=enrollmentID)
@@ -548,6 +551,9 @@ def delete_enrollment(request: WSGIRequest, enrollmentID: int):
 @login_required
 def breed_herd(request: WSGIRequest, herdID: int):
     """Breed your herd"""
+    
+    herd = get_object_or_404(models.Herd, id=herdID)
+    auth_herd(request, herd, use_class_herds=False)
 
     sires = []
     for key in request.POST:
@@ -557,11 +563,13 @@ def breed_herd(request: WSGIRequest, herdID: int):
             )
             sires.append(sire)
             auth_herd(request, sire.herd)
+
+            if sire.herd.connectedclass != herd.connectedclass:
+                raise Http404()
+
     if len(sires) == 0:
         raise Http404()
 
-    herd = get_object_or_404(models.Herd, id=herdID)
-    auth_herd(request, herd, use_class_herds=False)
 
     if herd.breedings >= herd.connectedclass.breeding_limit:
         raise Http404()
