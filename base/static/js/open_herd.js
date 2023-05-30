@@ -368,7 +368,7 @@ async function FetchIDChange(target) {
         return;
     };
 
-    let data = await fetch(`/get-cow-name/${target.value}`);
+    let data = await fetch(`/get-cow-name/${sessionStorage.getItem("ClassId")}/${target.value}`);
     let jsonData = await data.json();
 
     if (jsonData["name"] == null) {

@@ -17,7 +17,7 @@ urlpatterns = [
     path("herdsummaries", views.herdsummaries),
     path("herdsummary-<int:herdID>", views.herdsummary),
     path("herddata-<int:herdID>", views.get_herd_data),
-    path("get-cow-name/<int:cowID>", views.get_bull_name),
+    path("get-cow-name/<int:classID>/<int:cowID>", views.get_bull_name),
     path("get-pedigree-<int:pedigreeID>", views.get_pedigree),
     path("get-data-<int:cowID>", views.get_cow_data),
     ########### File patterns ###########

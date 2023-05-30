@@ -1,0 +1,130 @@
+main {
+    display: grid;
+    grid-template-columns: 350px auto;
+    grid-template-rows: auto;
+    padding: 10px;
+}
+
+main .panel.left .title {
+    overflow: hidden;
+    margin-bottom: 10px;
+    padding: 10px;
+    text-align: center;
+    background-color: var(--prime);
+}
+
+main .panel.left .herd-btns h2 {
+    margin-top: 10px;
+    margin-bottom: 0;
+    padding: 10px;
+    text-align: center;
+    background-color: var(--prime);
+}
+
+main .panel.left .herd-btns .col {
+    display: flex;
+    flex-flow: column;
+}
+
+main .panel.left .herd-btns .col button {
+    margin: 0;
+    border-radius: 0;
+    border: 5px solid var(--prime);
+    border-top: none;
+    border-bottom: none;
+    background-color: var(--prime);
+}
+
+main .panel.left .herd-btns .col button:nth-child(odd) {
+    border-color: var(--secondary);
+    background-color: var(--secondary);
+}
+
+main .panel.left .herd-btns .col button:hover {
+    border-left-color: inherit
+}
+
+main .panel.left .herd-btns .col button.focused-btn {
+    filter: brightness(90%);
+    border-left-color: inherit;
+    border-width: 10px;
+}
+
+main .panel.left .new-herd {
+    margin-top: 10px;
+    background-color: var(--prime);
+    padding: 10px;
+}
+
+main .panel.left .new-herd h2 {
+    margin: 0;
+    text-align: center;
+}
+
+main .panel.left .new-herd a {
+    width: 100%;
+}
+
+main .panel.left .new-herd form select {
+    padding: 3px;
+    color: inherit;
+    background-color: var(--secondary);
+    width: 100%;
+    margin-top: 3px;
+    margin-bottom: 20px;
+}
+
+main .panel.left .new-herd form div {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+}
+
+main .panel.left .new-herd form div input {
+    width: 70%;
+}
+
+main .panel.left .new-herd form div button {
+    width: calc(30% - 3px);
+}
+
+main .panel.right {
+    margin-left: 10px;
+    padding: 10px;
+    filter: brightness(90%) blur(2px);
+    background-color: var(--prime);
+}
+
+main .panel.right.herd-selected {
+    filter: none;
+}
+
+main .panel.right h1 {
+    margin-bottom: 0;
+}
+
+main .panel.right a {
+    margin: 5px 0 15px 0;
+}
+
+main .panel.right p {
+    display: flex;
+    align-items: center;
+    margin: 0;
+    padding-left: 5px;
+}
+
+main .panel.right p:nth-child(even) {
+    background-color: var(--secondary);
+}
+
+main .panel.right p label {
+    display: block;
+}
+
+main .panel.right p input {
+    margin-left: auto;
+    border: none;
+    text-align: right;
+    background-color: inherit;
+}

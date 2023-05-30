@@ -328,14 +328,18 @@ def get_herd_data(request: WSGIRequest, herdID: int):
 
 
 @login_required
-def get_bull_name(request: WSGIRequest, cowID: int):
+def get_bull_name(request: WSGIRequest, classID: int, cowID: int):
     """Get the name if a bull from id"""
 
     try:
+        connectedclass = models.Class.objects.get(id=classID)
+        models.Enrollment.objects.get(connectedclass=connectedclass, user=request.user)
+
         animal = models.Bovine.objects.get(id=cowID)
         assert animal.male
         assert auth_herd(request, animal.herd, error=False)
-        assert animal.herd.connectedclass == animal.herd.connectedclass
+
+        assert animal.herd.connectedclass == connectedclass
     except:
         return JsonResponse({"name": None})
 
