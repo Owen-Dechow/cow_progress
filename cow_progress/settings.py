@@ -155,4 +155,8 @@ LOGOUT_REDIRECT_URL = "/"
 
 LOGIN_URL = "/auth/login"
 
+SECURE_SSL_REDIRECT = eval(env("USE_HTTPS_ONLY"))
+CSRF_COOKIE_SECURE = eval(env("USE_HTTPS_ONLY"))
+SESSION_COOKIE_SECURE = eval(env("USE_HTTPS_ONLY"))
+
 django_heroku.settings(locals())
