@@ -17,8 +17,6 @@ import django_heroku
 import dj_database_url
 from decouple import config
 
-import debug_toolbar
-
 env = environ.Env()
 environ.Env.read_env()
 
@@ -164,6 +162,8 @@ SESSION_COOKIE_SECURE = eval(env("USE_HTTPS_ONLY"))
 DEBUG_TOOLBAR = eval(env("DEBUG_TOOLBAR", default="False"))
 
 if DEBUG_TOOLBAR:
+    import debug_toolbar
+
     INTERNAL_IPS = ["127.0.0.1"]
     MIDDLEWARE.append("debug_toolbar.middleware.DebugToolbarMiddleware")
     INSTALLED_APPS.append("debug_toolbar")
