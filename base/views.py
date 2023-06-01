@@ -7,7 +7,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth import login
 from django.utils.text import slugify
 from django.contrib import messages
-from .traitinfo import traits
+from .traitinfo import traits, recessives as rec
 from .resources.resources import get_resources
 from io import BytesIO
 from . import models
@@ -369,45 +369,57 @@ def get_cow_data(request: WSGIRequest, cowID: int):
 ########## File requests ##########
 
 
+def test(request: WSGIRequest, herdID: int):
+    herd = get_object_or_404(models.Herd, id=herdID)
+    auth_herd(request, herd)
+    animals = models.Bovine.objects.filter(herd=herd)
+    for key, val in animals[0].get_dict().items():
+        pass
+    for animal in animals:
+        animal.get_dict()
+
+
 @login_required
 def get_herd_file(request: WSGIRequest, herdID: int):
     """Get XLSX file for herd"""
 
     herd = get_object_or_404(models.Herd, id=herdID)
+    animals = models.Bovine.objects.prefetch_related("pedigree").filter(herd=herd)
     auth_herd(request, herd)
+    connectedclass = herd.connectedclass
 
-    row1 = []
-    animals = models.Bovine.objects.filter(herd=herd)
-    for key, val in animals[0].get_dict().items():
-        if key == "traits":
-            for traitkey in val:
-                row1.append(traitkey)
-        elif key == "recessives":
-            for traitkey in val:
-                row1.append(traitkey)
-        else:
-            row1.append(key)
+    row1 = (
+        ["Name", "Generation", "Sire", "Dam", "Inbreeding Coefficient", "Net Merit"]
+        + [x.name for x in traits.Trait.get_all()]
+        + [x for x in rec.get_recessives()]
+    )
 
     block = [row1]
     row1[0] = "Name"
 
     for animal in animals:
-        row = []
-        for key, val in animal.get_dict().items():
-            if key == "traits":
-                for traitkey, traitval in val.items():
-                    row.append(traitval)
-            elif key == "recessives":
-                for traitkey, traitval in val.items():
-                    if traitval == 0:
-                        realval = "--"
-                    elif traitval == 1:
-                        realval = "-+"
-                    else:
-                        realval = "++"
-                    row.append(realval)
+        pedigree = animal.pedigree
+
+        row = [
+            animal.name,
+            animal.generation,
+            pedigree.sire_id if pedigree.sire_id else "~",
+            animal.pedigree.dam_id if pedigree.dam_id else "~",
+            animal.pedigree.inbreeding,
+            animal.scaled["Net Merit"],
+        ]
+        for trait in traits.Trait.get_all():
+            row.append(animal.scaled[trait.name])
+
+        for r in rec.get_recessives():
+            data_key = animal.recessives[r]
+            if data_key == 0:
+                data = "--"
+            elif data_key == 1:
+                data == "-+"
             else:
-                row.append(val)
+                data == "++"
+            row.append(data)
 
         block.append(row)
 
@@ -555,7 +567,7 @@ def delete_enrollment(request: WSGIRequest, enrollmentID: int):
 @login_required
 def breed_herd(request: WSGIRequest, herdID: int):
     """Breed your herd"""
-    
+
     herd = get_object_or_404(models.Herd, id=herdID)
     auth_herd(request, herd, use_class_herds=False)
 
@@ -573,7 +585,6 @@ def breed_herd(request: WSGIRequest, herdID: int):
 
     if len(sires) == 0:
         raise Http404()
-
 
     if herd.breedings >= herd.connectedclass.breeding_limit:
         raise Http404()
