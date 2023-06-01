@@ -161,7 +161,7 @@ SECURE_SSL_REDIRECT = eval(env("USE_HTTPS_ONLY"))
 CSRF_COOKIE_SECURE = eval(env("USE_HTTPS_ONLY"))
 SESSION_COOKIE_SECURE = eval(env("USE_HTTPS_ONLY"))
 
-DEBUG_TOOLBAR = eval(env("DEBUG_TOOLBAR"), default="False")
+DEBUG_TOOLBAR = eval(env("DEBUG_TOOLBAR", default="False"))
 
 if DEBUG_TOOLBAR:
     INTERNAL_IPS = ["127.0.0.1"]
