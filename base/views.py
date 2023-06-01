@@ -393,8 +393,8 @@ def get_herd_file(request: WSGIRequest, herdID: int):
         row = [
             animal.name,
             animal.generation,
-            pedigree.sire.id if pedigree.sire_id else "~",
-            animal.pedigree.dam.id if pedigree.dam_id else "~",
+            pedigree.sire.animal_id if pedigree.sire_id else "~",
+            animal.pedigree.dam.animal_id if pedigree.dam_id else "~",
             animal.pedigree.inbreeding,
             animal.scaled["Net Merit"],
         ]
