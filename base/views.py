@@ -324,6 +324,8 @@ def get_herd_data(request: WSGIRequest, herdID: int):
 
     herd = get_object_or_404(models.Herd, id=herdID)
     auth_herd(request, herd)
+    herd.get_herd_dict()
+    return None
     return JsonResponse(herd.get_herd_dict())
 
 
@@ -369,16 +371,6 @@ def get_cow_data(request: WSGIRequest, cowID: int):
 ########## File requests ##########
 
 
-def test(request: WSGIRequest, herdID: int):
-    herd = get_object_or_404(models.Herd, id=herdID)
-    auth_herd(request, herd)
-    animals = models.Bovine.objects.filter(herd=herd)
-    for key, val in animals[0].get_dict().items():
-        pass
-    for animal in animals:
-        animal.get_dict()
-
-
 @login_required
 def get_herd_file(request: WSGIRequest, herdID: int):
     """Get XLSX file for herd"""
@@ -403,8 +395,8 @@ def get_herd_file(request: WSGIRequest, herdID: int):
         row = [
             animal.name,
             animal.generation,
-            pedigree.sire_id if pedigree.sire_id else "~",
-            animal.pedigree.dam_id if pedigree.dam_id else "~",
+            pedigree.sire.id if pedigree.sire_id else "~",
+            animal.pedigree.dam.id if pedigree.dam_id else "~",
             animal.pedigree.inbreeding,
             animal.scaled["Net Merit"],
         ]
@@ -422,6 +414,12 @@ def get_herd_file(request: WSGIRequest, herdID: int):
             row.append(data)
 
         block.append(row)
+
+    for key, val in connectedclass.viewable_traits.items():
+        if not val:
+            idx = row1.index(key)
+            for row in block[1:]:
+                row[idx] = "~"
 
     output = BytesIO()
 

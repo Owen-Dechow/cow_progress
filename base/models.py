@@ -140,14 +140,12 @@ class Herd(models.Model):
         """Gets a JSON serializable dict of all animals in herd"""
 
         herd = {"cows": {}, "bulls": {}}
+        connectedclass = self.connectedclass
 
-        # Adds bulls to dict
-        for bull in Bovine.objects.filter(herd=self, male=True):
-            herd["bulls"][bull.id] = bull.get_dict()
-
-        # Adds cows to dict
-        for cow in Bovine.objects.filter(herd=self, male=False):
-            herd["cows"][cow.id] = cow.get_dict()
+        # Add animals to dict
+        for animal in Bovine.objects.prefetch_related("pedigree").filter(herd=self):
+            sex = "bulls" if animal.male else "cows"
+            herd[sex][animal.id] = animal.get_dict(connectedclass)
 
         return herd
 
@@ -353,14 +351,16 @@ class Bovine(models.Model):
         else:
             return self.herd.name + f"'s {self.id}"
 
-    def get_dict(self):
+    def get_dict(self, connectedclass=None):
         """Returns a JSON serializable summary of animal"""
 
+        if not connectedclass:
+            connectedclass = self.herd.connectedclass
+
         scaled = dict(self.scaled)
-        if self.herd.connectedclass:
-            for key, val in self.herd.connectedclass.viewable_traits.items():
-                if not val:
-                    scaled[key] = "~"
+        for key, val in connectedclass.viewable_traits.items():
+            if not val:
+                scaled[key] = "~"
 
         return {
             "name": self.name,
