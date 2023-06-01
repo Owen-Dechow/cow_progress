@@ -324,8 +324,6 @@ def get_herd_data(request: WSGIRequest, herdID: int):
 
     herd = get_object_or_404(models.Herd, id=herdID)
     auth_herd(request, herd)
-    herd.get_herd_dict()
-    return None
     return JsonResponse(herd.get_herd_dict())
 
 
