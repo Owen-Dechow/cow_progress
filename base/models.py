@@ -143,7 +143,7 @@ class Herd(models.Model):
         connectedclass = self.connectedclass
 
         # Add animals to dict
-        for animal in Bovine.objects.prefetch_related("pedigree").filter(herd=self):
+        for animal in Bovine.objects.prefetch_related("pedigree__sire", "pedigree__dam").filter(herd=self):
             sex = "bulls" if animal.male else "cows"
             herd[sex][animal.id] = animal.get_dict(connectedclass)
 

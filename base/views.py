@@ -33,10 +33,10 @@ def auth_herd(
             else []
         )
 
-        if herd.connectedclass in classes and herd.owner == None:
+        if herd.connectedclass in classes and herd.owner_id == None:
             return True
 
-    if herd.owner == request.user:
+    if herd.owner_id == request.user.id:
         return True
 
     if error:
@@ -149,6 +149,7 @@ def herds(request: WSGIRequest):
     classes = [
         x.connectedclass for x in models.Enrollment.objects.filter(user=request.user)
     ]
+
     return render(
         request,
         "base/herds.html",
@@ -163,7 +164,9 @@ def herds(request: WSGIRequest):
 def open_herd(request: WSGIRequest, herdID: int):
     """View herd page"""
 
-    herd = get_object_or_404(models.Herd, id=herdID)
+    herd = get_object_or_404(
+        models.Herd.objects.select_related("connectedclass__herd"), id=herdID
+    )
     auth_herd(request, herd)
 
     if herd.connectedclass.herd == herd:
@@ -219,10 +222,11 @@ def classes(request: WSGIRequest):
     enrollment_info = {}
 
     for e in enrollments:
-        enrollment_info[e] = [
-            x for x in models.Enrollment.objects.filter(connectedclass=e.connectedclass)
-        ]
-
+        enrollment_info[e] = list(
+            models.Enrollment.objects.prefetch_related("user").filter(
+                connectedclass=e.connectedclass
+            )
+        )
     return render(
         request,
         "base/classes.html",
@@ -324,7 +328,8 @@ def get_herd_data(request: WSGIRequest, herdID: int):
 
     herd = get_object_or_404(models.Herd, id=herdID)
     auth_herd(request, herd)
-    return JsonResponse(herd.get_herd_dict())
+    herd_dict = herd.get_herd_dict()
+    return JsonResponse(herd_dict)
 
 
 @login_required
@@ -373,8 +378,12 @@ def get_cow_data(request: WSGIRequest, cowID: int):
 def get_herd_file(request: WSGIRequest, herdID: int):
     """Get XLSX file for herd"""
 
-    herd = get_object_or_404(models.Herd, id=herdID)
-    animals = models.Bovine.objects.prefetch_related("pedigree").filter(herd=herd)
+    herd = get_object_or_404(
+        models.Herd.objects.select_related("connectedclass"), id=herdID
+    )
+    animals = models.Bovine.objects.prefetch_related(
+        "pedigree__sire", "pedigree__dam"
+    ).filter(herd=herd)
     auth_herd(request, herd)
     connectedclass = herd.connectedclass
 
@@ -482,7 +491,7 @@ def get_class_tendchart(request: WSGIRequest, classID: int):
 
     output.close()
 
-    return response
+    # return response
 
 
 ########## Actions -> success dict ##########
