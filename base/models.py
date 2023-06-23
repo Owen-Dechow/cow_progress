@@ -10,9 +10,9 @@ from datetime import datetime
 
 PTA_DECIMALS = 3  # Number of decimal placements shown for PTAs on website/ xlsx files
 MUTATION_RATE = 0.25  # Maximum mutation of a PTA in one generation from -1 to 1 value
-ATTRACT_0 = lambda: prod(
-    random() for _ in range(4)
-)  # Returns a number close to 0 | Mean = 0.5^4 = 0.0625, Range = [0, 1)
+
+ATTRACT_0 = lambda: prod(random() for _ in range(6))
+""" Returns a number close to 0 | Mean = 0.5^6 = 0.015625 | Range = [0, 1) """
 
 
 # Holds a group of animals
@@ -143,7 +143,9 @@ class Herd(models.Model):
         connectedclass = self.connectedclass
 
         # Add animals to dict
-        for animal in Bovine.objects.prefetch_related("pedigree__sire", "pedigree__dam").filter(herd=self):
+        for animal in Bovine.objects.prefetch_related(
+            "pedigree__sire", "pedigree__dam"
+        ).filter(herd=self):
             sex = "bulls" if animal.male else "cows"
             herd[sex][animal.id] = animal.get_dict(connectedclass)
 
@@ -245,7 +247,7 @@ class Bovine(models.Model):
     male = models.BooleanField(null=True)
 
     # Stores the pedigree object for animal
-    pedigree = models.ForeignKey(to="Pedigree", on_delete=models.CASCADE, null=True)
+    pedigree = models.OneToOneField(to="Pedigree", on_delete=models.CASCADE, null=True)
 
     data = models.JSONField(default=dict)  # Stores the unscaled data -1 to 1 form
     scaled = models.JSONField(default=dict)  # Stores the front end scaled PTA data
@@ -515,7 +517,7 @@ class Enrollment(models.Model):
 
     @staticmethod
     def scrub_enrollment(user, connectedclass):
-        """Deletes any douplicate enrollments"""
+        """Deletes any duplicate enrollments"""
 
         enrollments = list(
             Enrollment.objects.filter(user=user, connectedclass=connectedclass)
