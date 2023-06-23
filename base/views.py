@@ -491,7 +491,7 @@ def get_class_tendchart(request: WSGIRequest, classID: int):
 
     output.close()
 
-    # return response
+    return response
 
 
 ########## Actions -> success dict ##########
