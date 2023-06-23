@@ -1,4 +1,4 @@
-from django.http import HttpResponseRedirect, JsonResponse, HttpResponse
+from django.http import HttpResponseRedirect, JsonResponse, FileResponse
 from django.shortcuts import render, get_object_or_404, Http404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.hashers import check_password
@@ -438,7 +438,7 @@ def get_herd_file(request: WSGIRequest, herdID: int):
 
     output.seek(0)
 
-    response = HttpResponse(
+    response = FileResponse(
         output.read(),
     )
     response["Content-Disposition"] = f"attachment; filename={slugify(herd.name)}.xlsx"
@@ -482,7 +482,7 @@ def get_class_tendchart(request: WSGIRequest, classID: int):
 
     output.seek(0)
 
-    response = HttpResponse(
+    response = FileResponse(
         output.read(),
     )
     response[
