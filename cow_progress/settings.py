@@ -13,7 +13,7 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 from pathlib import Path
 import environ
 
-import django_heroku
+import django_on_heroku
 import dj_database_url
 from decouple import config
 
@@ -169,4 +169,4 @@ if DEBUG_TOOLBAR:
     MIDDLEWARE.append("debug_toolbar.middleware.DebugToolbarMiddleware")
     INSTALLED_APPS.append("debug_toolbar")
 
-django_heroku.settings(locals())
+django_on_heroku.settings(locals())

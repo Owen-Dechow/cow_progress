@@ -246,12 +246,17 @@ class Bovine(models.Model):
     # True = Male, False = Female
     male = models.BooleanField(null=True)
 
-    # Stores the pedigree object for animal
-    pedigree = models.OneToOneField(to="Pedigree", on_delete=models.CASCADE, null=True)
-
     data = models.JSONField(default=dict)  # Stores the unscaled data -1 to 1 form
     scaled = models.JSONField(default=dict)  # Stores the front end scaled PTA data
     recessives = models.JSONField(default=dict)  # Recessive information
+
+    dam = models.ForeignKey(
+        to="Bovine", related_name="_dam", on_delete=models.SET_NULL, null=True
+    )
+    sire = models.ForeignKey(
+        to="Bovine", related_name="_sire", on_delete=models.SET_NULL, null=True
+    )
+    inbreeding = models.FloatField(null=True)
 
     @staticmethod
     def create_from_breeding(sire, dam, herd, male):
@@ -380,6 +385,22 @@ class Bovine(models.Model):
                 traits.Trait.calculate_net_merit(self.scaled), PTA_DECIMALS
             )
         } | self.scaled
+
+    def transition_away_from_pedigree(self):
+        try:
+            dam_pedigree = self.pedigree.dam
+            self.dam = Bovine.objects.get(id=dam_pedigree.animal_id)
+        except Exception as e:
+            self.dam = None
+
+        try:
+            sire_pedigree = self.pedigree.sire
+            self.sire = Bovine.objects.get(id=sire_pedigree.animal_id)
+        except:
+            self.sire = None
+
+        self.inbreeding = self.pedigree.inbreeding
+        self.save()
 
 
 # Class object
@@ -526,36 +547,3 @@ class Enrollment(models.Model):
         while len(enrollments) > 1:
             e = enrollments.pop()
             e.delete()
-
-
-# Saves the pedigree of an animal
-class Pedigree(models.Model):
-    animal_id = models.CharField(max_length=255)
-    male = models.BooleanField()
-    dam = models.ForeignKey(
-        to="Pedigree", related_name="_dam", on_delete=models.CASCADE, null=True
-    )
-    sire = models.ForeignKey(
-        to="Pedigree", related_name="_sire", on_delete=models.CASCADE, null=True
-    )
-    inbreeding = models.FloatField()
-
-    def get_as_dict(self):
-        """Get a JSON serializable pedagree"""
-
-        sex = "Male" if self.male else "Female"
-        pedigree = {"dam": None, "sire": None, "id": self.animal_id, "sex": sex}
-        if self.dam:
-            pedigree["dam"] = self.dam.get_as_dict()
-        if self.sire:
-            pedigree["sire"] = self.sire.get_as_dict()
-
-        return pedigree
-
-    def save(self, *args, **kwargs):
-        if self.sire and self.dam:
-            self.inbreeding = calculate_inbreeding(self.get_as_dict())
-        else:
-            self.inbreeding = 0
-
-        super().save(*args, **kwargs)

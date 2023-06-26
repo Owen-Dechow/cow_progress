@@ -215,7 +215,8 @@ def classes(request: WSGIRequest):
                 form.save(request.user)
 
             return HttpResponseRedirect("/classes")
-        except:
+        except Exception as e:
+            raise e
             raise Http404()
 
     enrollments = models.Enrollment.objects.filter(user=request.user)
