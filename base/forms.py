@@ -99,9 +99,8 @@ class AddClass(forms.Form):
         name_prefix = connectedclass.name
         name_prefix += "'" if connectedclass.name[-1] == "s" else "'s"
         publicherd = models.Herd.make_public_herd(
-            f"[{connectedclass.name}] Public Herd", name_prefix, "Star"
+            f"[{connectedclass.name}] Public Herd", name_prefix, "Star", connectedclass
         )
-        publicherd.connectedclass = connectedclass
         publicherd.save()
 
         # Connect class to heard

@@ -216,7 +216,6 @@ def classes(request: WSGIRequest):
 
             return HttpResponseRedirect("/classes")
         except Exception as e:
-            raise e
             raise Http404()
 
     enrollments = models.Enrollment.objects.filter(user=request.user)
@@ -250,7 +249,7 @@ def pedigree(request: WSGIRequest):
             animal_id = float("inf")
 
         try:
-            data_id = models.Pedigree.objects.get(animal_id=animal_id).id
+            data_id = models.Bovine.objects.get(id=animal_id).id
         except:
             data_id = -1
 
@@ -353,8 +352,9 @@ def get_bull_name(request: WSGIRequest, classID: int, cowID: int):
 
 
 def get_pedigree(request: WSGIRequest, pedigreeID: int):
-    pedigree = get_object_or_404(models.Pedigree, id=pedigreeID)
-    return JsonResponse(pedigree.get_as_dict())
+    pedigree = get_object_or_404(models.Bovine, id=pedigreeID)
+    pedigree_dict = pedigree.get_pedigree_dict()
+    return JsonResponse(pedigree_dict)
 
 
 @login_required
@@ -398,14 +398,12 @@ def get_herd_file(request: WSGIRequest, herdID: int):
     row1[0] = "Name"
 
     for animal in animals:
-        pedigree = animal.pedigree
-
         row = [
             animal.name,
             animal.generation,
-            pedigree.sire.animal_id if pedigree.sire_id else "~",
-            animal.pedigree.dam.animal_id if pedigree.dam_id else "~",
-            animal.pedigree.inbreeding,
+            animal.sire_id if animal.sire_id else "~",
+            animal.dam_id if animal.dam_id else "~",
+            animal.inbreeding,
             animal.scaled["Net Merit"],
         ]
         for trait in traits.Trait.get_all():
@@ -416,9 +414,9 @@ def get_herd_file(request: WSGIRequest, herdID: int):
             if data_key == 0:
                 data = "--"
             elif data_key == 1:
-                data == "-+"
+                data = "-+"
             else:
-                data == "++"
+                data = "++"
             row.append(data)
 
         block.append(row)
@@ -618,9 +616,17 @@ def auto_generate_herd(request: WSGIRequest):
     except:
         return HttpResponseRedirect("/herds")
 
-    herd = models.Herd.get_auto_generated_herd(name, _class, enrollment=enrollment)
+    herd, animals = models.Herd.get_auto_generated_herd(
+        name, _class, enrollment=enrollment
+    )
     herd.owner = request.user
     herd.save()
+
+    for animal in animals:
+        animal.name = animal.auto_generate_name(herd)
+        animal.pedigree = animal.auto_generate_pedigree()
+    models.Bovine.objects.bulk_update(animals, ["name", "pedigree"])
+
     return HttpResponseRedirect(f"/openherd-{herd.id}")
 
 
