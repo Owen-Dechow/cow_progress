@@ -1,4 +1,4 @@
-# cowprogress
+# cow_progress
 ***Simulate Holstein breeding programs, focusing on PTAs, genetic recessives and inbreeding coefficients.***
 <br>
 [cowprogress](https://cowprogress.herokuapp.com), a full stack website dedicated to teaching about genetics in the dairy cattle industry.
