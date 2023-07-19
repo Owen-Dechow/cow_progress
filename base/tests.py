@@ -20,106 +20,106 @@ class TestClassSystem(TransactionTestCase):
             User.objects.create_user(username=f"student_{idx}", password="password")
             student.login(username=f"student_{idx}", password="password")
 
-    # def test_1_addclass(self):
-    #     response = self.teacher.post(
-    #         "/classes",
-    #         {
-    #             "connectedclass": "test class name",
-    #             "info": "test class info",
-    #             "formid": "addclass",
-    #         },
-    #         secure=True,
-    #     )
+    def test_1_addclass(self):
+        response = self.teacher.post(
+            "/classes",
+            {
+                "connectedclass": "test class name",
+                "info": "test class info",
+                "formid": "addclass",
+            },
+            secure=True,
+        )
 
-    #     self.assertTemplateUsed(response, "base/classes.html")
+        self.assertTemplateUsed(response, "base/classes.html")
 
-    # def test_2_joinclass(self):
-    #     self.teacher.post(
-    #         "/classes",
-    #         {
-    #             "connectedclass": "test class name",
-    #             "info": "test class info",
-    #             "formid": "addclass",
-    #         },
-    #         secure=True,
-    #     )
+    def test_2_joinclass(self):
+        self.teacher.post(
+            "/classes",
+            {
+                "connectedclass": "test class name",
+                "info": "test class info",
+                "formid": "addclass",
+            },
+            secure=True,
+        )
 
-    #     classcode = models.Class.objects.first().classcode
+        classcode = models.Class.objects.first().classcode
 
-    #     for student in self.students:
-    #         response = student.post(
-    #             "/classes",
-    #             {
-    #                 "connectedclass": classcode,
-    #                 "formid": "joinclass",
-    #             },
-    #         )
+        for student in self.students:
+            response = student.post(
+                "/classes",
+                {
+                    "connectedclass": classcode,
+                    "formid": "joinclass",
+                },
+            )
 
-    #         self.assertEquals(response.status_code, 200)
-    #         self.assertTemplateUsed("base/classes.html")
+            self.assertEquals(response.status_code, 200)
+            self.assertTemplateUsed("base/classes.html")
 
-    #     self.assertEquals(models.Enrollment.objects.count(), len(self.students) + 1)
+        self.assertEquals(models.Enrollment.objects.count(), len(self.students) + 1)
 
-    # def test_3_exitclass(self):
-    #     self.teacher.post(
-    #         "/classes",
-    #         {
-    #             "connectedclass": "test class name",
-    #             "info": "test class info",
-    #             "formid": "addclass",
-    #         },
-    #         secure=True,
-    #     )
+    def test_3_exitclass(self):
+        self.teacher.post(
+            "/classes",
+            {
+                "connectedclass": "test class name",
+                "info": "test class info",
+                "formid": "addclass",
+            },
+            secure=True,
+        )
 
-    #     connectedclass = models.Class.objects.first()
-    #     classcode = connectedclass.classcode
+        connectedclass = models.Class.objects.first()
+        classcode = connectedclass.classcode
 
-    #     for student in self.students:
-    #         _ = student.post(
-    #             "/classes",
-    #             {
-    #                 "connectedclass": classcode,
-    #                 "formid": "joinclass",
-    #             },
-    #         )
+        for student in self.students:
+            _ = student.post(
+                "/classes",
+                {
+                    "connectedclass": classcode,
+                    "formid": "joinclass",
+                },
+            )
 
-    #         response = student.post(
-    #             "/classes",
-    #             {
-    #                 "connectedclass": connectedclass.id,
-    #                 "formid": "exitclass",
-    #             },
-    #         )
+            response = student.post(
+                "/classes",
+                {
+                    "connectedclass": connectedclass.id,
+                    "formid": "exitclass",
+                },
+            )
 
-    #         self.assertEquals(response.status_code, 200)
-    #         self.assertTemplateUsed("base/classes.html")
+            self.assertEquals(response.status_code, 200)
+            self.assertTemplateUsed("base/classes.html")
 
-    #     self.assertEquals(models.Enrollment.objects.count(), 1)
+        self.assertEquals(models.Enrollment.objects.count(), 1)
 
-    # def test_4_deleteclass(self):
-    #     self.teacher.post(
-    #         "/classes",
-    #         {
-    #             "connectedclass": "test class name",
-    #             "info": "test class info",
-    #             "formid": "addclass",
-    #         },
-    #         secure=True,
-    #     )
+    def test_4_deleteclass(self):
+        self.teacher.post(
+            "/classes",
+            {
+                "connectedclass": "test class name",
+                "info": "test class info",
+                "formid": "addclass",
+            },
+            secure=True,
+        )
 
-    #     self.teacher.post(
-    #         "/classes",
-    #         {
-    #             "connectedclass": 1,
-    #             "formid": "deleteclass",
-    #         },
-    #         secure=True,
-    #     )
+        self.teacher.post(
+            "/classes",
+            {
+                "connectedclass": 1,
+                "formid": "deleteclass",
+            },
+            secure=True,
+        )
 
-    #     self.assertTemplateUsed("base/classes.html")
-    #     self.assertEquals(models.Class.objects.count(), 0)
+        self.assertTemplateUsed("base/classes.html")
+        self.assertEquals(models.Class.objects.count(), 0)
 
-    def test_3_premoteclass(self):
+    def test_5_premoteclass(self):
         self.teacher.post(
             "/classes",
             {
@@ -148,12 +148,10 @@ class TestClassSystem(TransactionTestCase):
                 {
                     "connectedclass": connectedclass.id,
                     "classcode": teacherclasscode,
-                    "formid": "premoteclass",
+                    "formid": "promoteclass",
                 },
             )
 
             self.assertTrue(models.Enrollment.objects.last().teacher)
             self.assertEquals(response.status_code, 200)
             self.assertTemplateUsed("base/classes.html")
-
-        self.assertEquals(models.Enrollment.objects.count(), 1)
