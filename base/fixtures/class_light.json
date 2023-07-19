@@ -1,0 +1,108 @@
+[
+    {
+        "model": "base.herd",
+        "pk": 1,
+        "fields": {
+            "name": "[Test Class] Class Herd",
+            "owner": null,
+            "breedings": 0,
+            "connectedclass": 1,
+            "enrollment": null
+        }
+    },
+    {
+        "model": "base.herd",
+        "pk": 2,
+        "fields": {
+            "name": "[Test Class] Public Herd",
+            "owner": null,
+            "breedings": 0,
+            "connectedclass": 1,
+            "enrollment": null
+        }
+    },
+    {
+        "model": "base.class",
+        "pk": 1,
+        "fields": {
+            "name": "Test Class",
+            "info": "",
+            "classcode": "jbi-FYs-Ydc",
+            "teacherclasscode": "tER-v1G-GUX",
+            "viewable_traits": {
+                "MILK": true,
+                "FAT": true,
+                "PROT": true,
+                "PL": true,
+                "SCS": true,
+                "BWC": true,
+                "UDC": true,
+                "FLC": true,
+                "DPR": true,
+                "CA$": true,
+                "HCR": true,
+                "CCR": true,
+                "LIV": true,
+                "HTH$": true,
+                "RFI": true,
+                "EFC": true,
+                "HLV": true,
+                "Net Merit": true
+            },
+            "breeding_limit": 1,
+            "trend_log": {
+                "Initial Population": {
+                    "Timestamp": "2023-07-19 09:45:05.964322",
+                    "Population Size": 0,
+                    "Net Merit": -22.571,
+                    "MILK": -9.774,
+                    "FAT": -2.092,
+                    "PROT": -1.19,
+                    "PL": -0.131,
+                    "SCS": 0.0,
+                    "BWC": 0.021,
+                    "UDC": -0.001,
+                    "FLC": 0.03,
+                    "DPR": -0.084,
+                    "CA$": -0.301,
+                    "HCR": -0.056,
+                    "CCR": -0.112,
+                    "LIV": -0.087,
+                    "HTH$": -0.368,
+                    "RFI": -1.546,
+                    "EFC": -0.164,
+                    "HLV": -0.024,
+                    "_MILK": -0.017,
+                    "_FAT": -0.084,
+                    "_PROT": -0.079,
+                    "_PL": -0.077,
+                    "_SCS": 0.002,
+                    "_BWC": 0.027,
+                    "_UDC": -0.001,
+                    "_FLC": 0.057,
+                    "_DPR": -0.06,
+                    "_CA$": -0.029,
+                    "_HCR": -0.043,
+                    "_CCR": -0.07,
+                    "_LIV": -0.054,
+                    "_HTH$": -0.081,
+                    "_RFI": -0.033,
+                    "_EFC": -0.08,
+                    "_HLV": -0.059
+                }
+            },
+            "owner": 1,
+            "herd": 1,
+            "publicherd": 2
+        }
+    },
+    {
+        "model": "base.enrollment",
+        "pk": 4,
+        "fields": {
+            "user": 1,
+            "connectedclass": 1,
+            "teacher": true
+        }
+    }
+]

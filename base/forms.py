@@ -227,13 +227,17 @@ class UpdateClass(forms.Form):
     def is_valid(self, user) -> bool:
         try:
             connectedclass = models.Class.objects.get(id=self.data["connectedclass"])
+
             enrollment = models.Enrollment.objects.get(
                 user=user, connectedclass=connectedclass
             )
 
             assert enrollment.teacher
+
             assert "classinfo" in self.data
+
             assert int(self.data["maxgen"]) >= 0
+
             return True
         except:
             return False

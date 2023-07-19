@@ -443,7 +443,6 @@ def get_herd_file(request: WSGIRequest, herdID: int):
     response["Content-Disposition"] = f"attachment; filename={slugify(herd.name)}.xlsx"
 
     output.close()
-
     return response
 
 
@@ -605,13 +604,14 @@ def breed_herd(request: WSGIRequest, herdID: int):
 @login_required
 def auto_generate_herd(request: WSGIRequest):
     """Generate a random herd"""
-
     try:
         name = request.POST["name"]
+
         _class = models.Class.objects.get(id=request.POST["class"])
         enrollment = models.Enrollment.objects.get(
             connectedclass=_class, user=request.user
         )
+
         string_validation(name, 1, 100, allowall=True)
     except:
         return HttpResponseRedirect("/herds")

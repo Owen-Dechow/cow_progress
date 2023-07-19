@@ -46,7 +46,7 @@ $ python3 manage.py createsuperuser
 
 1. Run tests
 ```bash
-$ python3 manage.py test
+$ python3 manage.py test --parallel
 ```
 
 1. ***You're all set up!***
