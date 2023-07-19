@@ -11,7 +11,7 @@ $ cd cow_progress
 ```
 
 1. Create/Activate virtual environment
-```
+```bash
 $ python3 -m venv venv
 $ venv/bin/activate
 # Depending on operating system you may need to use venv/Scripts/activate 
