@@ -211,10 +211,10 @@ def classes(request: WSGIRequest):
             form = view_forms[formid](request.POST)
             view_forms[formid] = form
 
-            if form.is_valid(request.user):
-                form.save(request.user)
+            assert form.is_valid(request.user)
+            form.save(request.user)
 
-            return HttpResponseRedirect("/classes")
+            form.data = dict()
         except Exception as e:
             raise Http404()
 

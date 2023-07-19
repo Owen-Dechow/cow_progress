@@ -25,7 +25,7 @@ class JoinClass(forms.Form):
 
         try:
             # Make sure user is not already enrolled in class
-            enrollment = models.Enrollment.objects.get(
+            _ = models.Enrollment.objects.get(
                 connectedclass=connectedclass[0], user=user
             )
             return False
@@ -149,7 +149,7 @@ class DeleteClass(forms.Form):
         enrollment.connectedclass.delete()
 
 
-# Unenroll from class form
+# Un enroll from class form
 class ExitClass(forms.Form):
     connectedclass = forms.IntegerField(widget=forms.HiddenInput)
     formid = forms.CharField(initial="exitclass", widget=forms.HiddenInput)
@@ -172,7 +172,6 @@ class ExitClass(forms.Form):
 
     def save(self, user):
         """Delete the student's enrollment"""
-
         enrollment = models.Enrollment.objects.get(
             user=user,
             connectedclass=models.Class.objects.get(
