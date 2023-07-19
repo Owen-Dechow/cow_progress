@@ -34,18 +34,18 @@ $ pip install -r requirements.txt
    ```
 
 1. Apply migrations
-```
+```bash
 $ python3 manage.py migrate
 ```
 
 1. Create super user
-```
+```bash
 $ python3 manage.py createsuperuser
 # Follow prompts from there
 ```
 
 1. Run tests
-```
+```bash
 $ python3 manage.py test
 ```
 
