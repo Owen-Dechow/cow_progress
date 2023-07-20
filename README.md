@@ -1,5 +1,11 @@
 # cow_progress <img src="https://cowprogress.herokuapp.com/static/media/favicon.0f5d3c01fb06.png" alt="cow progress icon" height=18em>
 
+![Contributors](https://img.shields.io/github/contributors/Owen-Dechow/cow_progress)
+![Forks](https://img.shields.io/github/forks/Owen-Dechow/cow_progress)
+![Stars](https://img.shields.io/github/stars/Owen-Dechow/cow_progress)
+![Licence](https://img.shields.io/github/license/Owen-Dechow/cow_progress)
+![Issues](https://img.shields.io/github/issues/Owen-Dechow/cow_progress)
+
 [Cow Progress](https://cowprogress.herokuapp.com), a full stack web simulation, dedicated to teaching about genetics in the dairy cattle industry. ***Simulate Holstein breeding programs, focusing on PTAs, genetic recessives and inbreeding coefficients.*** Cow Progress aims for accuracy of PTA/Trait correlations and trends. It is a classroom based system targeting group learning with every simulation belonging to a class.
 
 The backend of Cow Progress is built using Django. Correlation/Matrix math is handled with Scypi & Numpy. XLSX files are handled using XlsxWriter. For more information see [Packages Used](#packages-used).
