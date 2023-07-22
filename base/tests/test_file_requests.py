@@ -1,5 +1,5 @@
 from django.test import TestCase
-from utils import load_fixture, rand_id, create_authenticated_client
+from .utils import load_fixture, rand_id, create_authenticated_client
 
 
 class TestFileRequests(TestCase):

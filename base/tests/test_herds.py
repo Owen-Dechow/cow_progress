@@ -1,11 +1,11 @@
 from django.test import TestCase
 from base import models
-from utils import load_fixture, rand_id, create_authenticated_client
+from .utils import load_fixture, rand_id, create_authenticated_client, call_command
 
 
 class TestHerdActions(TestCase):
     def setUp(self):
-        self.client = create_authenticated_client()
+        self.client = create_authenticated_client("client")
 
     @load_fixture("class_light.json")
     def test_auto_generate_herd(self):
