@@ -527,45 +527,6 @@ def move_cow(request: WSGIRequest, cowID: int):
         return JSONSuccess(False)
 
 
-@login_required
-def setclassinfo(request: WSGIRequest, classID: int, info: str):
-    """Sets the info for a class"""
-
-    try:
-        connectedclass = models.Class.objects.get(id=classID)
-        assert models.Enrollment.objects.get(
-            connectedclass=connectedclass, user=request.user
-        ).teacher
-
-        connectedclass.info = info.replace("<&:slash>", "/")
-        connectedclass.info = info.replace("<&:none>", "")
-        connectedclass.save()
-        return JSONSuccess(True)
-    except:
-        return JSONSuccess(False)
-
-
-@login_required
-def delete_enrollment(request: WSGIRequest, enrollmentID: int):
-    """Un-enroll user in class"""
-
-    try:
-        enrollment = models.Enrollment.objects.get(id=enrollmentID)
-        user_enrollment = models.Enrollment.objects.get(
-            user=request.user, connectedclass=enrollment.connectedclass
-        )
-
-        assert user_enrollment.teacher
-        if enrollment.teacher:
-            assert enrollment.connectedclass.owner == request.user
-
-        enrollment.delete()
-        return JSONSuccess(True)
-
-    except:
-        return JSONSuccess(False)
-
-
 ########## Actions -> redirect ##########
 @login_required
 def breed_herd(request: WSGIRequest, herdID: int):

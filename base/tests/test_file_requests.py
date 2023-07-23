@@ -1,5 +1,5 @@
 from django.test import TestCase
-from .utils import load_fixture, rand_id, create_authenticated_client
+from .utils import load_fixture, create_authenticated_client
 
 
 class TestFileRequests(TestCase):
@@ -14,6 +14,6 @@ class TestFileRequests(TestCase):
 
     @load_fixture("class.json")
     def test_get_class_tendchart(self):
-        response = self.client.get(f"/classtrend-file/1")
+        response = self.client.get(f"/classtrend-file/1", secure=True)
         self.assertEquals(response.status_code, 200)
         self.assertTrue("attachment; filename=" in response.get("Content-Disposition"))

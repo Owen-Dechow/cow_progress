@@ -25,9 +25,7 @@ urlpatterns = [
     path("classtrend-file/<int:classID>", views.get_class_tendchart),
     ########### Actions -> success dict ###########
     path("move-cow/<int:cowID>", views.move_cow),
-    path("set-classinfo/<int:classID>/<str:info>", views.setclassinfo),
     path("set-cow-name/<int:cowID>/<str:name>", views.change_name),
-    path("delete-enrollment/<int:enrollmentID>", views.delete_enrollment),
     ########### Actions -> redirect ###########
     path("breed-herd/<int:herdID>", views.breed_herd, name="new-herd"),
     path("auto-generate-herd", views.auto_generate_herd, name="autogenerate-herd"),

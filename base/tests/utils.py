@@ -6,7 +6,9 @@ from django.contrib.auth.models import User
 
 def create_authenticated_client(username) -> Client:
     client = Client()
-    User.objects.create_user(username=username, password="password")
+    User.objects.create_user(
+        username=username, password="password", first_name="John", last_name="Doe"
+    )
     client.login(username=username, password="password")
 
     return client
