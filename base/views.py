@@ -7,6 +7,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth import login
 from django.utils.text import slugify
 from django.contrib import messages
+from django.db import transaction
 from .traitinfo import traits, recessives as rec
 from .resources.resources import get_resources
 from io import BytesIO
@@ -94,6 +95,7 @@ def home(request: WSGIRequest):
     return render(request, "base/home.html", args)
 
 
+@transaction.atomic
 def register(request: WSGIRequest):
     """Signup page"""
 
@@ -111,6 +113,7 @@ def register(request: WSGIRequest):
     return render(request, "auth/register.html", {"form": user})
 
 
+@transaction.atomic
 @login_required
 def account(request: WSGIRequest):
     """Your account page"""
@@ -142,6 +145,7 @@ def account_deleted(request: WSGIRequest):
     return render(request, "auth/account_deleted.html")
 
 
+@transaction.atomic
 @login_required
 def herds(request: WSGIRequest):
     """Your herds page"""
@@ -160,6 +164,7 @@ def herds(request: WSGIRequest):
     )
 
 
+@transaction.atomic
 @login_required
 def open_herd(request: WSGIRequest, herdID: int):
     """View herd page"""
@@ -192,6 +197,7 @@ def open_herd(request: WSGIRequest, herdID: int):
     )
 
 
+@transaction.atomic
 @login_required
 def classes(request: WSGIRequest):
     """Your classes page"""
@@ -495,6 +501,7 @@ def get_class_tendchart(request: WSGIRequest, classID: int):
 ########## Actions -> success dict ##########
 
 
+@transaction.atomic
 @login_required
 def change_name(request: WSGIRequest, cowID: int, name: str):
     """Change the name of a cow"""
@@ -512,6 +519,7 @@ def change_name(request: WSGIRequest, cowID: int, name: str):
         return JSONSuccess(False)
 
 
+@transaction.atomic
 @login_required
 def move_cow(request: WSGIRequest, cowID: int):
     """Move an animal to class herd"""
@@ -528,6 +536,7 @@ def move_cow(request: WSGIRequest, cowID: int):
 
 
 ########## Actions -> redirect ##########
+@transaction.atomic
 @login_required
 def breed_herd(request: WSGIRequest, herdID: int):
     """Breed your herd"""
@@ -562,6 +571,7 @@ def breed_herd(request: WSGIRequest, herdID: int):
     return HttpResponseRedirect(f"/openherd-{herd.id}")
 
 
+@transaction.atomic
 @login_required
 def auto_generate_herd(request: WSGIRequest):
     """Generate a random herd"""
@@ -591,6 +601,7 @@ def auto_generate_herd(request: WSGIRequest):
     return HttpResponseRedirect(f"/openherd-{herd.id}")
 
 
+@transaction.atomic
 @login_required
 def delete_herd(request: WSGIRequest, herdID: int):
     """Delete a herd"""
@@ -601,6 +612,7 @@ def delete_herd(request: WSGIRequest, herdID: int):
     return HttpResponseRedirect("/herds")
 
 
+@transaction.atomic
 @login_required
 def delete_account(request: WSGIRequest):
     """Dissable an account"""
