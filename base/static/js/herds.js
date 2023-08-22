@@ -59,6 +59,7 @@ function displayHerdsBy(orderby, reverse, protection, summaries) {
             }
 
             btn.herdid = protectedKey;
+            btn.setAttribute('type', "button")
 
             btn.onclick = (e) => {
                 changeDisplayedHerd(protection, e.target.herdid);

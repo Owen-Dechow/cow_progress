@@ -55,6 +55,8 @@ async function alertreal(headerText, messageText, okText, cancelText = null, fun
 
     let btn = document.createElement("button");
     btn.textContent = okText;
+    btn.setAttribute("type", "button")
+    btn.setAttribute("title", `Confirm: ${headerText}`)
     btn.onclick = () => {
         response = true;
     };

@@ -62,11 +62,11 @@
         <details class="sort">
             <summary>Sort Animals</summary>
             <form action="javascript:void(0)">
-                <select id="sort-pos-neg" onchange="setSortOrder()">
+                <select title="reverse order" id="sort-pos-neg" onchange="setSortOrder()">
                     <option value="pos">+</option>
                     <option value="neg">-</option>
                 </select>
-                <select id="order-by" value="id" onchange="setSortOrder()"></select>
+                <select title="order by" id="order-by" value="id" onchange="setSortOrder()"></select>
                 <input type="text" id="filter" oninput="filterHasName(this.value)">
                 <span>Filter By Name</span>
             </form>

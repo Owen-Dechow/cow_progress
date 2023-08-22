@@ -62,6 +62,7 @@ function displayCowsBy(orderby, reverse, gender, cowslist) {
             let btn = document.createElement("button");
             btn.textContent = cowslist[gender][protectedKey]["name"];
             btn.herdid = protectedKey;
+            btn.setAttribute("type", "button")
 
             btn.onclick = (e) => {
                 changeDisplayedCow(gender, e.target.herdid);
@@ -258,7 +259,7 @@ function addAnotherBull() {
 
     let btn = document.createElement("button");
     p2.appendChild(btn);
-    btn.type = "button";
+    btn.setAttribute("type", "button");
     btn.textContent = "Remove Bull";
     btn.onclick = (event) => {
         removeBull(event.target);

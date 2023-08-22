@@ -18,10 +18,7 @@
                 <h1>Create Class</h1>
                 {% csrf_token %}
 
-                {% for field in addclass %}
-                    {{ field.label }}
-                    {{ field }}
-                {% endfor %}
+                {{ addclass }}
 
                 <button type="submit">Create</button>
             </form>
@@ -29,10 +26,7 @@
                 <h1>Join Class</h1>
                 {% csrf_token %}
 
-                {% for field in joinclass %}
-                    {{ field.label }}
-                    {{ field }}
-                {% endfor %}
+                {{ joinclass }}
 
                 <button type="submit">Join</button>
             </form>
@@ -49,7 +43,7 @@
                     <div class="classinfo">
 
                         {% if enrollment.teacher %}
-                            <form method="POST">
+                            <form method="POST" title="update class">
                                 {% csrf_token %}
                                 <input type="hidden" name="formid" value="updateclass">
                                 <input type="hidden"
@@ -63,7 +57,8 @@
                                 <input type="number"
                                        min="0"
                                        name="maxgen"
-                                       value="{{ enrollment.connectedclass.breeding_limit }}">
+                                       value="{{ enrollment.connectedclass.breeding_limit }}"
+                                       id="maxgen">
 
                                 <details class="ptas">
                                     <summary>Viewable PTAs</summary>
@@ -105,10 +100,10 @@
                     </div>
 
                     {% if enrollment.teacher %}
-                        <button onclick="Copy('{{ enrollment.connectedclass.classcode }}')">
+                        <button type="button" onclick="Copy('{{ enrollment.connectedclass.classcode }}')">
                             Copy Class Code: <span class="pow">{{ enrollment.connectedclass.classcode }}</span>
                         </button>
-                        <button onclick="Copy('{{ enrollment.connectedclass.teacherclasscode }}')">
+                        <button type="button" onclick="Copy('{{ enrollment.connectedclass.teacherclasscode }}')">
                             Copy Teacher Code: <span class="pow">{{ enrollment.connectedclass.teacherclasscode }}</span>
                         </button>
                     {% else %}

@@ -60,7 +60,7 @@ class JoinClass(forms.Form):
 
 # Create a class form
 class AddClass(forms.Form):
-    connectedclass = forms.CharField(
+    classname = forms.CharField(
         max_length=100,
         label="Class Name",
     )
@@ -79,7 +79,7 @@ class AddClass(forms.Form):
 
         # Create class
         connectedclass = models.Class()
-        connectedclass.name = self.cleaned_data["connectedclass"]
+        connectedclass.name = self.cleaned_data["classname"]
         connectedclass.teacherclasscode = models.Class.get_class_code()
         connectedclass.classcode = models.Class.get_class_code()
         connectedclass.owner = user
@@ -285,5 +285,4 @@ class Passwordcheck(forms.Form):
     password = forms.CharField(
         strip=False,
         widget=forms.PasswordInput(),
-        help_text="Reconfirm password to continue.",
     )

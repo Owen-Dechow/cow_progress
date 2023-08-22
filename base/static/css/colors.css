@@ -3,7 +3,7 @@ body {
     --secondary: #507150;
     --neutral: #90806f;
     --light: #e0e0e0;
-    --transparent: #000b;
+    --transparent: rgba(0, 0, 0, 0.911);
     --select: #ffffff80;
 }
 

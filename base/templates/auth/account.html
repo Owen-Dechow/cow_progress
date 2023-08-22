@@ -18,18 +18,7 @@
         <br>
         {% csrf_token %}
 
-        {% if form.non_field_errors %}
-            {{ form.non_field_errors }}
-            <br>
-        {% endif %}
-
-        {% for field in form %}
-            {{ field.label }}
-            {{ field }}
-            {{ field.errors }}
-            <div class="help">{{ field.help_text }}</div>
-            <br>
-        {% endfor %}
+        {{ form }}
 
         <button type="submit">Change Info</button>
     </form>
@@ -39,8 +28,7 @@
     <form method="POST" action="/auth/delete-account">
         {% csrf_token %}
         <h1>Delete Account</h1>
-        {{ passwordcheck.password.label }}
-        {{ passwordcheck.password }}
+        {{ passwordcheck }}
 
         {% if passworderror %}
             <ul class="errorlist">
@@ -48,8 +36,6 @@
             </ul>
         {% endif %}
 
-        <span>{{ passwordcheck.password.help_text }}</span>
-        <br>
         <button href="/auth/delete-account"
                 onclick="cancelClick(this, 'Delete Account?', 'Are you sure you want to delete you account? This action cannot be undone.', 'Delete Account', 'Cancel'); return false;">
             Delete

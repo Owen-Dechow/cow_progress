@@ -14,20 +14,20 @@ The backend of Cow Progress is built using Django. Correlation/Matrix math is ha
 
 1. Clone Repository
    ```bash
-   $ git clone https://github.com/Owen-Dechow/cow_progress.git
-   $ cd cow_progress
+   git clone https://github.com/Owen-Dechow/cow_progress.git
+   cd cow_progress
    ```
 
 1. Create/Activate virtual environment
    ```bash
-   $ python3 -m venv venv
-   $ venv/bin/activate
-   # Depending on operating system you may need to use venv/Scripts/activate 
+   python3 -m venv venv
+   venv/bin/activate # MacOs/ Linux
+   venv/Scripts/activate # Windows
    ```
 
 1. Install dependencies
    ```bash
-   $ pip install -r requirements.txt
+   pip install -r requirements.txt
    ```
 
 1. Create .env file in the cow_progress directory
@@ -43,19 +43,19 @@ The backend of Cow Progress is built using Django. Correlation/Matrix math is ha
 
 1. Apply migrations
    ```bash
-   $ python3 manage.py migrate
+   python3 manage.py migrate
    ```
 
 1. Create super user
    ```bash
-   $ python3 manage.py createsuperuser
+   python3 manage.py createsuperuser
    # Follow prompts from there
    ```
 
 ## Testing
 
 ```bash
-$ python3 manage.py test --parallel --shuffle
+python3 manage.py test --parallel --shuffle
 ```
 `--parallel` Run tests asynchronously
 
@@ -63,7 +63,7 @@ $ python3 manage.py test --parallel --shuffle
 
 ## Running
 ```bash
-$ python3 manage.py runserver
+python3 manage.py runserver
 ```
 Website will then be available at http://127.0.0.1:8000/
 
@@ -79,12 +79,12 @@ Website will then be available at http://127.0.0.1:8000/
 
 1. Clone your forked repository
    ```bash
-   $ git clone <forked-repo-url>
+   git clone <forked-repo-url>
    ```
 
 1. Create a branch with your changes
    ```bash
-   $ gitcheckout -b <new-branch-name>
+   git checkout -b <new-branch-name>
    ```
 
 1. *Make your changes!*

@@ -8,8 +8,9 @@ main form {
     padding: 20px;
 }
 
+
 main form input {
-    margin-bottom: 3px;
+    margin-bottom: 20px;
 }
 
 main form .helptext {

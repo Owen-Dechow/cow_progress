@@ -17,7 +17,7 @@ class TestClassSystem(TestCase):
         _ = self.teacher.post(
             "/classes",
             {
-                "connectedclass": f"Test Class {rand_id()}",
+                "classname": f"Test Class {rand_id()}",
                 "info": f"Test Class Info {rand_id()}",
                 "formid": "addclass",
             },
