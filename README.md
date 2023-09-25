@@ -1,4 +1,5 @@
-# cow_progress <img src="https://cowprogress.herokuapp.com/static/media/favicon.0f5d3c01fb06.png" alt="cow progress icon" height=18em>
+# cow_progress <img src="staticfiles/media/favicon.svg" alt="cow progress icon" height=18em>
+## This Program is only used seasonally it may be offline during this time
 
 ![Contributors](https://img.shields.io/github/contributors/Owen-Dechow/cow_progress)
 ![Forks](https://img.shields.io/github/forks/Owen-Dechow/cow_progress)
