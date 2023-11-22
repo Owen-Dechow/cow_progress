@@ -9,15 +9,6 @@ async function loadCows() {
     setSessionDict("Cows", await cows.json());
 }
 
-async function loadTraitNames() {
-    let traitNames = await fetch("/traitnames");
-    if (!traitNames.ok) {
-        alertreal("Error Loading Data", "Error loading herd data. Please try again.", "ok")
-    }
-
-    setSessionDict("TraitNames", await traitNames.json());
-}
-
 async function loadHerdSummary() {
     let herdID = sessionStorage.getItem("HerdId");
 
@@ -79,7 +70,7 @@ function displayCowsBy(orderby, reverse, gender, cowslist) {
 }
 
 function displayTraits() {
-    let traitnames = getSessionDict("TraitNames");
+    let traitnames = getSessionDict("HerdSummary");
 
     let herdAverages = document.getElementById("cow-stats");
     let orderby = document.getElementById("order-by");
@@ -364,6 +355,9 @@ async function moveToClassHerd(event) {
 }
 
 async function FetchIDChange(target) {
+    let submit = target.closest("form").querySelector("button[type=submit]")
+    submit.disabled = true;
+
     if (target.value != Math.round(target.value) || target.value == "") {
         target.parentNode.parentNode.getElementsByTagName("span")[0].value = "INVALID ID#";
         return;
@@ -377,6 +371,7 @@ async function FetchIDChange(target) {
 
     } else {
         target.parentNode.parentNode.getElementsByTagName("span")[0].textContent = jsonData["name"];
+        submit.disabled = false;
     }
 }
 
@@ -386,7 +381,6 @@ async function setUp() {
 
     await loadHerdSummary();
     await loadCows();
-    await loadTraitNames();
     displayTraits();
     displayCows();
     changeDisplayedCow();

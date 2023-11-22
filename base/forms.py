@@ -1,7 +1,7 @@
 from django.contrib.auth.forms import UserCreationForm
 from django import forms
 from . import models
-from .traitinfo import traits
+from .traitinfo import traits, traitsets
 
 
 # User registration form
@@ -70,6 +70,9 @@ class AddClass(forms.Form):
     formid = forms.CharField(
         initial="addclass", widget=forms.HiddenInput, label="", required=False
     )
+    traitset = forms.ChoiceField(
+        choices=traitsets.TRAITSET_CHOICES, initial=traitsets.TRAITSET_CHOICES[0][0]
+    )
 
     def is_valid(self, user) -> bool:
         return super().is_valid()
@@ -84,8 +87,9 @@ class AddClass(forms.Form):
         connectedclass.classcode = models.Class.get_class_code()
         connectedclass.owner = user
         connectedclass.info = self.cleaned_data["info"]
+        connectedclass.traitset = self.cleaned_data["traitset"]
         connectedclass.viewable_traits = {
-            x.name: True for x in traits.Trait.get_all()
+            x.name: True for x in traits.Trait.get_all(connectedclass.traitset)
         } | {"Net Merit": True}
         connectedclass.save()
 
@@ -114,8 +118,6 @@ class AddClass(forms.Form):
         enrollment.teacher = True
         enrollment.user = user
         enrollment.save()
-
-        connectedclass.update_trend_log("Initial Population")
 
 
 # Delete a class form

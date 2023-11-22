@@ -2,15 +2,15 @@ from random import randint
 from .traits import RELPATH
 
 
-def get_recessives():
-    with open(RELPATH / "recessives.txt") as f:
+def get_recessives(traitset):
+    with open(RELPATH / traitset / "recessives.txt") as f:
         recessives = [x.split(":")[0].strip() for x in f.readlines()]
 
     return recessives
 
 
-def get_recessives_fatal():
-    with open(RELPATH / "recessives.txt") as f:
+def get_recessives_fatal(traitset):
+    with open(RELPATH / traitset / "recessives.txt") as f:
         recessives = [
             [y.strip() for y in x.removesuffix("\n").split(":")] for x in f.readlines()
         ]

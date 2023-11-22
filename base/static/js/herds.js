@@ -1,14 +1,3 @@
-async function loadTraitNames() {
-    let traitNames = await fetch("/traitnames");
-    if (!traitNames.ok) {
-        alertreal("Error Loading Data", "Error loading herd data. Please try again.", "ok")
-        return false;
-    }
-
-    setSessionDict("TraitNames", await traitNames.json());
-    return true;
-}
-
 async function loadHerds() {
     let herds = await fetch("/herdsummaries");
     if (!herds.ok) {
@@ -76,10 +65,11 @@ function displayHerdsBy(orderby, reverse, protection, summaries) {
     }
 }
 
-function displayTraits() {
-    let traitnames = getSessionDict("TraitNames");
+function displayTraits(herdsum) {
+    let traitnames = herdsum
 
     let herdAverages = document.getElementById("herd-averages");
+    herdAverages.innerHTML = "";
 
     function addFromKey(key) {
         let lbl = document.createElement("label");
@@ -111,6 +101,8 @@ function changeDisplayedHerd(publicprivate, herdid) {
     let summaries = getSessionDict("Summaries");
     let herdsum = summaries[publicprivate][herdid]["traits"];
 
+    displayTraits(herdsum)
+
     document.getElementById("open-herd-link").href = "/openherd-" + herdid;
     document.getElementById("herd-name").textContent = summaries[publicprivate][herdid]["name"];
 
@@ -123,8 +115,6 @@ function changeDisplayedHerd(publicprivate, herdid) {
 }
 
 async function setUp() {
-    await loadTraitNames();
     await loadHerds();
-    displayTraits();
     displayHerds();
 }

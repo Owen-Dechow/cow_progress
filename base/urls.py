@@ -14,7 +14,6 @@ urlpatterns = (
         path("credits", views.app_credits, name="credits"),
     ]
     + [  ########### JSON patterns ###########
-        path("traitnames", views.traitnames),
         path("herdsummaries", views.herdsummaries),
         path("herdsummary-<int:herdID>", views.herdsummary),
         path("herddata-<int:herdID>", views.get_herd_data),

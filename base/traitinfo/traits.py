@@ -2,7 +2,7 @@ from random import random
 from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
 
-RELPATH = settings.BASE_DIR / "base/traitinfo/"
+RELPATH = settings.BASE_DIR / "base/traitinfo/traitsets"
 DOMAIN = lambda: random() * 2 - 1
 
 
@@ -20,9 +20,9 @@ class Trait:
         self.net_merit_dollars = float(net_merit_dollars.strip())
 
     @classmethod
-    def get_all(cls):
+    def get_all(cls, traitset):
         traits: list[Trait] = []
-        with open(RELPATH / "ptas.txt") as PTAs:
+        with open(RELPATH / traitset / "ptas.txt") as PTAs:
             for line in PTAs.readlines():
                 data = line.split(":")
                 traits.append(Trait(*data))
@@ -30,8 +30,8 @@ class Trait:
         return traits
 
     @classmethod
-    def get(cls, name):
-        traitslist = cls.get_all()
+    def get(cls, name, traitset):
+        traitslist = cls.get_all(traitset)
         for trait in traitslist:
             if trait.name == name:
                 return trait
@@ -39,8 +39,8 @@ class Trait:
         raise ObjectDoesNotExist(f"The requested trait of type {name} does not exist!")
 
     @classmethod
-    def calculate_net_merit(cls, PTAs):
-        traits = cls.get_all()
+    def calculate_net_merit(cls, PTAs, traitset):
+        traits = cls.get_all(traitset)
         nm = 0
         for trait in traits:
             nm += trait.net_merit_dollars * PTAs[trait.name]

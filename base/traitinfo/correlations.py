@@ -4,9 +4,9 @@ import numpy as np
 from scipy.linalg import cholesky
 
 
-def get_cor_matrix():
+def get_cor_matrix(traitset):
     matrix = []
-    with open(RELPATH / "correlations.txt") as cor_data:
+    with open(RELPATH / traitset / "correlations.txt") as cor_data:
         for line in cor_data:
             linedata = line.strip().removesuffix("\n").split(" ")
             while "" in linedata:
@@ -16,9 +16,9 @@ def get_cor_matrix():
     return matrix
 
 
-def get_result(initial_values: list = None):
-    cor_matrix = get_cor_matrix()
-    traitlist = traits.Trait.get_all()
+def get_result(traitset, initial_values: list = None):
+    cor_matrix = get_cor_matrix(traitset)
+    traitlist = traits.Trait.get_all(traitset)
 
     r = np.array(cor_matrix)
 

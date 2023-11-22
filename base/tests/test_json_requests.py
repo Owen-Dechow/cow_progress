@@ -1,19 +1,10 @@
 from django.test import TestCase
 from .utils import load_fixture, create_authenticated_client
-from ..traitinfo.traits import Trait
 
 
 class TestJSONRequests(TestCase):
     def setUp(self):
         self.client = create_authenticated_client("client")
-
-    def test_traitnames(self):
-        response = self.client.get("/traitnames", secure=True)
-        self.assertEquals(response.status_code, 200)
-        self.assertJSONEqual(
-            response.content,
-            {t.name: t.net_merit_dollars for t in Trait.get_all()} | {"Net Merit": 0},
-        )
 
     @load_fixture("class_light.json")
     def test_herdsummaries(self):

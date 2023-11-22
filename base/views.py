@@ -222,7 +222,7 @@ def classes(request: WSGIRequest):
 
             form.data = dict()
         except Exception as e:
-            raise Http404()
+            raise Http404(e)
 
     enrollments = models.Enrollment.objects.filter(user=request.user)
     enrollment_info = {}
@@ -394,10 +394,13 @@ def get_herd_file(request: WSGIRequest, herdID: int):
     auth_herd(request, herd)
     connectedclass = herd.connectedclass
 
+    traits_list = traits.Trait.get_all(herd.connectedclass.traitset)
+    recessives_list = rec.get_recessives(herd.connectedclass.traitset)
+
     row1 = (
         ["Name", "Generation", "Sire", "Dam", "Inbreeding Coefficient", "Net Merit"]
-        + [x.name for x in traits.Trait.get_all()]
-        + [x for x in rec.get_recessives()]
+        + [x.name for x in traits_list]
+        + [x for x in recessives_list]
     )
 
     block = [row1]
@@ -412,10 +415,10 @@ def get_herd_file(request: WSGIRequest, herdID: int):
             animal.inbreeding,
             animal.scaled["Net Merit"],
         ]
-        for trait in traits.Trait.get_all():
+        for trait in traits_list:
             row.append(animal.scaled[trait.name])
 
-        for r in rec.get_recessives():
+        for r in recessives_list:
             data_key = animal.recessives[r]
             if data_key == 0:
                 data = "--"

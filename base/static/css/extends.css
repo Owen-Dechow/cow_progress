@@ -72,6 +72,11 @@ select {
     background-color: var(--secondary);
 }
 
+button:hover:disabled,
+button:disabled {
+    filter: brightness(50%);
+}
+
 .as-btn {
     display: inline-block;
     text-align: center;

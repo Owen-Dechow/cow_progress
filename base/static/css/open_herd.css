@@ -141,7 +141,7 @@ main .panel.right p:nth-child(even) {
 }
 
 main .panel.right p.hide {
-    filter: blur(2px);
+    display: none;
 }
 
 main .panel.right p label {

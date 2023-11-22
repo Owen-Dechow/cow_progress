@@ -20,6 +20,7 @@ class TestClassSystem(TestCase):
                 "classname": f"Test Class {rand_id()}",
                 "info": f"Test Class Info {rand_id()}",
                 "formid": "addclass",
+                "traitset": "0",
             },
             secure=True,
         )

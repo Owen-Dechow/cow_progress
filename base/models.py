@@ -1,8 +1,6 @@
 from django.contrib.auth.models import User
-from .traitinfo import correlations as cor
-from .traitinfo import recessives
+from .traitinfo import correlations as cor, recessives, traits, traitsets
 from random import randrange, random, randint
-from .traitinfo import traits
 from django.db import models
 from math import prod
 from .inbreeding import InbreedingCalculator
@@ -81,7 +79,7 @@ class Herd(models.Model):
         herd, animals = Herd.get_auto_generated_herd(name, connectedclass)
 
         do_not_use = set()
-        for trait in traits.Trait.get_all():
+        for trait in traits.Trait.get_all(connectedclass.traitset):
             top = None
             for animal in animals:
                 if animal not in do_not_use:
@@ -131,7 +129,9 @@ class Herd(models.Model):
                 if not val:
                     summary[key] = "~"
 
-        for trait in traits.Trait.get_all() + [traits.Trait("Net Merit", "0", "0")]:
+        for trait in traits.Trait.get_all(self.connectedclass.traitset) + [
+            traits.Trait("Net Merit", "0", "0")
+        ]:
             if trait.name not in summary:
                 summary[trait.name] = "~"
 
@@ -240,7 +240,7 @@ class Herd(models.Model):
         return self.remove_deaths_from_recessives()
 
     def remove_deaths_from_recessives(self):
-        recessives_list = recessives.get_recessives_fatal()
+        recessives_list = recessives.get_recessives_fatal(self.connectedclass.traitset)
         number_of_deaths = 0
         animals = Bovine.objects.filter(herd=self)
 
@@ -305,7 +305,7 @@ class Bovine(models.Model):
 
         # Generate mutated uncorrelated values -1 to 1
         uncorrelated = {}
-        for trait in traits.Trait.get_all():
+        for trait in traits.Trait.get_all(herd.connectedclass.traitset):
             val = (sire.data[trait.name] + dam.data[trait.name]) / 2
             newval = val + MUTATION_RATE * traits.DOMAIN()
 
@@ -316,15 +316,20 @@ class Bovine(models.Model):
             uncorrelated[trait.name] = newval
 
         # Correlate data
-        initial_val_list = [uncorrelated[key.name] for key in traits.Trait.get_all()]
-        corelated_data = cor.get_result(initial_values=initial_val_list)
+        initial_val_list = [
+            uncorrelated[key.name]
+            for key in traits.Trait.get_all(herd.connectedclass.traitset)
+        ]
+        corelated_data = cor.get_result(
+            herd.connectedclass.traitset, initial_values=initial_val_list
+        )
         new.data = cor.convert_data(corelated_data)
 
         # Scale data for front end
         new.set_scaled_data()
 
         # Set the genetic recessives for new animal
-        for recessive in recessives.get_recessives():
+        for recessive in recessives.get_recessives(herd.connectedclass.traitset):
             new.recessives[recessive] = recessives.get_result_of_two(
                 sire.recessives[recessive], dam.recessives[recessive]
             )
@@ -349,7 +354,7 @@ class Bovine(models.Model):
         new.inbreeding = 0
 
         # Get data -1 to 1
-        correlated_data = cor.get_result()
+        correlated_data = cor.get_result(herd.connectedclass.traitset)
         new.data = cor.convert_data(correlated_data)
 
         # Scale the data
@@ -357,7 +362,7 @@ class Bovine(models.Model):
 
         # Set the genetic recessives for new animal
         new.recessives = {}
-        for recessive in recessives.get_recessives():
+        for recessive in recessives.get_recessives(herd.connectedclass.traitset):
             new.recessives[recessive] = randint(0, randint(0, 1))
 
         return new
@@ -367,7 +372,9 @@ class Bovine(models.Model):
 
         scaled_data = {}
         for key, val in self.data.items():
-            standard_deviation = traits.Trait.get(key).standard_deviation
+            standard_deviation = traits.Trait.get(
+                key, self.connectedclass.traitset
+            ).standard_deviation
             scaled_data[key] = round(standard_deviation * val, PTA_DECIMALS)
 
         self.scaled = scaled_data
@@ -397,7 +404,10 @@ class Bovine(models.Model):
     def set_net_merit(self):
         self.scaled = {
             "Net Merit": round(
-                traits.Trait.calculate_net_merit(self.scaled), PTA_DECIMALS
+                traits.Trait.calculate_net_merit(
+                    self.scaled, self.connectedclass.traitset
+                ),
+                PTA_DECIMALS,
             )
         } | self.scaled
 
@@ -456,6 +466,13 @@ class Class(models.Model):
     # Connects a class to public herd
     publicherd = models.OneToOneField(
         to=Herd, on_delete=models.CASCADE, related_name="classpublicherd", null=True
+    )
+
+    # Selects the traitset for class
+    traitset = models.CharField(
+        max_length=20,
+        default=traitsets.TRAITSET_CHOICES[0][0],
+        null=True,
     )
 
     def update_trend_log(self, entry_name: str):
