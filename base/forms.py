@@ -64,12 +64,15 @@ class AddClass(forms.Form):
         max_length=100,
         label="Class Name",
     )
+
     info = forms.CharField(
         widget=forms.Textarea, label="Class Info", max_length=1024, required=False
     )
+
     formid = forms.CharField(
         initial="addclass", widget=forms.HiddenInput, label="", required=False
     )
+
     traitset = forms.ChoiceField(
         choices=traitsets.TRAITSET_CHOICES, initial=traitsets.TRAITSET_CHOICES[0][0]
     )

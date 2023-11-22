@@ -13,6 +13,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name="class",
             name="traitset",
-            field=models.CharField(default="0", max_length=20, null=True),
+            field=models.CharField(default="NM_2021", max_length=20, null=True),
         ),
     ]

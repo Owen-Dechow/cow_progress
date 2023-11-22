@@ -7,10 +7,8 @@ from .inbreeding import InbreedingCalculator
 from datetime import datetime
 
 PTA_DECIMALS = 3  # Number of decimal placements shown for PTAs on website/ xlsx files
-MUTATION_RATE = 0.25  # Maximum mutation of a PTA in one generation from -1 to 1 value
-
-ATTRACT_0 = lambda: prod(random() for _ in range(6))
-""" Returns a number close to 0 | Mean = 0.5^6 = 0.015625 | Range = [0, 1) """
+mutation_rand_val = lambda: 0.1 * (random() + 0.1) ** -1
+recessive_rand_val = lambda chance: 1 if random() <= chance else 0
 
 
 # Holds a group of animals
@@ -307,11 +305,11 @@ class Bovine(models.Model):
         uncorrelated = {}
         for trait in traits.Trait.get_all(herd.connectedclass.traitset):
             val = (sire.data[trait.name] + dam.data[trait.name]) / 2
-            newval = val + MUTATION_RATE * traits.DOMAIN()
+            newval = val + mutation_rand_val()
 
-            # Ensure new value is in range -1 to 1
+            # Ensure new value is in range [-1, 1]
             if abs(newval) > 1:
-                newval = (abs(newval) / newval) * (1 + ATTRACT_0())
+                newval = abs(newval) / newval
 
             uncorrelated[trait.name] = newval
 
@@ -363,7 +361,7 @@ class Bovine(models.Model):
         # Set the genetic recessives for new animal
         new.recessives = {}
         for recessive in recessives.get_recessives(herd.connectedclass.traitset):
-            new.recessives[recessive] = randint(0, randint(0, 1))
+            new.recessives[recessive] = recessive_rand_val(1 / 10)
 
         return new
 
