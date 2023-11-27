@@ -18,7 +18,7 @@ class TestPages(TestCase):
         response = self.client.get("/herds", secure=True)
         self.general_assertions(response, "base/herds.html")
 
-    @load_fixture("class_light.json")
+    @load_fixture("class_no_cows.json")
     def test_openherd(self):
         response = self.client.get(f"/openherd-{1}", secure=True)
         self.general_assertions(response, "base/open_herd.html")

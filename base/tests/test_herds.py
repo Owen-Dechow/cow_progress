@@ -7,7 +7,7 @@ class TestHerdActions(TestCase):
     def setUp(self):
         self.client = create_authenticated_client("client")
 
-    @load_fixture("class_light.json")
+    @load_fixture("class_no_cows.json")
     def test_auto_generate_herd(self):
         herd_name = f"Test herd {rand_id()}"
         response = self.client.post(
@@ -22,12 +22,12 @@ class TestHerdActions(TestCase):
         self.assertEquals(models.Herd.objects.last().name, herd_name)
         self.assertEquals(response.status_code, 302)
 
-    @load_fixture("class_large.json")
+    @load_fixture("class_personal_herd.json")
     def test_delete_herd(self):
         _ = self.client.get("/delete-herd/3", secure=True)
         self.assertEquals(models.Herd.objects.count(), 2)
 
-    @load_fixture("class_large.json")
+    @load_fixture("class_personal_herd.json")
     def test_breed_herd(self):
         bulls = models.Bovine.objects.filter(male=True)[:10]
         start_num = models.Bovine.objects.count()

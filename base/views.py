@@ -1,19 +1,19 @@
-from django.http import HttpResponseRedirect, JsonResponse, FileResponse
-from django.shortcuts import render, get_object_or_404, Http404
+from django.contrib import messages
+from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.hashers import check_password
-from django.core.handlers.wsgi import WSGIRequest
 from django.contrib.auth.models import User
-from django.contrib.auth import login
-from django.utils.text import slugify
-from django.contrib import messages
+from django.core.handlers.wsgi import WSGIRequest
 from django.db import transaction
-from .traitinfo import traits, recessives as rec
-from .resources.resources import get_resources
+from django.http import HttpResponseRedirect, JsonResponse, HttpResponse
+from django.shortcuts import render, get_object_or_404, Http404
+from django.utils.text import slugify
 from io import BytesIO
 from . import models
 from . import forms
 from . import excel
+from .resources.resources import get_resources
+from .traitinfo.traitsets import TraitSet
 
 
 ########### Utility functions ##########
@@ -41,7 +41,7 @@ def auth_herd(
         return True
 
     if error:
-        raise Http404()
+        raise Http404("Herd authentication failed")
     return False
 
 
@@ -62,12 +62,12 @@ def string_validation(
     """Validate a string"""
 
     if len(string) not in range(minlength, maxlength + 1):
-        raise Http404()
+        raise Http404("String validation failed: invalid len")
 
     if not allowall:
         for l in string:
             if not (l in specialchar or l.isalpha() or l.isdigit()):
-                raise Http404()
+                raise Http404("String validation failed: invalid char")
 
     return True
 
@@ -276,20 +276,6 @@ def app_credits(request: WSGIRequest):
 
 ########## JSON requests ##########
 @login_required
-def traitnames(request: WSGIRequest):
-    """JSON dict of all trait names"""
-
-    traitdict = {}
-
-    traitdict["Net Merit"] = 0
-
-    for trait in traits.Trait.get_all():
-        traitdict[trait.name] = trait.net_merit_dollars
-
-    return JsonResponse(traitdict)
-
-
-@login_required
 def herdsummaries(request: WSGIRequest):
     """JSON dict of all accessable herd summaries"""
 
@@ -358,9 +344,8 @@ def get_bull_name(request: WSGIRequest, classID: int, cowID: int):
 
 
 def get_pedigree(request: WSGIRequest, pedigreeID: int):
-    pedigree = get_object_or_404(models.Bovine, id=pedigreeID)
-    pedigree_dict = pedigree.get_pedigree_dict()
-    return JsonResponse(pedigree_dict)
+    animal = get_object_or_404(models.Bovine, id=pedigreeID)
+    return JsonResponse(animal.pedigree)
 
 
 @login_required
@@ -385,74 +370,68 @@ def get_cow_data(request: WSGIRequest, cowID: int):
 def get_herd_file(request: WSGIRequest, herdID: int):
     """Get XLSX file for herd"""
 
+    recessive_int2str = lambda x: "--" if x == 0 else "-+" if x == 1 else "++"
+
     herd = get_object_or_404(
         models.Herd.objects.select_related("connectedclass"), id=herdID
     )
     animals = models.Bovine.objects.prefetch_related(
         "pedigree__sire", "pedigree__dam"
     ).filter(herd=herd)
-    auth_herd(request, herd)
-    connectedclass = herd.connectedclass
 
-    traits_list = traits.Trait.get_all(herd.connectedclass.traitset)
-    recessives_list = rec.get_recessives(herd.connectedclass.traitset)
+    connectedclass = herd.connectedclass
+    traitset = TraitSet(herd.connectedclass.traitset)
+
+    auth_herd(request, herd)
 
     row1 = (
         ["Name", "Generation", "Sire", "Dam", "Inbreeding Coefficient", "Net Merit"]
-        + [x.name for x in traits_list]
-        + [x for x in recessives_list]
+        + [x.name for x in traitset.traits if connectedclass.viewable_traits[x.name]]
+        + [
+            f"ph: {x.name}"
+            for x in traitset.traits
+            if connectedclass.viewable_traits[x.name]
+        ]
+        + [x.name for x in traitset.recessives]
     )
 
     block = [row1]
-    row1[0] = "Name"
 
     for animal in animals:
-        row = [
-            animal.name,
-            animal.generation,
-            animal.sire_id if animal.sire_id else "~",
-            animal.dam_id if animal.dam_id else "~",
-            animal.inbreeding,
-            animal.scaled["Net Merit"],
-        ]
-        for trait in traits_list:
-            row.append(animal.scaled[trait.name])
+        data = (
+            {
+                "Name": animal.name,
+                "Generation": animal.generation,
+                "Sire": animal.sire_id if animal.sire_id else "~",
+                "Dam": animal.dam_id if animal.dam_id else "~",
+                "Inbreeding Coefficient": animal.inbreeding,
+                "Net Merit": animal.genotype["Net Merit"],
+            }
+            | animal.genotype
+            | {f"ph: {key}": val for key, val in animal.phenotype.items()}
+            | {key: recessive_int2str(val) for key, val in animal.recessives.items()}
+        )
 
-        for r in recessives_list:
-            data_key = animal.recessives[r]
-            if data_key == 0:
-                data = "--"
-            elif data_key == 1:
-                data = "-+"
-            else:
-                data = "++"
-            row.append(data)
-
+        row = [data[x] for x in row1]
         block.append(row)
 
-    for key, val in connectedclass.viewable_traits.items():
-        if not val:
-            idx = row1.index(key)
-            for row in block[1:]:
-                row[idx] = "~"
+    with BytesIO() as output:
+        file = excel.ExcelDoc(output, ["Sheet1"], overridename=True, in_memory=True)
+        file.add_format("header", {"bold": True})
+        file.write_block(0, block, (1, 1), "header")
+        file.freeze_cells(0, (1, 0))
+        file.close()
 
-    output = BytesIO()
+        output.seek(0)
 
-    file = excel.ExcelDoc(output, ["Sheet1"], overridename=True, in_memory=True)
-    file.add_format("header", {"bold": True})
-    file.write_block(0, block, (1, 1), "header")
-    file.freeze_cells(0, (1, 0))
-    file.close()
+        response = HttpResponse(output.read())
+        response["Content-Type"] = "application/vnd.ms-excel"
+        response[
+            "Content-Disposition"
+        ] = f"attachment; filename={slugify(herd.name)}.xlsx"
 
-    output.seek(0)
-
-    response = FileResponse(
-        output.read(),
-    )
-    response["Content-Disposition"] = f"attachment; filename={slugify(herd.name)}.xlsx"
-
-    output.close()
-    return response
+        output.close()
+        return response
 
 
 @login_required
@@ -466,11 +445,8 @@ def get_class_tendchart(request: WSGIRequest, classID: int):
         models.Enrollment, connectedclass=connectedclass, user=request.user
     )
 
-    row1 = ["Action ID"]
+    row1 = ["Action ID"] + [x for x in connectedclass.trend_log["Initial Population"]]
     block = [row1]
-
-    for key in connectedclass.trend_log["Initial Population"]:
-        row1.append(key)
 
     for row_id, row_info in connectedclass.trend_log.items():
         row = [row_id]
@@ -479,26 +455,24 @@ def get_class_tendchart(request: WSGIRequest, classID: int):
 
         block.append(row)
 
-    output = BytesIO()
+    with BytesIO() as output:
+        file = excel.ExcelDoc(output, [f"Sheet1"], overridename=True, in_memory=True)
+        file.add_format("header", {"bold": True})
+        file.write_block(0, block, (1, 1), "header")
+        file.freeze_cells(0, (1, 0))
+        file.close()
 
-    file = excel.ExcelDoc(output, [f"Sheet1"], overridename=True, in_memory=True)
-    file.add_format("header", {"bold": True})
-    file.write_block(0, block, (1, 1), "header")
-    file.freeze_cells(0, (1, 0))
-    file.close()
+        output.seek(0)
 
-    output.seek(0)
+        response = HttpResponse(output.read())
+        response["Content-Type"] = "application/vnd.ms-excel"
+        response[
+            "Content-Disposition"
+        ] = f"attachment; filename={slugify(connectedclass.name)}.xlsx"
 
-    response = FileResponse(
-        output.read(),
-    )
-    response[
-        "Content-Disposition"
-    ] = f"attachment; filename={slugify(connectedclass.name)}.xlsx"
+        output.close()
 
-    output.close()
-
-    return response
+        return response
 
 
 ########## Actions -> success dict ##########
@@ -544,26 +518,30 @@ def move_cow(request: WSGIRequest, cowID: int):
 def breed_herd(request: WSGIRequest, herdID: int):
     """Breed your herd"""
 
-    herd = get_object_or_404(models.Herd, id=herdID)
+    herd = get_object_or_404(
+        models.Herd.objects.select_related("connectedclass"), id=herdID
+    )
     auth_herd(request, herd, use_class_herds=False)
 
     sires = []
     for key in request.POST:
         if key[:5] == "bull-":
             sire = get_object_or_404(
-                models.Bovine, id=int(request.POST[key]), male=True
+                models.Bovine.objects.prefetch_related("herd", "herd__connectedclass"),
+                id=int(request.POST[key]),
+                male=True,
             )
             sires.append(sire)
             auth_herd(request, sire.herd)
 
             if sire.herd.connectedclass != herd.connectedclass:
-                raise Http404()
+                raise Http404("Bull outside of class")
 
     if len(sires) == 0:
-        raise Http404()
+        raise Http404("No bull labeled")
 
     if herd.breedings >= herd.connectedclass.breeding_limit:
-        raise Http404()
+        raise Http404("Max breeding limit reached")
 
     deaths = herd.run_breeding(sires)
     herd.connectedclass.update_trend_log(

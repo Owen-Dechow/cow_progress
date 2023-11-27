@@ -33,6 +33,9 @@ class InbreedingCalculator:
                     for depth_paternal in depths_paternal:
                         inbreeding += 0.5 ** (depth_paternal + depth_maternal + 1)
 
+        if inbreeding == None:
+            print(inbreeding * 1000)
+
         return inbreeding
 
     def _map_parents(self, p, dic, depth, sex) -> dict:

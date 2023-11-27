@@ -27,7 +27,7 @@ class TestClassSystem(TestCase):
 
         self.assertEquals(models.Class.objects.count(), 1)
 
-    @load_fixture("class_light.json")
+    @load_fixture("class_no_cows.json")
     def test_joinclass(self):
         classcode = models.Class.objects.first().classcode
 
@@ -43,7 +43,7 @@ class TestClassSystem(TestCase):
 
         self.assertEquals(models.Enrollment.objects.count(), len(self.students) + 1)
 
-    @load_fixture("class_light.json")
+    @load_fixture("class_no_cows.json")
     def test_exitclass(self):
         connectedclass = models.Class.objects.first()
         classcode = connectedclass.classcode
@@ -69,7 +69,7 @@ class TestClassSystem(TestCase):
 
         self.assertEquals(models.Enrollment.objects.count(), 1)
 
-    @load_fixture("class_light.json")
+    @load_fixture("class_no_cows.json")
     def test_deleteclass(self):
         self.teacher.post(
             "/classes",
@@ -82,7 +82,7 @@ class TestClassSystem(TestCase):
 
         self.assertEquals(models.Class.objects.count(), 0)
 
-    @load_fixture("class_light.json")
+    @load_fixture("class_no_cows.json")
     def test_premoteclass(self):
         connectedclass = models.Class.objects.first()
         classcode = connectedclass.classcode
@@ -110,7 +110,7 @@ class TestClassSystem(TestCase):
 
             self.assertTrue(models.Enrollment.objects.last().teacher)
 
-    @load_fixture("class_light.json")
+    @load_fixture("class_no_cows.json")
     def test_updateclass(self):
         classinfo = f"Updated Info {rand_id()}"
         maxgen = rand_id()

@@ -136,6 +136,8 @@ function changeDisplayedCow(gender, cowID) {
 
         for (let key in stats["traits"]) {
             if (stats["traits"].hasOwnProperty(key)) {
+                console.log(stats["traits"][key])
+                console.log(key + "-ipt")
                 document.getElementById(key + "-ipt").value = stats["traits"][key];
             }
         }

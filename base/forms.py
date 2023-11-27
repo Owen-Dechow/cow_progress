@@ -1,7 +1,7 @@
 from django.contrib.auth.forms import UserCreationForm
 from django import forms
 from . import models
-from .traitinfo import traits, traitsets
+from .traitinfo.traitsets import TraitSet, TRAITSET_CHOICES
 
 
 # User registration form
@@ -74,7 +74,7 @@ class AddClass(forms.Form):
     )
 
     traitset = forms.ChoiceField(
-        choices=traitsets.TRAITSET_CHOICES, initial=traitsets.TRAITSET_CHOICES[0][0]
+        choices=TRAITSET_CHOICES, initial=TRAITSET_CHOICES[0][0]
     )
 
     def is_valid(self, user) -> bool:
@@ -92,7 +92,7 @@ class AddClass(forms.Form):
         connectedclass.info = self.cleaned_data["info"]
         connectedclass.traitset = self.cleaned_data["traitset"]
         connectedclass.viewable_traits = {
-            x.name: True for x in traits.Trait.get_all(connectedclass.traitset)
+            x.name: True for x in TraitSet(connectedclass.traitset).traits
         } | {"Net Merit": True}
         connectedclass.save()
 

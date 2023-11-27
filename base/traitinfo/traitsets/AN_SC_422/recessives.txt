@@ -6,3 +6,4 @@ POLLED  :   n   :   0.10
 CVM     :   f   :   0.10
 BY      :   f   :   0.10
 CR      :   f   :   0.10
+RED     :   n   :   0.20

@@ -4,3 +4,4 @@ venv/
 .DS_STORE
 db.sqlite3
 __pycache__/
+transition_script.py

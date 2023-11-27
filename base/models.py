@@ -1,14 +1,12 @@
-from django.contrib.auth.models import User
-from .traitinfo import correlations as cor, recessives, traits, traitsets
-from random import randrange, random, randint
-from django.db import models
-from math import prod
-from .inbreeding import InbreedingCalculator
 from datetime import datetime
+from django.contrib.auth.models import User
+from django.db import models
+from random import randrange
+from .inbreeding import InbreedingCalculator
+from .traitinfo.traitsets import TraitSet, TRAITSET_CHOICES, Trait, DOMAIN
 
 PTA_DECIMALS = 3  # Number of decimal placements shown for PTAs on website/ xlsx files
-mutation_rand_val = lambda: 0.1 * (random() + 0.1) ** -1
-recessive_rand_val = lambda chance: 1 if random() <= chance else 0
+mutation_rand_val = lambda: DOMAIN() * DOMAIN() * DOMAIN()
 
 
 # Holds a group of animals
@@ -77,14 +75,14 @@ class Herd(models.Model):
         herd, animals = Herd.get_auto_generated_herd(name, connectedclass)
 
         do_not_use = set()
-        for trait in traits.Trait.get_all(connectedclass.traitset):
+        for trait in TraitSet(connectedclass.traitset).traits:
             top = None
             for animal in animals:
                 if animal not in do_not_use:
                     if top is not None:
                         nmd = trait.net_merit_dollars
-                        top_val = top.data[trait.name] * nmd
-                        animal_val = animal.data[trait.name] * nmd
+                        top_val = top.genotype[trait.name] * nmd
+                        animal_val = animal.genotype[trait.name] * nmd
 
                     if top is None or animal_val > top_val:
                         top = animal
@@ -111,27 +109,29 @@ class Herd(models.Model):
 
         # Add animals PTAs together
         for animal in animals:
-            for key in animal.scaled:
-                if key in summary:
-                    summary[key] += animal.scaled[key]
+            for key in animal.genotype:
+                if self.connectedclass.viewable_traits[key]:
+                    if key in summary:
+                        summary[key] += animal.genotype[key]
+                    else:
+                        summary[key] = animal.genotype[key]
                 else:
-                    summary[key] = animal.scaled[key]
+                    continue
+
+        for animal in animals:
+            for key in animal.phenotype:
+                if self.connectedclass.viewable_traits[key]:
+                    if f"ph: {key}" in summary:
+                        summary[f"ph: {key}"] += animal.phenotype[key]
+                    else:
+                        summary[f"ph: {key}"] = animal.phenotype[key]
+                else:
+                    continue
 
         # Divide each PTA by number of animals
         number_of_animals = len(animals)
         for key in summary:
             summary[key] = round(summary[key] / number_of_animals, PTA_DECIMALS)
-
-        if self.connectedclass:
-            for key, val in self.connectedclass.viewable_traits.items():
-                if not val:
-                    summary[key] = "~"
-
-        for trait in traits.Trait.get_all(self.connectedclass.traitset) + [
-            traits.Trait("Net Merit", "0", "0")
-        ]:
-            if trait.name not in summary:
-                summary[trait.name] = "~"
 
         return summary
 
@@ -153,7 +153,6 @@ class Herd(models.Model):
 
         NUMBER_OF_COWS = 100  # Planed number of cows generated
         NUMBER_OF_BULLS = 10  # Planed number of bulls generated
-        MAX_GENERATION = 5  # Max age of animal before its culled
 
         # Update the herd generation
         self.breedings += 1
@@ -210,42 +209,29 @@ class Herd(models.Model):
                     Bovine.create_from_breeding(breeding["sire"], dam, self, False)
                 )
 
+        # Update name and pedigree after getting id
         Bovine.objects.bulk_create(animals)
         for animal in animals:
             animal.name = animal.auto_generate_name(self)
-            animal.pedigree = animal.auto_generate_pedigree()
-
-            # Calculate inbreeding
-            if animal.sire and animal.dam:
-                calculator = InbreedingCalculator(animal.get_pedigree_dict())
-                animal.inbreeding = calculator.get_coefficient()
-            else:
-                animal.inbreeding = 0
+            animal.pedigree["id"] = animal.id
 
         Bovine.objects.bulk_update(animals, ["name", "pedigree", "inbreeding"])
 
-        # Remove any animals over the max age
-        animals = Bovine.objects.filter(herd=self)
-        kill_list = []
-        for bovine in animals:
-            if self.breedings - bovine.generation > MAX_GENERATION:
-                kill_list.append(bovine)
-                bovine.herd = None
-
-        Bovine.objects.bulk_update(kill_list, ["herd"])
+        # Cull any animals of their max age
+        self.remove_animals_over_max_age()
 
         # Remove any animals dead from recessives
         return self.remove_deaths_from_recessives()
 
     def remove_deaths_from_recessives(self):
-        recessives_list = recessives.get_recessives_fatal(self.connectedclass.traitset)
+        traitset = TraitSet(self.connectedclass.traitset)
         number_of_deaths = 0
         animals = Bovine.objects.filter(herd=self)
 
         kill_list = []
         for bovine in animals:
-            for recessive in recessives_list:
-                if bovine.recessives[recessive[0]] == 2 and recessive[1]:
+            for recessive in traitset.recessives:
+                if bovine.recessives[recessive.name] == 2 and recessive.fatal:
                     if bovine not in kill_list:
                         number_of_deaths += 1
                         kill_list.append(bovine)
@@ -255,8 +241,35 @@ class Herd(models.Model):
 
         return number_of_deaths
 
+    def remove_animals_over_max_age(self):
+        MAX_GEN = 5
 
-# Holds the PTAs on single animal
+        traitset = TraitSet(self.connectedclass.traitset)
+        animals = Bovine.objects.filter(herd=self)
+        kill_list = []
+
+        for animal in animals:
+            age = self.breedings - animal.generation
+
+            if animal.male == False and traitset.DPR_for_max_gen:
+                dpr = (
+                    animal.phenotype[traitset.DPR_for_max_gen.name]
+                    / 2
+                    / traitset.DPR_for_max_gen.standard_deviation
+                )
+                half_max_gen = MAX_GEN / 2
+                max_age = round(half_max_gen * dpr + half_max_gen + 0.1)
+            else:
+                max_age = MAX_GEN
+
+            if age > max_age:
+                kill_list.append(animal)
+                animal.herd = None
+
+        Bovine.objects.bulk_update(kill_list, ["herd"])
+
+
+# Information on single animal
 class Bovine(models.Model):
     __str__ = lambda self: self.name
 
@@ -272,8 +285,9 @@ class Bovine(models.Model):
     # True = Male, False = Female
     male = models.BooleanField(null=True)
 
-    data = models.JSONField(default=dict)  # Stores the unscaled data -1 to 1 form
-    scaled = models.JSONField(default=dict)  # Stores the front end scaled PTA data
+    genotype = models.JSONField(default=dict)  # Stores the scaled genotype
+    phenotype = models.JSONField(default=dict, null=True)  # Stores the scaled phenotype
+
     recessives = models.JSONField(default=dict)  # Recessive information
 
     connectedclass = models.ForeignKey(to="Class", on_delete=models.CASCADE)
@@ -284,12 +298,13 @@ class Bovine(models.Model):
     sire = models.ForeignKey(
         to="Bovine", related_name="_sire", on_delete=models.SET_NULL, null=True
     )
+
     pedigree = models.JSONField(null=True)
     inbreeding = models.FloatField(null=True)
 
     @staticmethod
     def create_from_breeding(sire, dam, herd, male):
-        """Takes in two animals and creates a child List from the data"""
+        """Takes in two animals and creates a child List from the genotype"""
 
         # Create and initialize new animal
         new = Bovine()
@@ -301,43 +316,34 @@ class Bovine(models.Model):
         new.generation = herd.breedings
         new.connectedclass = herd.connectedclass
 
-        # Generate mutated uncorrelated values -1 to 1
+        # Get Traitset
+        traitset = TraitSet(herd.connectedclass.traitset)
+
+        # Generate mutated uncorrelated values
         uncorrelated = {}
-        for trait in traits.Trait.get_all(herd.connectedclass.traitset):
-            val = (sire.data[trait.name] + dam.data[trait.name]) / 2
-            newval = val + mutation_rand_val()
-
-            # Ensure new value is in range [-1, 1]
-            if abs(newval) > 1:
-                newval = abs(newval) / newval
-
-            uncorrelated[trait.name] = newval
+        for trait in traitset.traits:
+            average = (sire.genotype[trait.name] + dam.genotype[trait.name]) / 2
+            uncorrelated[trait.name] = trait.PTA_mutation(average)
 
         # Correlate data
-        initial_val_list = [
-            uncorrelated[key.name]
-            for key in traits.Trait.get_all(herd.connectedclass.traitset)
-        ]
-        corelated_data = cor.get_result(
-            herd.connectedclass.traitset, initial_values=initial_val_list
-        )
-        new.data = cor.convert_data(corelated_data)
+        correlated_data = traitset.get_correlated_values(uncorrelated)
+        new.genotype = {key.name: val for key, val in correlated_data.items()}
 
-        # Scale data for front end
-        new.set_scaled_data()
+        # Scale genotype for front end
+        new.pedigree = new.auto_generate_pedigree()
+        new.get_inbreeding()
+        new.set_phenotypes()
+        new.set_net_merit()
 
         # Set the genetic recessives for new animal
-        for recessive in recessives.get_recessives(herd.connectedclass.traitset):
-            new.recessives[recessive] = recessives.get_result_of_two(
-                sire.recessives[recessive], dam.recessives[recessive]
+        for recessive in traitset.recessives:
+            new.recessives[
+                recessive.name
+            ] = traitset.get_result_of_two_recessive_int_vals(
+                sire.recessives[recessive.name], dam.recessives[recessive.name]
             )
 
         return new
-
-    def get_pedigree_dict(self):
-        """Get a JSON serializable pedagree"""
-
-        return self.pedigree
 
     @staticmethod
     def auto_generate(herd, male):
@@ -351,32 +357,41 @@ class Bovine(models.Model):
         new.connectedclass = herd.connectedclass
         new.inbreeding = 0
 
-        # Get data -1 to 1
-        correlated_data = cor.get_result(herd.connectedclass.traitset)
-        new.data = cor.convert_data(correlated_data)
+        # Get traitset
+        traitset = TraitSet(herd.connectedclass.traitset)
 
-        # Scale the data
-        new.set_scaled_data()
+        correlated_data = traitset.get_correlated_values()
+        new.genotype = {
+            key.name: round(val, PTA_DECIMALS) for key, val in correlated_data.items()
+        }
+
+        new.set_phenotypes()
+        new.set_net_merit()
 
         # Set the genetic recessives for new animal
         new.recessives = {}
-        for recessive in recessives.get_recessives(herd.connectedclass.traitset):
-            new.recessives[recessive] = recessive_rand_val(1 / 10)
+        for recessive in traitset.recessives:
+            new.recessives[recessive.name] = recessive.get_carrier_int_from_prominence()
 
         return new
 
-    def set_scaled_data(self):
-        """Scales the data field into the scaled field"""
+    def set_phenotypes(self):
+        """Scales the phenotypes of animal"""
 
-        scaled_data = {}
-        for key, val in self.data.items():
-            standard_deviation = traits.Trait.get(
-                key, self.connectedclass.traitset
-            ).standard_deviation
-            scaled_data[key] = round(standard_deviation * val, PTA_DECIMALS)
+        # Get traitset
+        traitset = TraitSet(self.connectedclass.traitset)
 
-        self.scaled = scaled_data
-        self.set_net_merit()
+        uncorrelated_ph = {}
+        for trait in traitset.traits:
+            uncorrelated_ph[trait.name] = trait.PTA_to_phenotype(
+                self.genotype[trait.name]
+            )
+
+        correlated_phenotype = traitset.get_correlated_values(uncorrelated_ph, True)
+        self.phenotype = {
+            key.name: round(val, PTA_DECIMALS)
+            for key, val in correlated_phenotype.items()
+        }
 
     def get_dict(self, connectedclass=None):
         """Returns a JSON serializable summary of animal"""
@@ -384,10 +399,16 @@ class Bovine(models.Model):
         if not connectedclass:
             connectedclass = self.herd.connectedclass
 
-        scaled = dict(self.scaled)
+        traits = dict(self.genotype)
+        for key, val in self.phenotype.items():
+            traits[f"ph: {key}"] = val
+
         for key, val in connectedclass.viewable_traits.items():
             if not val:
-                scaled[key] = "~"
+                if key in traits:
+                    del traits[key]
+                if f"ph: {key}" in traits:
+                    del traits[f"ph: {key}"]
 
         return {
             "name": self.name,
@@ -395,19 +416,19 @@ class Bovine(models.Model):
             "Sire": self.sire_id if self.sire_id else "~",
             "Dam": self.dam_id if self.dam_id else "~",
             "Inbreeding Coefficient": self.inbreeding,
-            "traits": scaled,
+            "traits": traits,
             "recessives": self.recessives,
         }
 
     def set_net_merit(self):
-        self.scaled = {
+        traitset = TraitSet(self.connectedclass.traitset)
+
+        self.genotype = {
             "Net Merit": round(
-                traits.Trait.calculate_net_merit(
-                    self.scaled, self.connectedclass.traitset
-                ),
+                traitset.calculate_net_merit(self.genotype),
                 PTA_DECIMALS,
             )
-        } | self.scaled
+        } | self.genotype
 
     def auto_generate_name(self, herd):
         """Autogenerates a name for animal"""
@@ -418,13 +439,21 @@ class Bovine(models.Model):
             return herd.name + f"'s {self.id}"
 
     def auto_generate_pedigree(self):
-        pedigree = {"id": self.id}
+        pedigree = {"id": self.id if self.id else -1}
         if self.sire_id:
             pedigree["sire"] = self.sire.pedigree
         if self.dam_id:
             pedigree["dam"] = self.dam.pedigree
 
         return pedigree
+
+    def get_inbreeding(self):
+        # Calculate inbreeding
+        if self.sire and self.dam:
+            calculator = InbreedingCalculator(self.pedigree)
+            self.inbreeding = calculator.get_coefficient()
+        else:
+            self.inbreeding = 0
 
 
 # Class object
@@ -469,7 +498,7 @@ class Class(models.Model):
     # Selects the traitset for class
     traitset = models.CharField(
         max_length=20,
-        default=traitsets.TRAITSET_CHOICES[0][0],
+        default=TRAITSET_CHOICES[0][0],
         null=True,
     )
 
@@ -481,17 +510,18 @@ class Class(models.Model):
         for herd in herds:
             for animal in Bovine.objects.filter(herd=herd):
                 animal_count += 1
-                for key, value in animal.scaled.items():
+
+                for key, value in animal.genotype.items():
                     if key not in summary:
                         summary[key] = value
                     else:
                         summary[key] += value
 
-                for key, value in animal.data.items():
-                    if "_" + key not in summary:
-                        summary["_" + key] = value
+                for key, value in animal.phenotype.items():
+                    if f"ph: {key}" not in summary:
+                        summary[f"ph: {key}"] = value
                     else:
-                        summary["_" + key] += value
+                        summary[f"ph: {key}"] += value
 
         for key, value in summary.items():
             summary[key] = round(summary[key] / animal_count, PTA_DECIMALS)

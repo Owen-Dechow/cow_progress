@@ -22,6 +22,17 @@
         }
     },
     {
+        "model": "base.herd",
+        "pk": 3,
+        "fields": {
+            "name": "Test Personal Herd",
+            "owner": 1,
+            "breedings": 0,
+            "connectedclass": 1,
+            "enrollment": 1
+        }
+    },
+    {
         "model": "base.bovine",
         "pk": 1,
         "fields": {
@@ -281,6 +292,270 @@
             "sire": null,
             "pedigree": {
                 "id": 152
+            },
+            "inbreeding": 0.0
+        }
+    },
+    {
+        "model": "base.bovine",
+        "pk": 161,
+        "fields": {
+            "name": "Test Personal Herd's 161",
+            "herd": 3,
+            "generation": 0,
+            "male": false,
+            "genotype": {
+                "Net Merit": -86.314,
+                "MILK": 482.6,
+                "FAT": -12.208,
+                "PROT": 9.516,
+                "PL": -1.007,
+                "SCS": 0.097,
+                "BWC": 0.062,
+                "UDC": -0.584,
+                "FLC": -0.228,
+                "DPR": -1.424,
+                "CA$": -1.631,
+                "HCR": -1.323,
+                "CCR": -1.704,
+                "LIV": -0.191,
+                "HTH$": -0.772,
+                "RFI": 23.763,
+                "EFC": 0.377,
+                "HLV": -0.382
+            },
+            "phenotype": {
+                "MILK": 482.6,
+                "FAT": -12.208,
+                "PROT": 9.516,
+                "PL": -1.007,
+                "SCS": 0.097,
+                "BWC": 0.062,
+                "UDC": -0.584,
+                "FLC": -0.228,
+                "DPR": -1.424,
+                "CA$": -1.631,
+                "HCR": -1.323,
+                "CCR": -1.704,
+                "LIV": -0.191,
+                "HTH$": -0.772,
+                "RFI": 23.763,
+                "EFC": 0.377,
+                "HLV": -0.382
+            },
+            "recessives": {
+                "BLAD": 0,
+                "DUMPS": 1,
+                "MF": 0,
+                "CD": 0,
+                "POLLED": 0,
+                "CVM": 0,
+                "BY": 0,
+                "CR": 0
+            },
+            "connectedclass": 1,
+            "dam": null,
+            "sire": null,
+            "pedigree": {
+                "id": 161
+            },
+            "inbreeding": 0.0
+        }
+    },
+    {
+        "model": "base.bovine",
+        "pk": 162,
+        "fields": {
+            "name": "Test Personal Herd's 162",
+            "herd": 3,
+            "generation": 0,
+            "male": false,
+            "genotype": {
+                "Net Merit": -112.063,
+                "MILK": -412.346,
+                "FAT": -25.192,
+                "PROT": -16.334,
+                "PL": 1.427,
+                "SCS": -0.112,
+                "BWC": 0.158,
+                "UDC": -0.434,
+                "FLC": -0.251,
+                "DPR": 1.704,
+                "CA$": 6.757,
+                "HCR": -0.269,
+                "CCR": 1.298,
+                "LIV": 1.585,
+                "HTH$": 0.939,
+                "RFI": 31.145,
+                "EFC": 0.857,
+                "HLV": 0.016
+            },
+            "phenotype": {
+                "MILK": -412.346,
+                "FAT": -25.192,
+                "PROT": -16.334,
+                "PL": 1.427,
+                "SCS": -0.112,
+                "BWC": 0.158,
+                "UDC": -0.434,
+                "FLC": -0.251,
+                "DPR": 1.704,
+                "CA$": 6.757,
+                "HCR": -0.269,
+                "CCR": 1.298,
+                "LIV": 1.585,
+                "HTH$": 0.939,
+                "RFI": 31.145,
+                "EFC": 0.857,
+                "HLV": 0.016
+            },
+            "recessives": {
+                "BLAD": 0,
+                "DUMPS": 0,
+                "MF": 0,
+                "CD": 1,
+                "POLLED": 0,
+                "CVM": 0,
+                "BY": 0,
+                "CR": 0
+            },
+            "connectedclass": 1,
+            "dam": null,
+            "sire": null,
+            "pedigree": {
+                "id": 162
+            },
+            "inbreeding": 0.0
+        }
+    },
+    {
+        "model": "base.bovine",
+        "pk": 311,
+        "fields": {
+            "name": "Test Personal Herd's 311",
+            "herd": 3,
+            "generation": 0,
+            "male": true,
+            "genotype": {
+                "Net Merit": 22.746,
+                "MILK": -381.327,
+                "FAT": 7.292,
+                "PROT": -2.654,
+                "PL": -0.268,
+                "SCS": -0.01,
+                "BWC": -0.529,
+                "UDC": 0.154,
+                "FLC": 0.237,
+                "DPR": 0.217,
+                "CA$": 6.663,
+                "HCR": -0.292,
+                "CCR": -0.33,
+                "LIV": -0.563,
+                "HTH$": 1.971,
+                "RFI": 37.636,
+                "EFC": 0.467,
+                "HLV": -0.186
+            },
+            "phenotype": {
+                "MILK": -381.327,
+                "FAT": 7.292,
+                "PROT": -2.654,
+                "PL": -0.268,
+                "SCS": -0.01,
+                "BWC": -0.529,
+                "UDC": 0.154,
+                "FLC": 0.237,
+                "DPR": 0.217,
+                "CA$": 6.663,
+                "HCR": -0.292,
+                "CCR": -0.33,
+                "LIV": -0.563,
+                "HTH$": 1.971,
+                "RFI": 37.636,
+                "EFC": 0.467,
+                "HLV": -0.186
+            },
+            "recessives": {
+                "BLAD": 0,
+                "DUMPS": 0,
+                "MF": 0,
+                "CD": 0,
+                "POLLED": 0,
+                "CVM": 0,
+                "BY": 0,
+                "CR": 0
+            },
+            "connectedclass": 1,
+            "dam": null,
+            "sire": null,
+            "pedigree": {
+                "id": 311
+            },
+            "inbreeding": 0.0
+        }
+    },
+    {
+        "model": "base.bovine",
+        "pk": 312,
+        "fields": {
+            "name": "Test Personal Herd's 312",
+            "herd": 3,
+            "generation": 0,
+            "male": true,
+            "genotype": {
+                "Net Merit": 191.208,
+                "MILK": 517.923,
+                "FAT": 12.537,
+                "PROT": 16.272,
+                "PL": 1.156,
+                "SCS": 0.018,
+                "BWC": -0.609,
+                "UDC": -0.664,
+                "FLC": -0.717,
+                "DPR": 0.062,
+                "CA$": 0.281,
+                "HCR": -1.055,
+                "CCR": -0.25,
+                "LIV": 0.585,
+                "HTH$": -0.472,
+                "RFI": 19.253,
+                "EFC": 1.82,
+                "HLV": -0.143
+            },
+            "phenotype": {
+                "MILK": 517.923,
+                "FAT": 12.537,
+                "PROT": 16.272,
+                "PL": 1.156,
+                "SCS": 0.018,
+                "BWC": -0.609,
+                "UDC": -0.664,
+                "FLC": -0.717,
+                "DPR": 0.062,
+                "CA$": 0.281,
+                "HCR": -1.055,
+                "CCR": -0.25,
+                "LIV": 0.585,
+                "HTH$": -0.472,
+                "RFI": 19.253,
+                "EFC": 1.82,
+                "HLV": -0.143
+            },
+            "recessives": {
+                "BLAD": 0,
+                "DUMPS": 0,
+                "MF": 0,
+                "CD": 0,
+                "POLLED": 0,
+                "CVM": 0,
+                "BY": 0,
+                "CR": 0
+            },
+            "connectedclass": 1,
+            "dam": null,
+            "sire": null,
+            "pedigree": {
+                "id": 312
             },
             "inbreeding": 0.0
         }
