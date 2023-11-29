@@ -240,8 +240,10 @@ def classes(request: WSGIRequest):
     )
 
 
-def recessives(request: WSGIRequest):
-    return render(request, "base/recessives.html")
+def recessives(request: WSGIRequest, traitset: str):
+    args = {"recessives": TraitSet(traitset).recessives}
+
+    return render(request, "base/recessives.html", args)
 
 
 def pedigree(request: WSGIRequest):
@@ -392,8 +394,13 @@ def get_herd_file(request: WSGIRequest, herdID: int):
             for x in traitset.traits
             if connectedclass.viewable_traits[x.name]
         ]
-        + [x.name for x in traitset.recessives]
+        + [
+            x.name
+            for x in traitset.recessives
+            if connectedclass.viewable_recessives[x.name]
+        ]
     )
+    print(connectedclass.viewable_recessives)
 
     block = [row1]
 

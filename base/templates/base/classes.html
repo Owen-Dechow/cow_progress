@@ -35,159 +35,162 @@
             <h1>Current Classes</h1>
 
             {% for enrollment in enrollmentinfo %}
-                <div class="enrollment">
-                    <h2>{{ enrollment.connectedclass.name }}</h2>
-                    <a href="/classtrend-file/{{ enrollment.connectedclass.id }}"
-                       class="as-btn">Download trend .xlsx</a>
-
-                    <div class="classinfo">
-
-                        {% if enrollment.teacher %}
-                            <form method="POST" title="update class">
-                                {% csrf_token %}
-                                <input type="hidden" name="formid" value="updateclass">
-                                <input type="hidden"
-                                       name="connectedclass"
-                                       value="{{ enrollment.connectedclass.id }}">
-
-                                <label for="classinfo">Class Info</label>
-                                <textarea name="classinfo" id="classinfo">{{enrollment.connectedclass.info}}</textarea>
-
-                                <label for="maxgen">Max number of breedings</label>
-                                <input type="number"
-                                       min="0"
-                                       name="maxgen"
-                                       value="{{ enrollment.connectedclass.breeding_limit }}"
-                                       id="maxgen">
-
+                <details class="enrollment-wrapper">
+                    <summary>
+                        {{ enrollment.connectedclass.name }}
+                    </summary>
+                    <div class="enrollment">
+                        <a href="/classtrend-file/{{ enrollment.connectedclass.id }}"
+                           class="as-btn">Download trend .xlsx</a>
+                        <div class="classinfo">
+                            {% if enrollment.teacher %}
+                                <form method="POST" title="update class">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="formid" value="updateclass">
+                                    <input type="hidden"
+                                           name="connectedclass"
+                                           value="{{ enrollment.connectedclass.id }}">
+                                    <label for="classinfo">Class Info</label>
+                                    <textarea name="classinfo" id="classinfo">{{enrollment.connectedclass.info}}</textarea>
+                                    <label for="maxgen">Max number of breedings</label>
+                                    <input type="number"
+                                           min="0"
+                                           name="maxgen"
+                                        value="{{ enrollment.connectedclass.breeding_limit }}"
+                                           id="maxgen">
+                                    <details class="ptas">
+                                        <summary>Viewable PTAs</summary>
+                                        <div>
+                                            {% for pta in enrollment.connectedclass.viewable_traits %}
+                                            {% if enrollment.connectedclass.viewable_traits|dic:pta %}
+                                            <span>
+                                                <label for="trait-{{ pta }}">{{ pta }}</label>
+                                                <input type="checkbox" name="trait-{{ pta }}" checked>
+                                            </span>
+                                            {% else %}
+                                            <span>
+                                                <label for="trait-{{ pta }}">{{ pta }}</label>
+                                                <input type="checkbox" name="trait-{{ pta }}">
+                                            </span>
+                                            {% endif %}
+                                            {% endfor %}
+                                        </div>
+                                    </details>
+                                    <details class="recessives">
+                                        <summary>Viewable Recessives</summary>
+                                        <div>
+                                            {% for rec in enrollment.connectedclass.viewable_recessives %}
+                                            {% if enrollment.connectedclass.viewable_recessives|dic:rec %}
+                                            <span>
+                                                <label for="rec-{{ rec }}">{{ rec }}</label>
+                                                <input type="checkbox" name="rec-{{ rec }}" checked />
+                                            </span>
+                                            {% else %}
+                                            <span>
+                                                <label for="rec-{{ rec }}">{{ rec }}</label>
+                                                <input type="checkbox" name="rec-{{ rec }}" />
+                                            </span>
+                                            {% endif %}
+                                            {% endfor %}
+                                        </div>
+                                    </details>
+                                    <button type="submit">Update Class</button>
+                                </form>
+                            {% else %}
+                                <label>Class Info</label>
+                                <textarea readonly>{{enrollment.connectedclass.info}}</textarea>
+                                <label>Max number of breedings</label>
+                                <input readonly value="{{ enrollment.connectedclass.breeding_limit }}">
                                 <details class="ptas">
                                     <summary>Viewable PTAs</summary>
                                     <div>
                                         {% for pta in enrollment.connectedclass.viewable_traits %}
-                                            <span>
-                                                <label for="trait-{{ pta }}">{{ pta }}</label>
-                                                <input type="checkbox"
-                                                       name="trait-{{ pta }}"
-                                                       {% if enrollment.connectedclass.viewable_traits|dic:pta %}checked{% endif %}>
-                                            </span>
+                                            {% if enrollment.connectedclass.viewable_traits|dic:pta %}
+                                                <span>
+                                                    <label>{{ pta }}</label>
+                                                </span>
+                                            {% endif %}
                                         {% endfor %}
                                     </div>
                                 </details>
-
-                                <button type="submit">Update Class</button>
-                            </form>
+                            {% endif %}
+                        </div>
+                        {% if enrollment.teacher %}
+                            <button type="button" onclick="Copy('{{ enrollment.connectedclass.classcode }}')">
+                                Copy Class Code: <span class="pow">{{ enrollment.connectedclass.classcode }}</span>
+                            </button>
+                            <button type="button" onclick="Copy('{{ enrollment.connectedclass.teacherclasscode }}')">
+                                Copy Teacher Code: <span class="pow">{{ enrollment.connectedclass.teacherclasscode }}</span>
+                            </button>
                         {% else %}
-                            <label>Class Info</label>
-                            <textarea readonly>{{enrollment.connectedclass.info}}</textarea>
-
-                            <label>Max number of breedings</label>
-                            <input readonly value="{{ enrollment.connectedclass.breeding_limit }}">
-
-                            <details class="ptas">
-                                <summary>Viewable PTAs</summary>
-                                <div>
-                                    {% for pta in enrollment.connectedclass.viewable_traits %}
-                                        {% if enrollment.connectedclass.viewable_traits|dic:pta %}
-                                            <span>
-                                                <label>{{ pta }}</label>
+                            <form method="POST">
+                                {% csrf_token %}
+                                {{ promoteclass.formid }}
+                                <label>{{ promoteclass.classcode.label }}</label>
+                                {{ promoteclass.classcode }}
+                                <input type="hidden"
+                                       value="{{ enrollment.connectedclass.id }}"
+                                       name="{{ promoteclass.connectedclass.name }}">
+                                <button type="hidden">Promote Enrollment to Teacher</button>
+                            </form>
+                        {% endif %}
+                        <details>
+                            <summary>Class Members</summary>
+                            <div class="members">
+                                {% for member in enrollmentinfo|dic:enrollment %}
+                                    <div class="member" id="member-{{ member.id }}">
+                                        {{ member.user.get_full_name }}
+                                        {% if member.teacher %}
+                                            <span class="pow">
+                                                : Teacher
+                                                {% if member.connectedclass.owner == member.user %}| Owner{% endif %}
                                             </span>
                                         {% endif %}
-                                    {% endfor %}
-                                </div>
-                            </details>
-                        {% endif %}
-
-                    </div>
-
-                    {% if enrollment.teacher %}
-                        <button type="button" onclick="Copy('{{ enrollment.connectedclass.classcode }}')">
-                            Copy Class Code: <span class="pow">{{ enrollment.connectedclass.classcode }}</span>
-                        </button>
-                        <button type="button" onclick="Copy('{{ enrollment.connectedclass.teacherclasscode }}')">
-                            Copy Teacher Code: <span class="pow">{{ enrollment.connectedclass.teacherclasscode }}</span>
-                        </button>
-                    {% else %}
-                        <form method="POST">
-                            {% csrf_token %}
-                            {{ promoteclass.formid }}
-                            <label>{{ promoteclass.classcode.label }}</label>
-                            {{ promoteclass.classcode }}
-                            <input type="hidden"
-                                   value="{{ enrollment.connectedclass.id }}"
-                                   name="{{ promoteclass.connectedclass.name }}">
-                            <button type="hidden">Promote Enrollment to Teacher</button>
-                        </form>
-                    {% endif %}
-
-                    <details>
-                        <summary>Class Members</summary>
-                        <div class="members">
-
-                            {% for member in enrollmentinfo|dic:enrollment %}
-                                <div class="member" id="member-{{ member.id }}">
-                                    {{ member.user.get_full_name }}
-
-                                    {% if member.teacher %}
-                                        <span class="pow">
-                                            : Teacher
-
-                                            {% if member.connectedclass.owner == member.user %}| Owner{% endif %}
-
-                                        </span>
-                                    {% endif %}
-
-                                    {% if enrollment.teacher or member.teacher %}
-                                        <br>
-                                        {{ member.user.email }}
-                                    {% endif %}
-
-                                    {% if enrollment.teacher %}
-
-                                        {% if member.user != request.user %}
-
-                                            {% if not member.teacher or enrollment.connectedclass.owner == request.user %}
-                                                <button onclick="deleteuser(event, '{{ member.id }}', '{{ member.user.get_full_name }}')">
-                                                    Remove
-                                                    From Class
-                                                </button>
+                                        {% if enrollment.teacher or member.teacher %}
+                                            <br>
+                                            {{ member.user.email }}
+                                        {% endif %}
+                                        {% if enrollment.teacher %}
+                                            {% if member.user != request.user %}
+                                                {% if not member.teacher or enrollment.connectedclass.owner == request.user %}
+                                                    <button onclick="deleteuser(event, '{{ member.id }}', '{{ member.user.get_full_name }}')">
+                                                        Remove
+                                                        From Class
+                                                    </button>
+                                                {% endif %}
                                             {% endif %}
                                         {% endif %}
-                                    {% endif %}
-
-                                </div>
-                            {% endfor %}
-
-
-                        </div>
-                    </details>
-
-                    {% if enrollment.connectedclass.owner == request.user %}
-                        <form method="POST">
-                            {% csrf_token %}
-                            {{ deleteclass.formid }}
-                            <input type="hidden"
-                                   value="{{ enrollment.connectedclass.id }}"
-                                   name="{{ deleteclass.connectedclass.name }}">
-                            <button type="submit"
-                                    onclick="cancelClick(this, 'Delete Class?', 'Are you sure you want to delete {{ enrollment.connectedclass.name }}? This will delete all herds, animals and enrollments connected to class.', 'Delete {{ enrollment.connectedclass.name }}', 'Cancel'); return false;">
-                                Delete Class
-                            </button>
-                        </form>
-                    {% else %}
-                        <form method="POST">
-                            {% csrf_token %}
-                            {{ exitclass.formid }}
-                            <input type="hidden"
-                                   value="{{ enrollment.connectedclass.id }}"
-                                   name="{{ exitclass.connectedclass.name }}">
-                            <button type="submit"
-                                    onclick="cancelClick(this, 'Leave Class?', 'Are you sure you want to leave {{ enrollment.connectedclass.name }}? This will delete all herds and animals you have connected to class.', 'Leave {{ enrollment.connectedclass.name }}', 'Cancel'); return false;">
-                                Exit Class
-                            </button>
-                        </form>
-                    {% endif %}
-
-                </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </details>
+                        {% if enrollment.connectedclass.owner == request.user %}
+                            <form method="POST">
+                                {% csrf_token %}
+                                {{ deleteclass.formid }}
+                                <input type="hidden"
+                                       value="{{ enrollment.connectedclass.id }}"
+                                       name="{{ deleteclass.connectedclass.name }}">
+                                <button type="submit"
+                                        onclick="cancelClick(this, 'Delete Class?', 'Are you sure you want to delete {{ enrollment.connectedclass.name }}? This will delete all herds, animals and enrollments connected to class.', 'Delete {{ enrollment.connectedclass.name }}', 'Cancel'); return false;">
+                                    Delete Class
+                                </button>
+                            </form>
+                        {% else %}
+                            <form method="POST">
+                                {% csrf_token %}
+                                {{ exitclass.formid }}
+                                <input type="hidden"
+                                       value="{{ enrollment.connectedclass.id }}"
+                                       name="{{ exitclass.connectedclass.name }}">
+                                <button type="submit"
+                                        onclick="cancelClick(this, 'Leave Class?', 'Are you sure you want to leave {{ enrollment.connectedclass.name }}? This will delete all herds and animals you have connected to class.', 'Leave {{ enrollment.connectedclass.name }}', 'Cancel'); return false;">
+                                    Exit Class
+                                </button>
+                            </form>
+                        {% endif %}
+                    </div>
+                </details>
             {% endfor %}
 
 

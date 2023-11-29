@@ -63,29 +63,27 @@ main .enrollments h1 {
     background-color: var(--prime);
 }
 
+main .enrollment-wrapper {
+    background-color: var(--prime);
+    padding: 10px;
+}
+
+main .enrollment-wrapper>summary {
+    font-size: 1.5rem;
+    padding: 5px;
+}
+
 main .enrollment {
     display: flex;
     flex-flow: column;
-    width: 400px;
     padding: 20px;
-    background-color: var(--prime);
-}
-
-
-main .enrollment:nth-child(even) {
     background-color: var(--secondary);
 }
 
-main .enrollment:nth-child(even) a.as-btn {
+main .enrollment a.as-btn {
     background-color: var(--prime);
 }
 
-
-main .enrollment h2 {
-    margin: 0;
-    margin-bottom: 10px;
-    text-align: center;
-}
 
 main .enrollment .classinfo {
     display: flex;
@@ -109,22 +107,15 @@ main .enrollment button[type=submit] {
     margin-top: 20px;
 }
 
-main .enrollment .ptas div {
-    display: flex;
-    flex-direction: column;
+main .enrollment .ptas div,
+main .enrollment .recessives div {
+    columns: 2;
 }
 
 
-main .enrollment .ptas span {
-    padding: 5px;
-}
-
-main .enrollment .ptas span:nth-child(even) {
-    background-color: var(--prime);
-}
-
-main .enrollment .ptas span:nth-child(odd) {
-    background-color: var(--secondary);
+main .enrollment .ptas span,
+main .enrollment .recessives span {
+    display: block;
 }
 
 main .enrollment:nth-child(even) input,

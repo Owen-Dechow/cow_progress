@@ -43,32 +43,41 @@ In the event that a traitset is disabled all classes connected to that traitset 
 
     Every traitset requires a `ptas.txt` file in he traitset directory. Each trait is represented on a single line in the following format:
     ```txt
-    <name:str>  :  <standard_deviation:float>  :  <net_merit_dollars:float>
+    <name:str> : <standard_deviation:float> : <heritability:float> : <net_merit_dollars:float> : <inbreeding_depression:float>
     ```
 
     Example:
     `base/traitinfo/traitsets/MyTraitSet/ptas.txt`
     ```txt
-    MILK    :   567.0   :   0.02
-    FAT     :   25.0    :   4.18
-    PROT    :   15.0    :   4.67
+    MILK    :   567.0   :   0.20   :   0.02    :   -300
+    FAT     :   25.0    :   0.20   :   4.18    :   -10
+    PROT    :   15.0    :   0.20   :   4.67    :   -7
     ```
     ***Whitespace surrounding colons will be striped***
 
 4. Adding correlations
 
-    After adding traits to `ptas.txt` each trait ***must*** also be accounted for in the correlation matrix.
+    After adding traits to `ptas.txt` each trait ***must*** also be accounted for in the correlation matrix for ***both*** genotype and phenotype.
 
-    To add correlation matrix add create a `correlations.txt` file in traitset directory. The correlation matrix is then added directly to this file. 
+    To add the correlation matrixes, create a `gen_corr.txt` and a `phen_corr.txt` file in the traitset directory. The correlation matrix for the genotypes should then be placed in the `gen_corr` file and the correlations for the phenotypes should then be placed in the `phen_corr` file. 
 
-    ***The correlation matrix is ordered by line appearance in the `ptas.txt` file***.
+    ***The order of wich ptas appear in the correlation matrixes are ordered by line appearance in the `ptas.txt` file***.
     The matrix rows are separated by newlines and the columns by space. ***Extra spaces will be striped.***
 
-    Example: `base/traitinfo/traitsets/MyTraitSet/correlations.txt`
+    Example:
+    
+    `base/traitinfo/traitsets/MyTraitSet/gen_corr.txt`
     ```txt
     1.000  0.399  0.835
     0.399  1.000 -0.591
     0.835 -0.591  1.000
+    ```
+
+    `base/traitinfo/traitsets/MyTraitSet/phen_corr.txt`
+    ```txt
+    1.000  0.619  0.901
+    0.619  1.000  0.723
+    0.901  0.723  1.000
     ```
 
 5. Recessives
@@ -83,4 +92,4 @@ In the event that a traitset is disabled all classes connected to that traitset 
 
 6. Disable old traitsets
 
-    If there are any old traitsets that classes should not use dissable them in the `base/traitinfo/traitsets.py` file.
+    If there are any old traitsets that classes should not use dissable them in the `base/traitinfo/traitsets.py` file within the `register` list.

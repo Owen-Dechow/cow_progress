@@ -34,11 +34,11 @@ class Trait:
         self.inbreeding_harm = float(inbreeding_harm.__str__().strip())
         self.heritability = float(heritability.__str__().strip())
 
-    def PTA_to_phenotype(self, scaled_PTA):
+    def PTA_to_phenotype(self, PTA):
         phenotypic_variance = (self.standard_deviation**2) / self.heritability
         residual_variance = phenotypic_variance * (1 - self.heritability)
         residual_standard_deviation = sqrt(residual_variance)
-        phenotype = scaled_PTA * 2 + residual_standard_deviation * DOMAIN()
+        phenotype = PTA * 2 + np.random.normal(scale=residual_standard_deviation)
 
         if phenotype > self.standard_deviation * 2:
             phenotype = self.standard_deviation * 2
@@ -47,8 +47,15 @@ class Trait:
 
         return phenotype
 
-    def PTA_mutation(self, normalized_PTA):
-        return normalized_PTA + DOMAIN() * DOMAIN() * DOMAIN()
+    def get_point_on_mendelian_sample(self):
+        return np.random.normal(scale=self.standard_deviation)
+
+    def PTA_mutation(self, sire_PTA, dam_PTA):
+        scale = sqrt(2) / 2
+        parent_average = (sire_PTA + dam_PTA) / 2
+        mendelian_sampling = self.get_point_on_mendelian_sample()
+
+        return parent_average * scale + mendelian_sampling * scale
 
 
 class Recessive:
@@ -57,11 +64,13 @@ class Recessive:
     name: str
     fatal: bool
     prominence: float
+    extended_name: str
 
-    def __init__(self, name, fatal, prominence):
+    def __init__(self, name, fatal, prominence, extended_name):
         self.name = str(name).strip()
         self.fatal = bool(fatal)
         self.prominence = float(prominence.__str__().strip())
+        self.extended_name = extended_name
 
     def get_carrier_int_from_prominence(self):
         return 1 if random() <= self.prominence else 0
@@ -120,7 +129,7 @@ class TraitSet:
             for recessive in f.readlines():
                 values = recessive.split(":")
                 recessives.append(
-                    Recessive(values[0], values[1].strip() == "f", values[2])
+                    Recessive(values[0], values[1].strip() == "f", *values[2:])
                 )
 
         return recessives
@@ -150,13 +159,9 @@ class TraitSet:
             scale = 1
             covariance_matrix = np.array(self.correlation_matrix)
 
-        if initial_values:
-            values = [
-                initial_values[x.name] / (x.standard_deviation * scale)
-                for x in self.traits
-            ]
-        else:
-            values = [DOMAIN() for _ in range(len(covariance_matrix))]
+        values = [
+            initial_values[x.name] / (x.standard_deviation * scale) for x in self.traits
+        ]
 
         initial_matrix = np.array(values)
 

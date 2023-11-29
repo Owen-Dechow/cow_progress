@@ -6,7 +6,6 @@ from .inbreeding import InbreedingCalculator
 from .traitinfo.traitsets import TraitSet, TRAITSET_CHOICES, Trait, DOMAIN
 
 PTA_DECIMALS = 3  # Number of decimal placements shown for PTAs on website/ xlsx files
-mutation_rand_val = lambda: DOMAIN() * DOMAIN() * DOMAIN()
 
 
 # Holds a group of animals
@@ -257,12 +256,15 @@ class Herd(models.Model):
                     / 2
                     / traitset.DPR_for_max_gen.standard_deviation
                 )
-                half_max_gen = MAX_GEN / 2
-                max_age = round(half_max_gen * dpr + half_max_gen + 0.1)
+                half_max_gen = (MAX_GEN - 1) / 2
+                max_age = round(half_max_gen * dpr + half_max_gen + 0.1) + 1
             else:
                 max_age = MAX_GEN
 
             if age > max_age:
+                if max_age != MAX_GEN:
+                    print(max_age, dpr)
+
                 kill_list.append(animal)
                 animal.herd = None
 
@@ -322,8 +324,9 @@ class Bovine(models.Model):
         # Generate mutated uncorrelated values
         uncorrelated = {}
         for trait in traitset.traits:
-            average = (sire.genotype[trait.name] + dam.genotype[trait.name]) / 2
-            uncorrelated[trait.name] = trait.PTA_mutation(average)
+            uncorrelated[trait.name] = trait.PTA_mutation(
+                sire.genotype[trait.name], dam.genotype[trait.name]
+            )
 
         # Correlate data
         correlated_data = traitset.get_correlated_values(uncorrelated)
@@ -360,7 +363,10 @@ class Bovine(models.Model):
         # Get traitset
         traitset = TraitSet(herd.connectedclass.traitset)
 
-        correlated_data = traitset.get_correlated_values()
+        uncorrelated_values = {
+            x.name: x.get_point_on_mendelian_sample() for x in traitset.traits
+        }
+        correlated_data = traitset.get_correlated_values(uncorrelated_values)
         new.genotype = {
             key.name: round(val, PTA_DECIMALS) for key, val in correlated_data.items()
         }
@@ -410,6 +416,11 @@ class Bovine(models.Model):
                 if f"ph: {key}" in traits:
                     del traits[f"ph: {key}"]
 
+        recessives = dict(self.recessives)
+        for key, val in connectedclass.viewable_recessives.items():
+            if not val:
+                del recessives[key]
+
         return {
             "name": self.name,
             "Generation": self.generation,
@@ -417,7 +428,7 @@ class Bovine(models.Model):
             "Dam": self.dam_id if self.dam_id else "~",
             "Inbreeding Coefficient": self.inbreeding,
             "traits": traits,
-            "recessives": self.recessives,
+            "recessives": recessives,
         }
 
     def set_net_merit(self):
@@ -473,6 +484,7 @@ class Class(models.Model):
 
     # Holds the traits that the students can see
     viewable_traits = models.JSONField()
+    viewable_recessives = models.JSONField(null=True)
 
     # Maximun number of breedings allowed on a class herd
     breeding_limit = models.IntegerField(default=0)

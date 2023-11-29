@@ -91,9 +91,12 @@ class AddClass(forms.Form):
         connectedclass.owner = user
         connectedclass.info = self.cleaned_data["info"]
         connectedclass.traitset = self.cleaned_data["traitset"]
-        connectedclass.viewable_traits = {
-            x.name: True for x in TraitSet(connectedclass.traitset).traits
-        } | {"Net Merit": True}
+
+        traitset = TraitSet(connectedclass.traitset)
+        connectedclass.viewable_traits = {"Net Merit": True}
+        connectedclass.viewable_traits |= {x.name: True for x in traitset.traits}
+        connectedclass.viewable_recessives = {x.name: True for x in traitset.recessives}
+
         connectedclass.save()
 
         # Create class herd
@@ -254,6 +257,9 @@ class UpdateClass(forms.Form):
 
         for trait in connectedclass.viewable_traits:
             connectedclass.viewable_traits[trait] = "trait-" + trait in self.data
+
+        for rec in connectedclass.viewable_recessives:
+            connectedclass.viewable_recessives[rec] = "rec-" + rec in self.data
 
         connectedclass.info = self.data["classinfo"]
         connectedclass.breeding_limit = self.data["maxgen"]

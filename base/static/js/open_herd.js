@@ -149,11 +149,11 @@ function changeDisplayedCow(gender, cowID) {
                 let carriercode;
                 let carriernumber = stats["recessives"][key];
 
-                if (carriernumber == 0) carriercode = "--";
-                else if (carriernumber == 1) carriercode = "-+";
-                else if (carriernumber == 2) carriercode = "++";
+                if (carriernumber == 0) carriercode = "Tested Free";
+                else if (carriernumber == 1) carriercode = "Carrier (Heterozygous)";
+                else if (carriernumber == 2) carriercode = "Positive";
 
-                recessives.innerHTML += key + " " + carriercode + "<br>";
+                recessives.innerHTML += key + ": " + carriercode + "<br>";
             }
         }
 
