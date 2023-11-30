@@ -1,45 +1,44 @@
-{% extends "../extends.html" %}
+{% extends '../extends.html' %}
 
 {% load dic %}
 {% load static %}
 
 {% block title %}
-    Cookies
-{% endblock title %}
+  Cookies
+{% endblock %}
 
 {% block links %}
-    <link rel="stylesheet" href="{% static 'css/recessives.css' %}">
-{% endblock links %}
-
+  <link rel="stylesheet" href="{% static 'css/recessives.css' %}" />
+{% endblock %}
 
 {% block body %}
-    <h1>List of cookies used on website</h1>
-    <div class="table-container">
-        <table>
-            <tr>
-                <th>Cookie Name</th>
-                <th>Purpose</th>
-            </tr>
-            <tr>
-                <td>csrftoken</td>
-                <td>
-                    <i>Cross-Site Request Forgery</i> Prevention
-                    <br>
-                    Used to prevent malicious websites from preforming actions on you behalf.
-                </td>
-            </tr>
-            <tr>
-                <td>sessionid</td>
-                <td>Keeps you logged in.</td>
-            </tr>
-            <tr>
-                <td>acceptedcookie</td>
-                <td>Prevents the cookie acceptance form from showing up again.</td>
-            </tr>
-            <tr>
-                <td>theme</td>
-                <td>Saves the current color theme.</td>
-            </tr>
-        </table>
-    </div>
-{% endblock body %}
+  <h1>List of cookies used on website</h1>
+  <div class="table-container">
+    <table>
+      <tr>
+        <th>Cookie Name</th>
+        <th>Purpose</th>
+      </tr>
+      <tr>
+        <td>csrftoken</td>
+        <td>
+          <i>Cross-Site Request Forgery</i> Prevention
+          <br />
+          Used to prevent malicious websites from preforming actions on you behalf.
+        </td>
+      </tr>
+      <tr>
+        <td>sessionid</td>
+        <td>Keeps you logged in.</td>
+      </tr>
+      <tr>
+        <td>acceptedcookie</td>
+        <td>Prevents the cookie acceptance form from showing up again.</td>
+      </tr>
+      <tr>
+        <td>theme</td>
+        <td>Saves the current color theme.</td>
+      </tr>
+    </table>
+  </div>
+{% endblock %}

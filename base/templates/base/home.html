@@ -1,91 +1,86 @@
-{% extends "../extends.html" %}
+{% extends '../extends.html' %}
 
 {% load dic %}
 {% load static %}
 
 {% block titleprefix %}
-    Cow Progress
-{% endblock titleprefix %}
+  Cow Progress
+{% endblock %}
 
 {% block links %}
-    <link rel="stylesheet" href="{% static 'css/home.css' %}">
-{% endblock links %}
+  <link rel="stylesheet" href="{% static 'css/home.css' %}" />
+{% endblock %}
 
 {% block body %}
-    <div class="info-panel">
-        <div class="full center">
-            <canvas id="canvas" class="background-canvas">
-                <script>
-                    canvas = document.getElementById("canvas")
-                    paper = canvas.getContext('2d');
-                    canvas.width = Math.sqrt((canvas.clientWidth * canvas.clientWidth) + (canvas.clientHeight * canvas.clientHeight));
-
-
-                    GROW = 30
-                    paper.lineWidth = 4;
-
-                    paper.beginPath();
-                    paper.strokeStyle = "#a82838";
-                    for (let i = 0; i < canvas.width; i++) {
-                        paper.lineTo(i, canvas.height * (i / canvas.width) - (Math.sin(i / GROW) * GROW));
-                    }
-                    paper.stroke();
-
-                    paper.beginPath();
-                    paper.strokeStyle = "#2828b8";
-                    for (let i = 0; i < canvas.width; i++) {
-                        paper.lineTo(i, canvas.height * (i / canvas.width) - (Math.sin(-i / GROW) * GROW));
-                    }
-                    paper.stroke();
-
-                    paper.lineWidth = 2;
-                    paper.strokeStyle = "#608560";
-                    for (let i = 0; i < canvas.width; i += 20) {
-                        paper.beginPath();
-
-                        spot = paper.lineTo(i, canvas.height * (i / canvas.width) - (Math.sin(i / GROW) * GROW));
-                        spot2 = paper.lineTo(i, canvas.height * (i / canvas.width) - (Math.sin(-i / GROW) * GROW));
-
-                        paper.lineTo(i, spot);
-                        paper.lineTo(i, spot2);
-                        paper.stroke();
-                    }
-                </script>
-            </canvas>
-            <h1 class="big poptext">Cow Progress</h1>
-            <h3 class="poptext">Genetic Progress Simulator</h3>
-            <span class="subnote">Created by Owen Dechow</span>
-        </div>
+  <div class="info-panel">
+    <div class="full center">
+      <canvas id="canvas" class="background-canvas">
+        <script>
+          canvas = document.getElementById('canvas')
+          paper = canvas.getContext('2d')
+          canvas.width = Math.sqrt(canvas.clientWidth * canvas.clientWidth + canvas.clientHeight * canvas.clientHeight)
+          
+          GROW = 30
+          paper.lineWidth = 4
+          
+          paper.beginPath()
+          paper.strokeStyle = '#a82838'
+          for (let i = 0; i < canvas.width; i++) {
+            paper.lineTo(i, canvas.height * (i / canvas.width) - Math.sin(i / GROW) * GROW)
+          }
+          paper.stroke()
+          
+          paper.beginPath()
+          paper.strokeStyle = '#2828b8'
+          for (let i = 0; i < canvas.width; i++) {
+            paper.lineTo(i, canvas.height * (i / canvas.width) - Math.sin(-i / GROW) * GROW)
+          }
+          paper.stroke()
+          
+          paper.lineWidth = 2
+          paper.strokeStyle = '#608560'
+          for (let i = 0; i < canvas.width; i += 20) {
+            paper.beginPath()
+          
+            spot = paper.lineTo(i, canvas.height * (i / canvas.width) - Math.sin(i / GROW) * GROW)
+            spot2 = paper.lineTo(i, canvas.height * (i / canvas.width) - Math.sin(-i / GROW) * GROW)
+          
+            paper.lineTo(i, spot)
+            paper.lineTo(i, spot2)
+            paper.stroke()
+          }
+        </script>
+      </canvas>
+      <h1 class="big poptext">Cow Progress</h1>
+      <h3 class="poptext">Genetic Progress Simulator</h3>
+      <span class="subnote">Created by Owen Dechow</span>
     </div>
+  </div>
 
+  <a href="/pedigree" class="as-btn pedigree-btn">Pedigree/Animal Lookup</a>
+  <a href="/credits" class="as-btn pedigree-btn">Credits</a>
 
-    <a href="/pedigree" class="as-btn pedigree-btn">Pedigree/Animal Lookup</a>
-    <a href="/credits" class="as-btn pedigree-btn">Credits</a>
-
-    <div class="info-panel">
-        {% comment %} <img class="small" src="" alt="boy holding cow"> {% endcomment %}
-        <picture>
-            <source srcset="{% static 'media/HOL.webp' %}">
-            <source srcset="{% static 'media/HOL.JPG' %}" type="image/jpeg">
-            <img class="small"
-                 src="{% static 'media/HOL.JPG' %}"
-                 alt="boy holding cow">
-        </picture>
-        <div class="large hero-text">
-            <h2>Research, Select & Breed</h2>
-            Simulate Holstein breeding programs, focusing on PTAs, genetic recessives and inbreeding coefficients.
-        </div>
+  <div class="info-panel">
+    {% comment %} <img class="small" src="" alt="boy holding cow" /> {% endcomment %}
+    <picture>
+      <source srcset="{% static 'media/HOL.webp' %}" />
+      <source srcset="{% static 'media/HOL.JPG' %}" type="image/jpeg" />
+      <img class="small" src="{% static 'media/HOL.JPG' %}" alt="boy holding cow" />
+    </picture>
+    <div class="large hero-text">
+      <h2>Research, Select & Breed</h2>
+      Simulate Holstein breeding programs, focusing on PTAs, genetic recessives and inbreeding coefficients.
     </div>
-    <div class="info-panel">
-        <div class="full">
-            <h1 class="center">Resources</h1>
+  </div>
+  <div class="info-panel">
+    <div class="full">
+      <h1 class="center">Resources</h1>
 
-            {% for r in resources %}
-                <p>
-                    {{ r.title }}: <a class="as-link" href="{{ r.link }}">{{ r.link }}</a>
-                </p>
-            {% endfor %}
-
-        </div>
+      {% for r in resources %}
+        <p>
+          {{ r.title }}: <a class="as-link" href="{{ r.link }}">{{ r.link }}</a>
+        </p>
+      {% endfor %}
     </div>
-{% endblock body %}
+  </div>
+{% endblock %}

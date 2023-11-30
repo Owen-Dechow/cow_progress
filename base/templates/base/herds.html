@@ -1,60 +1,59 @@
-{% extends "../extends.html" %}
+{% extends '../extends.html' %}
 
 {% load dic %}
 {% load static %}
 
 {% block title %}
-    My Herds
-{% endblock title %}
+  My Herds
+{% endblock %}
 
 {% block links %}
-    <script src="{% static 'js/herds.js' %}"></script>
-    <link rel="stylesheet" href="{% static 'css/herds.css' %}">
-{% endblock links %}
+  <script src="{% static 'js/herds.js' %}"></script>
+  <link rel="stylesheet" href="{% static 'css/herds.css' %}" />
+{% endblock %}
 
 {% block body %}
-    <div class="panel left" id="left-panel">
-        <div class="title">
-            <h1>Herd Summaries</h1>
-        </div>
-        <div class="herd-btns">
-            <h2>Public Herds</h2>
-            <div id="herd-btns-public" class="col"></div>
-        </div>
-        <div class="herd-btns">
-            <h2>Private Herds</h2>
-            <div id="herd-btns-private" class="col"></div>
-        </div>
-        {% if classes %}
-
-            <div class="new-herd">
-                <h2>Create New Herd</h2>
-                <form action="auto-generate-herd" method="POST">
-                    {% csrf_token %}
-                    <br>
-                    <label for="class-select">Select Class For Herd:</label>
-                    <select id="class-select" name="class" required>
-                        {% for class in classes %}<option value="{{ class.id }}">{{ class.name }}</option>{% endfor %}
-
-                    </select>
-                    <label>Herd Name:</label>
-                    <div>
-                        <input type="text" maxlength=100 name="name" required>
-                        <button onclick="this.onclick = () => false" type="submit">New Herd</button>
-                    </div>
-                </form>
-            </div>
-        {% else %}
-            <div class="new-herd">
-                <div>You must be enrolled in at least one class to create a herd.</div>
-                <a class="as-btn" href="/classes">Go To Classes</a>
-            </div>
-        {% endif %}
-
+  <div class="panel left" id="left-panel">
+    <div class="title">
+      <h1>Herd Summaries</h1>
     </div>
-    <div class="panel right" id="right-panel">
-        <h1 id="herd-name">~</h1>
-        <a class="as-btn" id="open-herd-link">Open Herd</a>
-        <div id="herd-averages"></div>
+    <div class="herd-btns">
+      <h2>Public Herds</h2>
+      <div id="herd-btns-public" class="col"></div>
     </div>
-{% endblock body %}
+    <div class="herd-btns">
+      <h2>Private Herds</h2>
+      <div id="herd-btns-private" class="col"></div>
+    </div>
+    {% if classes %}
+      <div class="new-herd">
+        <h2>Create New Herd</h2>
+        <form action="auto-generate-herd" method="POST">
+          {% csrf_token %}
+          <br />
+          <label for="class-select">Select Class For Herd:</label>
+          <select id="class-select" name="class" required>
+            {% for class in classes %}
+              <option value="{{ class.id }}">{{ class.name }}</option>
+            {% endfor %}
+          </select>
+          <label>Herd Name:</label>
+          <div>
+            <input type="text" maxlength="100" name="name" required />
+            <button onclick="this.onclick = () => false" type="submit">New Herd</button>
+          </div>
+        </form>
+      </div>
+    {% else %}
+      <div class="new-herd">
+        <div>You must be enrolled in at least one class to create a herd.</div>
+        <a class="as-btn" href="/classes">Go To Classes</a>
+      </div>
+    {% endif %}
+  </div>
+  <div class="panel right" id="right-panel">
+    <h1 id="herd-name">~</h1>
+    <a class="as-btn" id="open-herd-link">Open Herd</a>
+    <div id="herd-averages"></div>
+  </div>
+{% endblock %}

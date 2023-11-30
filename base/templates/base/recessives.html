@@ -1,30 +1,30 @@
-{% extends "../extends.html" %}
+{% extends '../extends.html' %}
 
 {% load dic %}
 {% load static %}
 
 {% block title %}
-    Recessives
-{% endblock title %}
+  Recessives
+{% endblock %}
 
 {% block links %}
-    <link rel="stylesheet" href="{% static 'css/recessives.css' %}">
-{% endblock links %}
+  <link rel="stylesheet" href="{% static 'css/recessives.css' %}" />
+{% endblock %}
 
 {% block body %}
-    <h1>Recessives</h1>
-    <div class="table-container">
-        <table>
-            <tr>
-                <th>Abbreviation</th>
-                <th>Full Name</th>
-            </tr>
-            {% for rec in recessives %}
-                <tr>
-                    <td>{{rec.name}}</td>
-                    <td>{{rec.extended_name}}</td>
-                </tr>
-            {% endfor %}
-        </table>
-    </div>
-{% endblock body %}
+  <h1>Recessives</h1>
+  <div class="table-container">
+    <table>
+      <tr>
+        <th>Abbreviation</th>
+        <th>Full Name</th>
+      </tr>
+      {% for rec in recessives %}
+        <tr>
+          <td>{{ rec.name }}</td>
+          <td>{{ rec.extended_name }}</td>
+        </tr>
+      {% endfor %}
+    </table>
+  </div>
+{% endblock %}
