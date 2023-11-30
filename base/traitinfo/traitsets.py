@@ -139,7 +139,7 @@ class TraitSet:
             return 0
         elif recessive == 1:
             return randint(0, 1)
-        elif recessive == 3:
+        elif recessive == 2:
             return 1
 
     def _get_dpr_trait(self):
