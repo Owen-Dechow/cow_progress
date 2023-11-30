@@ -262,9 +262,6 @@ class Herd(models.Model):
                 max_age = MAX_GEN
 
             if age > max_age:
-                if max_age != MAX_GEN:
-                    print(max_age, dpr)
-
                 kill_list.append(animal)
                 animal.herd = None
 

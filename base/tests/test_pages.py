@@ -32,7 +32,7 @@ class TestPages(TestCase):
         self.general_assertions(response, "base/classes.html")
 
     def test_recessives(self):
-        response = self.client.get("/recessives", secure=True)
+        response = self.client.get("/recessives/NM_2021", secure=True)
         self.general_assertions(response, "base/recessives.html")
 
     def test_pedigree(self):

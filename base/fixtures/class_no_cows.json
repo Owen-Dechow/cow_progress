@@ -49,6 +49,16 @@
                 "HLV": false,
                 "Net Merit": false
             },
+            "viewable_recessives": {
+                "BLAD": true,
+                "DUMPS": true,
+                "MF": true,
+                "CD": false,
+                "POLLED": true,
+                "CVM": true,
+                "BY": true,
+                "CR": true
+            },
             "breeding_limit": 1,
             "trend_log": {
                 "Initial Population": {

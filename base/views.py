@@ -400,7 +400,6 @@ def get_herd_file(request: WSGIRequest, herdID: int):
             if connectedclass.viewable_recessives[x.name]
         ]
     )
-    print(connectedclass.viewable_recessives)
 
     block = [row1]
 
