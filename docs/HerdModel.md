@@ -11,7 +11,12 @@ name = CharField(max_length=255)
 ```
 
 ```python
-owner = models.ForeignKey(to=User, on_delete=models,CASCADE, null=True, blank=True)
+owner = models.ForeignKey(
+    to=User,
+    on_delete=models.CASCADE,
+    null=True,
+    blank=True
+)
 # Stores the name of the herd.
 # Owner is set to the creator of herd.
 ```
@@ -29,24 +34,24 @@ connectedclass = models.ForeignKey(
     null=True,
     blank=True,
     related_name="_herd_connectedclass",
-    )
+)
 # Stores the class the herd was created for.
 ```
 
 ```python
 enrollment = models.ForeignKey(
-        to="Enrollment",
-        related_name="_herd_enrollment",
-        on_delete=models.CASCADE,
-        null=True,
-        blank=True,
-    )
+    to="Enrollment",
+    related_name="_herd_enrollment",
+    on_delete=models.CASCADE,
+    null=True,
+    blank=True,
+)
 # Stores the enrollment used to create herd if herd is not Class or Public Herd.
 ```
 
 ```python
 @staticmethod
-get_auto_generated_herd(name, connectedclass, enrollment=None)
+get_auto_generated_herd(name, connectedclass, enrollment=None):
 # Builds a random herd connected to class and enrollment.
 ```
 
@@ -55,13 +60,13 @@ get_auto_generated_herd(name, connectedclass, enrollment=None)
 
 ```python
 @staticmethod
-make_public_herd(name, animal_name_prefix, star_word, connectedclass)
+make_public_herd(name, animal_name_prefix, star_word, connectedclass):
 # Creates a class public herd.
 # Auto names animals based on animal_name_prefix, star_word & connected class.
 ```
 
 ```python
-get_summary(self)
+get_summary(self):
 # Gets a dict object with all traits & NM$ averages of animals in herd.
 # Any trait hidden by class will be set to "~".
 # Returned dict: JSON serializable.
@@ -76,11 +81,11 @@ get_summary(self)
 ```
 
 ```python
-get_herd_dict(self)
+get_herd_dict(self):
 # Gets dict containing all animals.
 # Returns Cows and Bulls in separate sections.
 # Animals identified by id number.
-# Retuned dict: JSON serializable.
+# Returned dict: JSON serializable.
 
 #Example:
 {
@@ -120,6 +125,6 @@ run_breeding(self, sires):
 ```
 
 ```python
-remove_deaths_from_recessives(self)
+remove_deaths_from_recessives(self):
 # Culls any animal positive for any fatal recessive.
 ```

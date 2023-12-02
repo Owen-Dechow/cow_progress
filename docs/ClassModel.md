@@ -52,21 +52,29 @@ trend_log = models.JSONField(default=dict)
 
 ```python
 owner = models.ForeignKey(
-    to=User, on_delete=models.CASCADE, related_name="classowner"
+    to=User,
+    on_delete=models.CASCADE,
+    related_name="classowner"
 )
 # Connects the owner of the class
 ```
 
 ```python
 herd = models.OneToOneField(
-    to=Herd, on_delete=models.CASCADE, related_name="classherd", null=True
+    to=Herd,
+    on_delete=models.CASCADE,
+    related_name="classherd",
+    null=True
 )
 # Connects a class herd
 ```
 
 ```python
 publicherd = models.OneToOneField(
-    to=Herd, on_delete=models.CASCADE, related_name="classpublicherd", null=True
+    to=Herd,
+    on_delete=models.CASCADE,
+    related_name="classpublicherd",
+    null=True
 )
 # Connects a class public herd
 ```

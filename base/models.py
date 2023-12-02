@@ -597,23 +597,5 @@ class Enrollment(models.Model):
         to=Class, on_delete=models.CASCADE, related_name="_enrollmentclass"
     )
 
-    # Tells if user is a teacher (true) of student (false)
+    # Tells if user is a teacher (true) or student (false)
     teacher = models.BooleanField(default=False)
-
-    def save(self, *args, **kwargs) -> None:
-        """Saves the enrollment and calls the scrub method"""
-
-        super().save(*args, **kwargs)
-        Enrollment.scrub_enrollment(self.user, self.connectedclass)
-
-    @staticmethod
-    def scrub_enrollment(user, connectedclass):
-        """Deletes any duplicate enrollments"""
-
-        enrollments = list(
-            Enrollment.objects.filter(user=user, connectedclass=connectedclass)
-        )
-
-        while len(enrollments) > 1:
-            e = enrollments.pop()
-            e.delete()
