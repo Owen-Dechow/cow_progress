@@ -270,7 +270,7 @@ class Herd(models.Model):
 
 # Information on single animal
 class Bovine(models.Model):
-    __str__ = lambda self: self.name
+    __str__ = lambda self: self.name if self.name else f"*{self.herd}"
 
     # Stores the name of the animal
     name = models.CharField(max_length=255, null=True)

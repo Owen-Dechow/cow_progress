@@ -2,6 +2,33 @@ from django.core.management import call_command
 from django.test import Client
 from random import randint
 from django.contrib.auth.models import User
+from ..traitinfo.traitsets import TraitSet
+
+
+class Info:
+    PUBLIC_F_ID = 1
+    PUBLIC_M_ID = 151
+    BRED_F_ID = 313
+    CLASS_HERD_ID = 1
+    PUBLIC_HERD_ID = 2
+    PERSONAL_HERD_ID = 3
+    BRED_PEDIGREE = {
+        "id": -1,
+        "sire": {"id": PUBLIC_M_ID},
+        "dam": {"id": PUBLIC_F_ID},
+    }
+    TRAITSET = TraitSet("NM_2021")
+    CLASS_ID = 1
+    BOVINE_1_NAME = "[Test Class] Public Herd's 1"
+    INBRED_PEDIGREE = {
+        "id": 314,
+        "sire": {"id": 151},
+        "dam": {"id": 161, "sire": {"id": 151}, "dam": {"id": -1}},
+    }
+    INBRED_PEDIGREE_COEFFICIENT = 0.25
+
+
+INFO = Info()
 
 
 def create_authenticated_client(username) -> Client:

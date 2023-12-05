@@ -105,7 +105,8 @@ Website will then be available at http://127.0.0.1:8000/
 
 #### Thanks to Contributors
 > No matter how small (or big) your contribution is, you are greatly appreciated!
-> <br>*Owen Dechow*
+>
+> ***Owen Dechow***
 
 ## Resources
 * [Net merit as a measure of lifetime profit: 2021 revision](https://www.ars.usda.gov/ARSUserFiles/80420530/Publications/ARR/nmcalc-2021_ARR-NM8.pdf)
@@ -124,3 +125,8 @@ Website will then be available at http://127.0.0.1:8000/
 * [scipy](https://scipy.org/)
 * [numpy](https://numpy.org/)
 * [certifi](https://github.com/certifi/python-certifi)
+
+## For More Information
+* See Docs located in the `docs` directory or on [github](https://github.com/Owen-Dechow/cow_progress/tree/main/docs).
+
+* See License.md in the root directory or on [github](https://github.com/Owen-Dechow/cow_progress/blob/main/LICENSE.md).

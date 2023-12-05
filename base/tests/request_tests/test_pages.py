@@ -1,5 +1,5 @@
 from django.test import TestCase
-from .utils import load_fixture, create_authenticated_client
+from ..utils import load_fixture, create_authenticated_client
 
 
 class TestPages(TestCase):

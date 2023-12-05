@@ -1,6 +1,6 @@
 from django.test import TestCase
 from base import models
-from .utils import load_fixture, rand_id, create_authenticated_client
+from ..utils import load_fixture, rand_id, create_authenticated_client
 
 
 class TestClassSystem(TestCase):
