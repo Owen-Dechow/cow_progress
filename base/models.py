@@ -387,7 +387,8 @@ class Bovine(models.Model):
         uncorrelated_ph = {}
         for trait in traitset.traits:
             uncorrelated_ph[trait.name] = trait.PTA_to_phenotype(
-                self.genotype[trait.name]
+                self.genotype[trait.name],
+                self.inbreeding,
             )
 
         correlated_phenotype = traitset.get_correlated_values(uncorrelated_ph, True)

@@ -74,7 +74,7 @@ class AddClass(forms.Form):
     )
 
     traitset = forms.ChoiceField(
-        choices=TRAITSET_CHOICES, initial=TRAITSET_CHOICES[0][0]
+        choices=TRAITSET_CHOICES, initial=TRAITSET_CHOICES[-1][0]
     )
 
     def is_valid(self, user) -> bool:

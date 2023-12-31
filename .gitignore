@@ -3,5 +3,6 @@ venv/
 .env
 .DS_STORE
 db.sqlite3
+default_*.sqlite3
 __pycache__/
 transition_script.py

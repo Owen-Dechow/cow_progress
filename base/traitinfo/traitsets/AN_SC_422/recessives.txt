@@ -1,9 +1,9 @@
-BLAD    :   f   :   0.10
-DUMPS   :   f   :   0.10
-MF      :   n   :   0.10
-CD      :   f   :   0.10
-POLLED  :   n   :   0.10
-CVM     :   f   :   0.10
-BY      :   f   :   0.10
-CR      :   f   :   0.10
-RED     :   n   :   0.20
+BLAD    :   f   :   0.10    :   Bovine Leukocyte Adhesion Deficiency
+DUMPS   :   f   :   0.10    :   Deficiency of Uridine Monophosphate Synthase
+MF      :   n   :   0.10    :   Mulefoot
+CD      :   f   :   0.10    :   Cholesterol Deficiency
+POLLED  :   n   :   0.10    :   Polled Condition
+CVM     :   f   :   0.10    :   Complex Vertebral Malformation
+BY      :   f   :   0.10    :   Brachyspina
+CR      :   f   :   0.10    :   Calf Recumbency
+RED     :   n   :   0.20    :   Red

@@ -45,7 +45,7 @@ In the event that a traitset is disabled all classes connected to that traitset 
    Every traitset requires a `ptas.txt` file in he traitset directory. Each trait is represented on a single line in the following format:
 
    ```txt
-   <name:str> : <standard_deviation:float> : <heritability:float> : <net_merit_dollars:float> : <inbreeding_depression:float>
+   <name:str> : <standard_deviation:float> : <heritability:float> : <net_merit_dollars:float> : <inbreeding_depression_percentage:float>
    ```
    Example:
 

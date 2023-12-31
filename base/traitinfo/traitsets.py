@@ -10,7 +10,7 @@ from math import sqrt
 register = [
     ("NM_2021", True),
     ("MILK_FAT_PROT", False),
-    ("AN_SC_422", False),
+    ("AN_SC_422", True),
 ]
 
 TRAITSET_CHOICES = [(item, item) for item, allow in register if allow]
@@ -24,31 +24,32 @@ class Trait:
     name: str
     standard_deviation: float
     net_merit_dollars: float
-    inbreeding_harm: float
+    inbreeding_depression_percentage: float
     heritability: float
 
-    def __init__(self, name, sd, heritability, nm_dollars, inbreeding_harm):
+    def __init__(
+        self, name, sd, heritability, nm_dollars, inbreeding_depression_percentage
+    ):
         self.name = str(name).strip()
         self.standard_deviation = float(sd.__str__().strip())
         self.net_merit_dollars = float(nm_dollars.__str__().strip())
-        self.inbreeding_harm = float(inbreeding_harm.__str__().strip())
+        self.inbreeding_depression_percentage = float(
+            inbreeding_depression_percentage.__str__().strip()
+        )
         self.heritability = float(heritability.__str__().strip())
 
-    def PTA_to_phenotype(self, PTA):
+    def PTA_to_phenotype(self, PTA, inbreeding_coefficient):
         phenotypic_variance = (self.standard_deviation**2) / self.heritability
         residual_variance = phenotypic_variance * (1 - self.heritability)
         residual_standard_deviation = sqrt(residual_variance)
         phenotype = PTA * 2 + np.random.normal(scale=residual_standard_deviation)
-
-        if phenotype > self.standard_deviation * 2:
-            phenotype = self.standard_deviation * 2
-        elif phenotype < self.standard_deviation * -2:
-            phenotype = self.standard_deviation * -2
-
+        phenotype += (
+            inbreeding_coefficient * 100 * self.inbreeding_depression_percentage
+        )
         return phenotype
 
-    def get_point_on_mendelian_sample(self):
-        return np.random.normal(scale=self.standard_deviation)
+    def get_point_on_mendelian_sample(self, center=0):
+        return np.random.normal(loc=center, scale=self.standard_deviation)
 
     def PTA_mutation(self, sire_PTA, dam_PTA):
         scale = sqrt(2) / 2
@@ -170,14 +171,7 @@ class TraitSet:
 
         data = {}
         for idx, val in enumerate(correlated_values):
-            if abs(val) > 1:
-                clamped_val = abs(val) / val
-            else:
-                clamped_val = val
-
-            data[self.traits[idx]] = (
-                clamped_val * scale * self.traits[idx].standard_deviation
-            )
+            data[self.traits[idx]] = val * scale * self.traits[idx].standard_deviation
 
         return data
 
