@@ -7,3 +7,9 @@ CVM     :   f   :   0.10    :   Complex Vertebral Malformation
 BY      :   f   :   0.10    :   Brachyspina
 CR      :   f   :   0.10    :   Calf Recumbency
 RED     :   n   :   0.20    :   Red
+HH1     :   f   :   0.05    :   Haplotype Holstein 1
+HH2     :   f   :   0.05    :   Haplotype Holstein 2
+HH3     :   f   :   0.05    :   Haplotype Holstein 3
+HH4     :   f   :   0.05    :   Haplotype Holstein 4
+HH5     :   f   :   0.05    :   Haplotype Holstein 5
+HH6     :   f   :   0.05    :   Haplotype Holstein 6
