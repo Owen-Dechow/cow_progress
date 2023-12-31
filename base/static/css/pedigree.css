@@ -44,3 +44,7 @@ main table td.leftcol {
 main h2 {
     text-align: center;
 }
+
+main .form {
+    margin-bottom: 20px;
+}

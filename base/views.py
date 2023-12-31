@@ -241,7 +241,10 @@ def classes(request: WSGIRequest):
 
 
 def recessives(request: WSGIRequest, traitset: str):
-    args = {"recessives": TraitSet(traitset).recessives}
+    try:
+        args = {"recessives": TraitSet(traitset).recessives}
+    except:
+        raise Http404("Invalid traitset name")
 
     return render(request, "base/recessives.html", args)
 
