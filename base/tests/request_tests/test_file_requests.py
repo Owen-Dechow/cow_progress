@@ -17,3 +17,9 @@ class TestFileRequests(TestCase):
         response = self.client.get(f"/classtrend-file/1", secure=True)
         self.assertEquals(response.status_code, 200)
         self.assertTrue("attachment; filename=" in response.get("Content-Disposition"))
+
+    @load_fixture("class.json")
+    def test_get_class_datafile(self):
+        response = self.client.get(f"/classdata-file/1", secure=True)
+        self.assertEquals(response.status_code, 200)
+        self.assertTrue("attachment; filename=" in response.get("Content-Disposition"))

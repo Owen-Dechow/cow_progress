@@ -1,6 +1,6 @@
 from django.core.management import call_command
 from django.test import Client
-from random import randint
+from random import randint, random
 from django.contrib.auth.models import User
 from ..traitinfo.traitsets import TraitSet
 
@@ -54,3 +54,7 @@ def load_fixture(fixture: str):
 
 def rand_id():
     return randint(1, 99999)
+
+
+def rand_from_sd(sd):
+    return random() * sd

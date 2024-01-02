@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 from django.db import models
 from random import randrange
 from .inbreeding import InbreedingCalculator
-from .traitinfo.traitsets import TraitSet, TRAITSET_CHOICES, Trait, DOMAIN
+from .traitinfo.traitsets import Recessive, TraitSet, TRAITSET_CHOICES, Trait, DOMAIN
 
 PTA_DECIMALS = 3  # Number of decimal placements shown for PTAs on website/ xlsx files
 
@@ -463,6 +463,42 @@ class Bovine(models.Model):
             self.inbreeding = calculator.get_coefficient()
         else:
             self.inbreeding = 0
+
+    def get_XLSX_row(self, row_model):
+        row = []
+
+        for col in row_model:
+            key = col.lower()
+            match key:
+                case "name":
+                    row.append(self.name)
+                case "id":
+                    row.append(self.id)
+                case "generation":
+                    row.append(self.generation)
+                case "sire":
+                    row.append(self.sire_id if self.sire_id else "~")
+                case "dam":
+                    row.append(self.dam_id if self.dam_id else "~")
+                case "inbreeding coefficient":
+                    row.append(self.inbreeding)
+                case "net merit" | "nm$":
+                    row.append(self.genotype["Net Merit"])
+                case "herd":
+                    row.append(self.herd.name)
+                case "sex" | "gender":
+                    row.append("m" if self.male else "f")
+                case _:
+                    if col in self.genotype:
+                        row.append(self.genotype[col])
+                    elif col.removeprefix("ph:").strip() in self.phenotype:
+                        row.append(self.phenotype[col.removeprefix("ph:").strip()])
+                    elif col in self.recessives:
+                        row.append(Recessive.int_to_string(self.recessives[col]))
+                    else:
+                        row.append(None)
+
+        return row
 
 
 # Class object

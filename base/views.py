@@ -13,7 +13,7 @@ from . import models
 from . import forms
 from . import excel
 from .resources.resources import get_resources
-from .traitinfo.traitsets import TraitSet
+from .traitinfo.traitsets import TraitSet, Recessive
 
 
 ########### Utility functions ##########
@@ -375,22 +375,27 @@ def get_cow_data(request: WSGIRequest, cowID: int):
 def get_herd_file(request: WSGIRequest, herdID: int):
     """Get XLSX file for herd"""
 
-    recessive_int2str = lambda x: "--" if x == 0 else "-+" if x == 1 else "++"
-
     herd = get_object_or_404(
         models.Herd.objects.select_related("connectedclass"), id=herdID
     )
-    animals = models.Bovine.objects.prefetch_related(
-        "pedigree__sire", "pedigree__dam"
-    ).filter(herd=herd)
+    animals = models.Bovine.objects.filter(herd=herd)
 
     connectedclass = herd.connectedclass
     traitset = TraitSet(herd.connectedclass.traitset)
 
     auth_herd(request, herd)
 
-    row1 = (
-        ["Name", "Generation", "Sire", "Dam", "Inbreeding Coefficient", "Net Merit"]
+    model_row = (
+        [
+            "Name",
+            "Id",
+            "Generation",
+            "Sex",
+            "Sire",
+            "Dam",
+            "Inbreeding Coefficient",
+            "Net Merit",
+        ]
         + [x.name for x in traitset.traits if connectedclass.viewable_traits[x.name]]
         + [
             f"ph: {x.name}"
@@ -404,25 +409,10 @@ def get_herd_file(request: WSGIRequest, herdID: int):
         ]
     )
 
-    block = [row1]
+    block = [model_row]
 
     for animal in animals:
-        data = (
-            {
-                "Name": animal.name,
-                "Generation": animal.generation,
-                "Sire": animal.sire_id if animal.sire_id else "~",
-                "Dam": animal.dam_id if animal.dam_id else "~",
-                "Inbreeding Coefficient": animal.inbreeding,
-                "Net Merit": animal.genotype["Net Merit"],
-            }
-            | animal.genotype
-            | {f"ph: {key}": val for key, val in animal.phenotype.items()}
-            | {key: recessive_int2str(val) for key, val in animal.recessives.items()}
-        )
-
-        row = [data[x] for x in row1]
-        block.append(row)
+        block.append(animal.get_XLSX_row(model_row))
 
     with BytesIO() as output:
         file = excel.ExcelDoc(output, ["Sheet1"], overridename=True, in_memory=True)
@@ -477,7 +467,62 @@ def get_class_tendchart(request: WSGIRequest, classID: int):
         response["Content-Type"] = "application/vnd.ms-excel"
         response[
             "Content-Disposition"
-        ] = f"attachment; filename={slugify(connectedclass.name)}.xlsx"
+        ] = f"attachment; filename={slugify(connectedclass.name)}_trends.xlsx"
+
+        output.close()
+
+        return response
+
+
+@login_required
+def get_class_datafile(request: WSGIRequest, classID: int):
+    enrollment = get_object_or_404(
+        models.Enrollment.objects.select_related("connectedclass"),
+        connectedclass=classID,
+        user=request.user,
+        teacher=True,
+    )
+
+    animals = models.Bovine.objects.select_related("herd").filter(
+        connectedclass=classID
+    )
+    traitset = TraitSet(enrollment.connectedclass.traitset)
+
+    row_model = (
+        [
+            "Name",
+            "Id",
+            "Herd",
+            "Generation",
+            "Sex",
+            "Sire",
+            "Dam",
+            "Inbreeding Coefficient",
+            "Net Merit",
+        ]
+        + [x.name for x in traitset.traits]
+        + [f"ph: {x.name}" for x in traitset.traits]
+        + [x.name for x in traitset.recessives]
+    )
+
+    block = [row_model]
+    for animal in animals:
+        block.append(animal.get_XLSX_row(row_model))
+
+    with BytesIO() as output:
+        file = excel.ExcelDoc(output, [f"Sheet1"], overridename=True, in_memory=True)
+        file.add_format("header", {"bold": True})
+        file.write_block(0, block, (1, 1), "header")
+        file.freeze_cells(0, (1, 0))
+        file.close()
+
+        output.seek(0)
+
+        response = HttpResponse(output.read())
+        response["Content-Type"] = "application/vnd.ms-excel"
+        response[
+            "Content-Disposition"
+        ] = f"attachment; filename={slugify(enrollment.connectedclass.name)}_data.xlsx"
 
         output.close()
 

@@ -75,6 +75,17 @@ class Recessive:
     def get_carrier_int_from_prominence(self):
         return 1 if random() <= self.prominence else 0
 
+    @staticmethod
+    def int_to_string(integer):
+        if integer == 0:
+            return "--"
+        elif integer == 1:
+            return "-+"
+        elif integer == 2:
+            return "++"
+        else:
+            raise Exception("invalid integer")
+
 
 class TraitSet:
     RELPATH: Path
@@ -83,6 +94,7 @@ class TraitSet:
     traits = list[Trait]
     recessives = list[Recessive]
     DPR_for_max_gen: Trait
+    name: str
 
     def __init__(self, traitset_name: str):
         self.RELPATH = settings.BASE_DIR / "base/traitinfo/traitsets" / traitset_name
@@ -91,6 +103,7 @@ class TraitSet:
         self.traits = self._get_traits_list()
         self.recessives = self._get_recessives()
         self.DPR_for_max_gen = self._get_dpr_trait()
+        self.name = traitset_name
 
     def _get_cor_matrix(self):
         matrix = []
