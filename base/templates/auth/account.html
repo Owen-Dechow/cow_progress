@@ -1,45 +1,40 @@
-{% extends "../extends.html" %}
+{% extends '../extends.html' %}
 
 {% load dic %}
 {% load static %}
 
 {% block title %}
-    My Account
-{% endblock title %}
+  My Account
+{% endblock %}
 
 {% block links %}
-    <link rel="stylesheet" href="{% static 'css/auth_form.css' %}">
-{% endblock links %}
+  <link rel="stylesheet" href="{% static 'css/auth_form.css' %}" />
+{% endblock %}
 
 {% block body %}
-    <form method="POST"
-          onsubmit="cancelSubmit(this, 'Change Profile Info?', 'Confirm change of profile information.', 'Change Info', 'Cancel'); return false">
-        <span>Username: <span class="pow">{{ request.user.username }}</span></span>
-        <br>
-        {% csrf_token %}
+  <form method="POST" onsubmit="cancelSubmit(this, 'Change Profile Info?', 'Confirm change of profile information.', 'Change Info', 'Cancel'); return false">
+    <span>Username: <span class="pow">{{ request.user.username }}</span></span>
+    <br />
+    {% csrf_token %}
 
-        {{ form }}
+    {{ form }}
 
-        <button type="submit">Change Info</button>
-    </form>
-    <form>
-        <a class="as-btn" href="/auth/password-change">Change Password</a>
-    </form>
-    <form method="POST" action="/auth/delete-account">
-        {% csrf_token %}
-        <h1>Delete Account</h1>
-        {{ passwordcheck }}
+    <button type="submit">Change Info</button>
+  </form>
+  <form>
+    <a class="as-btn" href="/auth/password-change">Change Password</a>
+  </form>
+  <form method="POST" action="/auth/delete-account">
+    {% csrf_token %}
+    <h1>Delete Account</h1>
+    {{ passwordcheck }}
 
-        {% if passworderror %}
-            <ul class="errorlist">
-                <li>Incorrect Password</li>
-            </ul>
-        {% endif %}
+    {% if passworderror %}
+      <ul class="errorlist">
+        <li>Incorrect Password</li>
+      </ul>
+    {% endif %}
 
-        <button href="/auth/delete-account"
-                onclick="cancelClick(this, 'Delete Account?', 'Are you sure you want to delete you account? This action cannot be undone.', 'Delete Account', 'Cancel'); return false;">
-            Delete
-            Account
-        </button>
-    </form>
-{% endblock body %}
+    <button href="/auth/delete-account" onclick="cancelClick(this, 'Delete Account?', 'Are you sure you want to delete you account? This action cannot be undone.', 'Delete Account', 'Cancel'); return false;">Delete Account</button>
+  </form>
+{% endblock %}
