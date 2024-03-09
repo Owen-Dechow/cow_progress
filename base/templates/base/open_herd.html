@@ -78,9 +78,9 @@
       <input id="cow-name" value="~" maxlength="{{ maxlen }}" class="cow-name {% if herd.owner == request.user %}{% endif %}" disabled />
 
       {% if deaths == 0 %}
-        <code class="padleft">There where no deaths due to genetic recessives.</code>
+        <code class="padleft">There were no deaths due to genetic recessives.</code>
       {% elif deaths > 0 %}
-        <code class="padleft">There where {{ deaths }} deaths due to genetic recessives.</code>
+        <code class="padleft">There where {{ deaths }} death(s) due to genetic recessives.</code>
       {% endif %}
     </div>
 
