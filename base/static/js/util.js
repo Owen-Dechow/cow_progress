@@ -27,7 +27,7 @@ function waitFor(conditionFunc) {
     const poll = resolve => {
         if (conditionFunc()) resolve();
         else setTimeout(_ => poll(resolve), 400);
-    }
+    };
 
     return new Promise(poll);
 }
@@ -37,7 +37,7 @@ function Copy(text) {
     copyText.value = text;
     copyText.select();
     navigator.clipboard.writeText(copyText.value);
-    alertreal("Copied Text", text, "ok")
+    alertreal("Copied Text", text, "ok");
 }
 
 async function alertreal(headerText, messageText, okText, cancelText = null, func = () => { }) {
@@ -55,8 +55,8 @@ async function alertreal(headerText, messageText, okText, cancelText = null, fun
 
     let btn = document.createElement("button");
     btn.textContent = okText;
-    btn.setAttribute("type", "button")
-    btn.setAttribute("title", `Confirm: ${headerText}`)
+    btn.setAttribute("type", "button");
+    btn.setAttribute("title", `Confirm: ${headerText}`);
     btn.onclick = () => {
         response = true;
     };
@@ -76,7 +76,7 @@ async function alertreal(headerText, messageText, okText, cancelText = null, fun
     alert.append(div);
     alert.classList.add("on");
 
-    await waitFor(() => response != null)
+    await waitFor(() => response != null);
     func();
     div.remove();
     document.getElementById("alert").classList.remove("on");
@@ -110,7 +110,7 @@ function getSessionDict(id) {
 }
 
 async function setSessionDict(id, obj) {
-    sessionStorage.setItem(id, JSON.stringify(obj))
+    sessionStorage.setItem(id, JSON.stringify(obj));
 }
 
 function toggleTheme() {
@@ -138,7 +138,7 @@ window.addEventListener("DOMContentLoaded", async () => {
             "Accept Cookies",
             null,
             () => {
-                setcookie("acceptedcookie", "true", 365)
+                setcookie("acceptedcookie", "true", 365);
             },
         );
 

@@ -44,6 +44,8 @@
             </script>
             <br />
             <button type="button" onclick="addAnotherBull()">Add Another Bull</button>
+            <button type="button" onclick="loadBreedingStack()">Load Breeding Stack</button>
+            <button type="button" onclick="clearBreedingStack()">Clear Breeding Stack</button>
             <button type="submit" disabled>Submit Breeding</button>
           </form>
         {% else %}
@@ -89,6 +91,7 @@
       <button type="button" onclick="moveToClassHerd(event)">Move to Class Herd</button>
     {% endif %}
     <a href="javascript:void(0)" class="as-btn" id="pedigree-link">Open Pedigree</a>
+    <button type="button" class="as-btn" id="add-to-bull-stack" onclick="addToBullStack()">Add to bull stack</button>
 
     <div id="cow-stats" class="cow-stats"></div>
     <br />
