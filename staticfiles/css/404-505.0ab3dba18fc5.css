@@ -1,0 +1,25 @@
+body {
+    background-color: var(--neutral);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+main {
+    background-color: var(--prime);
+    width: min(600px, 100%);
+}
+
+main h1 {
+    text-align: center;
+    background-color: var(--secondary);
+    margin: 0;
+    padding: 10px;
+    font-size: 3rem;
+}
+
+main .content {
+    text-align: center;
+    padding: 10px;
+}
