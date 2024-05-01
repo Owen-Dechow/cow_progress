@@ -14,10 +14,6 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 from pathlib import Path
 import environ
 
-import django_heroku
-import dj_database_url
-from decouple import config
-
 env = environ.Env()
 environ.Env.read_env()
 
@@ -169,5 +165,3 @@ if DEBUG_TOOLBAR:
     INTERNAL_IPS = ["127.0.0.1"]
     MIDDLEWARE.append("debug_toolbar.middleware.DebugToolbarMiddleware")
     INSTALLED_APPS.append("debug_toolbar")
-
-django_heroku.settings(locals())

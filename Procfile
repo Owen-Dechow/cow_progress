@@ -1,1 +1,0 @@
-web: gunicorn cow_progress.wsgi:application --log-file -
