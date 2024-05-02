@@ -485,7 +485,7 @@ class Bovine(models.Model):
                 case "net merit" | "nm$":
                     row.append(self.genotype["Net Merit"])
                 case "herd":
-                    row.append(self.herd.name)
+                    row.append(self.herd.name if self.herd else "~")
                 case "sex" | "gender":
                     row.append("m" if self.male else "f")
                 case _:
