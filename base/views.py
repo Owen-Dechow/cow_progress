@@ -524,7 +524,7 @@ def get_class_datafile(request: WSGIRequest, classID: int):
         )
 
         output.close()
-        # return response
+        return response
 
 
 ########## Actions -> success dict ##########
