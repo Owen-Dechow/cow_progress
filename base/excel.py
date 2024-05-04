@@ -50,22 +50,17 @@ class ExcelDoc:
         """Writes a 2d array to sheet starting from top left"""
 
         for rowIDX, row in enumerate(data):
-            for colIDX, val in enumerate(row):
-                if rowIDX == 0 and firstrowformmater is not None:
-                    self.sheets[sheet].write(
-                        self.convert_position(
-                            (startposition[0] + colIDX, startposition[1] + rowIDX)
-                        ),
-                        val,
-                        self.formats[firstrowformmater],
-                    )
-                else:
-                    self.sheets[sheet].write(
-                        self.convert_position(
-                            (startposition[0] + colIDX, startposition[1] + rowIDX)
-                        ),
-                        val,
-                    )
+            if rowIDX == 0 and firstrowformmater is not None:
+                self.sheets[sheet].write_row(
+                    self.convert_position(startposition),
+                    row,
+                    self.formats[firstrowformmater],
+                )
+            else:
+                self.sheets[sheet].write_row(
+                    self.convert_position(startposition),
+                    row,
+                )
 
     def close(self):
         """Closes/Exports the document"""

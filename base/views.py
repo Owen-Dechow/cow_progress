@@ -14,7 +14,7 @@ from . import forms
 from . import excel
 from .resources.resources import get_resources
 from .traitinfo.traitsets import TraitSet, Recessive
-
+import timeit
 
 ########### Utility functions ##########
 
@@ -425,9 +425,9 @@ def get_herd_file(request: WSGIRequest, herdID: int):
 
         response = HttpResponse(output.read())
         response["Content-Type"] = "application/vnd.ms-excel"
-        response[
-            "Content-Disposition"
-        ] = f"attachment; filename={slugify(herd.name)}.xlsx"
+        response["Content-Disposition"] = (
+            f"attachment; filename={slugify(herd.name)}.xlsx"
+        )
 
         output.close()
         return response
@@ -465,9 +465,9 @@ def get_class_tendchart(request: WSGIRequest, classID: int):
 
         response = HttpResponse(output.read())
         response["Content-Type"] = "application/vnd.ms-excel"
-        response[
-            "Content-Disposition"
-        ] = f"attachment; filename={slugify(connectedclass.name)}_trends.xlsx"
+        response["Content-Disposition"] = (
+            f"attachment; filename={slugify(connectedclass.name)}_trends.xlsx"
+        )
 
         output.close()
 
@@ -512,7 +512,12 @@ def get_class_datafile(request: WSGIRequest, classID: int):
     with BytesIO() as output:
         file = excel.ExcelDoc(output, [f"Sheet1"], overridename=True, in_memory=True)
         file.add_format("header", {"bold": True})
-        file.write_block(0, block, (1, 1), "header")
+        print("startwrite")
+        time = timeit.timeit(
+            lambda: file.write_block(0, block, (1, 1), "header"),
+            number=1,
+        )
+        print(f"endwrite ({time})")
         file.freeze_cells(0, (1, 0))
         file.close()
 
@@ -520,13 +525,12 @@ def get_class_datafile(request: WSGIRequest, classID: int):
 
         response = HttpResponse(output.read())
         response["Content-Type"] = "application/vnd.ms-excel"
-        response[
-            "Content-Disposition"
-        ] = f"attachment; filename={slugify(enrollment.connectedclass.name)}_data.xlsx"
+        response["Content-Disposition"] = (
+            f"attachment; filename={slugify(enrollment.connectedclass.name)}_data.xlsx"
+        )
 
         output.close()
-
-        return response
+        # return response
 
 
 ########## Actions -> success dict ##########
