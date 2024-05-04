@@ -50,12 +50,13 @@ class Trait:
     def get_point_on_mendelian_sample(self, center=0):
         return np.random.normal(loc=center, scale=self.standard_deviation)
 
-    def PTA_mutation(self, sire_PTA, dam_PTA):
+    @staticmethod
+    def PTA_mutation(sire_PTA, dam_PTA, mendelian_sampling):
         scale = sqrt(2) / 2
         parent_average = (sire_PTA + dam_PTA) / 2
-        mendelian_sampling = self.get_point_on_mendelian_sample()
+        scaled_sample = scale * mendelian_sampling
 
-        return parent_average * scale + mendelian_sampling * scale
+        return parent_average + scaled_sample
 
 
 class Recessive:
@@ -172,9 +173,14 @@ class TraitSet:
             scale = 1
             covariance_matrix = np.array(self.correlation_matrix)
 
-        values = [
-            initial_values[x.name] / (x.standard_deviation * scale) for x in self.traits
-        ]
+        values = (
+            [
+                initial_values[x.name] / (x.standard_deviation * scale)
+                for x in self.traits
+            ]
+            if initial_values
+            else [DOMAIN() for _ in self.traits]
+        )
 
         initial_matrix = np.array(values)
 
@@ -186,6 +192,20 @@ class TraitSet:
             data[self.traits[idx]] = val * scale * self.traits[idx].standard_deviation
 
         return data
+
+    def get_mutated_traits(
+        self, sire_genotype: dict[str, float], dam_genotype: dict[str, float]
+    ):
+        mendelian_sample = self.get_correlated_values()
+        traits = {
+            trait: Trait.PTA_mutation(
+                sire_genotype[trait.name],
+                dam_genotype[trait.name],
+                mendelian_sample[trait],
+            )
+            for trait in self.traits
+        }
+        return traits
 
     def get_trait_from_name(self, name: str):
         for trait in self.traits:

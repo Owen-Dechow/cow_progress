@@ -318,16 +318,9 @@ class Bovine(models.Model):
         # Get Traitset
         traitset = TraitSet(herd.connectedclass.traitset)
 
-        # Generate mutated uncorrelated values
-        uncorrelated = {}
-        for trait in traitset.traits:
-            uncorrelated[trait.name] = trait.PTA_mutation(
-                sire.genotype[trait.name], dam.genotype[trait.name]
-            )
-
-        # Correlate data
-        correlated_data = traitset.get_correlated_values(uncorrelated)
-        new.genotype = {key.name: val for key, val in correlated_data.items()}
+        # Generate mutated values
+        traits = traitset.get_mutated_traits(sire.genotype, dam.genotype)
+        new.genotype = {key.name: val for key, val in traits.items()}
 
         # Scale genotype for front end
         new.pedigree = new.auto_generate_pedigree()
@@ -337,10 +330,10 @@ class Bovine(models.Model):
 
         # Set the genetic recessives for new animal
         for recessive in traitset.recessives:
-            new.recessives[
-                recessive.name
-            ] = traitset.get_result_of_two_recessive_int_vals(
-                sire.recessives[recessive.name], dam.recessives[recessive.name]
+            new.recessives[recessive.name] = (
+                traitset.get_result_of_two_recessive_int_vals(
+                    sire.recessives[recessive.name], dam.recessives[recessive.name]
+                )
             )
 
         return new
@@ -485,7 +478,7 @@ class Bovine(models.Model):
                 case "net merit" | "nm$":
                     row.append(self.genotype["Net Merit"])
                 case "herd":
-                    row.append(self.herd.name if self.herd else "~")
+                    row.append(self.herd.name if self.herd_id else "~")
                 case "sex" | "gender":
                     row.append("m" if self.male else "f")
                 case _:
