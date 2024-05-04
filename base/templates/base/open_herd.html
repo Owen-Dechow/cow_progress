@@ -14,9 +14,10 @@
 
 {% block body %}
   <script>
-    sessionStorage.setItem('HerdId', '{{herd.id}}')
-    sessionStorage.setItem('ClassId', '{{herd.connectedclass.id}}')
+    HerdId = '{{herd.id}}'
+    ClassId = '{{herd.connectedclass.id}}'
   </script>
+
   <div class="panel left">
     <details class="title">
       <summary>{{ herd.name }}</summary>
@@ -77,7 +78,11 @@
   </div>
   <div class="panel right" id="right-panel">
     <div class="cow-name">
-      <input id="cow-name" value="~" maxlength="{{ maxlen }}" class="cow-name {% if herd.owner == request.user %}{% endif %}" disabled />
+      {% if herd.owner == request.user %}
+        <input id="cow-name" value="~" maxlength="{{ maxlen }}" class="owner" disabled />
+      {% else %}
+        <input id="cow-name" value="~" maxlength="{{ maxlen }}" disabled />
+      {% endif %}
 
       {% if deaths == 0 %}
         <code class="padleft">There were no deaths due to genetic recessives.</code>

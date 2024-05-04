@@ -1,19 +1,19 @@
+var Sumaries;
+
 async function loadHerds() {
     let herds = await fetch("/herdsummaries");
     if (!herds.ok) {
-        alertreal("Error Loading Data", "Error loading herd data. Please try again.", "ok")
+        alertreal("Error Loading Data", "Error loading herd data. Please try again.", "ok");
         return false;
     }
 
-    setSessionDict("Summaries", await herds.json());
+    Sumaries = Object.freeze(await herds.json());
     return true;
 }
 
 function displayHerds() {
-    let summaries = getSessionDict("Summaries");
-
-    displayHerdsBy("id", false, "public", summaries);
-    displayHerdsBy("id", false, "private", summaries);
+    displayHerdsBy("id", false, "public", Sumaries);
+    displayHerdsBy("id", false, "private", Sumaries);
 }
 
 function displayHerdsBy(orderby, reverse, protection, summaries) {
@@ -23,14 +23,14 @@ function displayHerdsBy(orderby, reverse, protection, summaries) {
 
     for (let key in summaries[protection]) {
         if (summaries[protection].hasOwnProperty(key)) {
-            keylist.push(key)
+            keylist.push(key);
         }
     }
 
     if (orderby == "id") {
         keylist.sort();
     } else {
-        keylist.sort((a, b) => summaries[protection][b]["traits"][orderby] - summaries[protection][a]["traits"][orderby])
+        keylist.sort((a, b) => summaries[protection][b]["traits"][orderby] - summaries[protection][a]["traits"][orderby]);
     }
 
     if (reverse) keylist.reverse();
@@ -48,7 +48,7 @@ function displayHerdsBy(orderby, reverse, protection, summaries) {
             }
 
             btn.herdid = protectedKey;
-            btn.setAttribute('type', "button")
+            btn.setAttribute('type', "button");
 
             btn.onclick = (e) => {
                 changeDisplayedHerd(protection, e.target.herdid);
@@ -66,7 +66,7 @@ function displayHerdsBy(orderby, reverse, protection, summaries) {
 }
 
 function displayTraits(herdsum) {
-    let traitnames = herdsum
+    let traitnames = herdsum;
 
     let herdAverages = document.getElementById("herd-averages");
     herdAverages.innerHTML = "";
@@ -90,7 +90,7 @@ function displayTraits(herdsum) {
     addFromKey("ID");
     for (let key in traitnames) {
         if (traitnames.hasOwnProperty(key)) {
-            addFromKey(key)
+            addFromKey(key);
         }
     }
 }
@@ -98,13 +98,12 @@ function displayTraits(herdsum) {
 function changeDisplayedHerd(publicprivate, herdid) {
     document.getElementById("right-panel").classList.add("herd-selected");
 
-    let summaries = getSessionDict("Summaries");
-    let herdsum = summaries[publicprivate][herdid]["traits"];
+    let herdsum = Sumaries[publicprivate][herdid]["traits"];
 
-    displayTraits(herdsum)
+    displayTraits(herdsum);
 
     document.getElementById("open-herd-link").href = "/openherd-" + herdid;
-    document.getElementById("herd-name").textContent = summaries[publicprivate][herdid]["name"];
+    document.getElementById("herd-name").textContent = Sumaries[publicprivate][herdid]["name"];
 
     document.getElementById("ID" + "-ipt").value = herdid;
     for (let key in herdsum) {

@@ -1,35 +1,38 @@
+var Cows;
+var HerdSummary;
+var HerdId;
+var LoadedGender;
+var CanChangeId;
+var ClassId;
+
 async function loadCows() {
-    let herdID = sessionStorage.getItem("HerdId");
-    let cows = await fetch("/herddata-" + herdID);
+    let cows = await fetch("/herddata-" + HerdId);
 
     if (!cows.ok) {
         alertreal("Error Loading Data", "Error loading herd data. Please try again.", "ok");
     }
 
-    setSessionDict("Cows", await cows.json());
+    Cows = await cows.json();
 }
 
 async function loadHerdSummary() {
-    let herdID = sessionStorage.getItem("HerdId");
-
-    let summary = await fetch("/herdsummary-" + herdID);
+    let summary = await fetch("/herdsummary-" + HerdId);
     if (!summary.ok) {
         alertreal("Error Loading Data", "Error loading herd data. Please try again.", "ok");
     }
 
-    setSessionDict("HerdSummary", await summary.json());
+    HerdSummary = Object.freeze(await summary.json());
 }
 
 function displayCows() {
-    let cows = getSessionDict("Cows");
-
-    displayCowsBy("id", false, "bulls", cows);
-    displayCowsBy("id", false, "cows", cows);
+    displayCowsBy("id", false, "bulls", Cows);
+    displayCowsBy("id", false, "cows", Cows);
 }
 
 function displayCowsBy(orderby, reverse, gender, cowslist) {
-    let cows = document.getElementById("herd-btns-" + gender);
-    cows.replaceChildren();
+    let cows_btn_container = document.getElementById("herd-btns-" + gender);
+    cows_btn_container.replaceChildren();
+
     let keylist = [];
 
     for (let key in cowslist[gender]) {
@@ -64,14 +67,12 @@ function displayCowsBy(orderby, reverse, gender, cowslist) {
                 e.target.classList.add("focused-btn");
             };
 
-            cows.append(btn);
+            cows_btn_container.append(btn);
         }
     }
 }
 
 function displayTraits() {
-    let traitnames = getSessionDict("HerdSummary");
-
     let herdAverages = document.getElementById("cow-stats");
     let orderby = document.getElementById("order-by");
 
@@ -102,35 +103,29 @@ function displayTraits() {
     addFromKey("Sire");
     addFromKey("Dam");
     addFromKey("Inbreeding Coefficient");
-    for (let key in traitnames) {
-        if (traitnames.hasOwnProperty(key)) {
+    for (let key in HerdSummary) {
+        if (HerdSummary.hasOwnProperty(key)) {
             addFromKey(key);
         }
     }
 }
 
-function changeDisplayedCow(gender, cowID) {
-    let cows = getSessionDict("Cows");
+function changeDisplayedCow(gender = null, cowID = null) {
+    LoadedGender = gender;
 
-    if (gender != undefined) {
-        sessionStorage.setItem("LoadedGender", gender);
-    } else {
-        sessionStorage.setItem("LoadedGender", "none");
-    }
-
-    if (gender != undefined && cowID != undefined) {
+    if (LoadedGender != null && cowID != null) {
         let cowname = document.getElementById("cow-name");
         if (cowname.classList.contains("owner")) {
             cowname.disabled = false;
         }
 
-        if (gender == "bulls") {
+        if (LoadedGender == "bulls") {
             document.getElementById("add-to-bull-stack").style.display = "";
         } else {
             document.getElementById("add-to-bull-stack").style.display = "none";
         }
 
-        let stats = cows[gender][cowID];
+        let stats = Cows[LoadedGender][cowID];
         document.getElementById("cow-name").value = stats["name"];
 
         document.getElementById("id" + "-ipt").value = cowID;
@@ -176,10 +171,9 @@ function changeDisplayedCow(gender, cowID) {
         document.getElementById("add-to-bull-stack").style.display = "none";
 
         document.getElementById("cow-recessives").innerHTML = "~";
-        let stats = getSessionDict("HerdSummary");
-        for (let key in stats) {
-            if (stats.hasOwnProperty(key)) {
-                document.getElementById(key + "-ipt").value = stats[key];
+        for (let key in HerdSummary) {
+            if (HerdSummary.hasOwnProperty(key)) {
+                document.getElementById(key + "-ipt").value = HerdSummary[key];
             }
         }
     }
@@ -198,10 +192,9 @@ function changeDisplayedCow(gender, cowID) {
 function setSortOrder() {
     let reverse = document.getElementById("sort-pos-neg");
     let orderby = document.getElementById("order-by");
-    let cows = getSessionDict("Cows");
 
-    displayCowsBy(orderby.value, reverse.value == "neg", "bulls", cows);
-    displayCowsBy(orderby.value, reverse.value == "neg", "cows", cows);
+    displayCowsBy(orderby.value, reverse.value == "neg", "bulls", Cows);
+    displayCowsBy(orderby.value, reverse.value == "neg", "cows", Cows);
 }
 
 function filterHasName(val) {
@@ -304,10 +297,10 @@ function removeBull(target) {
 function IDChange(target) {
     if (target.value > Number.MAX_SAFE_INTEGER) return;
 
-    if (sessionStorage.getItem("CanChangeId") == "true") {
-        sessionStorage.setItem("CanChangeId", "false");
+    if (CanChangeId) {
+        CanChangeId = false;
         FetchIDChange(target).finally(() => {
-            sessionStorage.setItem("CanChangeId", "true");
+            CanChangeId = true;
         });
     } else {
         setTimeout(() => {
@@ -317,9 +310,7 @@ function IDChange(target) {
 }
 
 async function setCowName(event) {
-    let loadedGender = sessionStorage.getItem("LoadedGender");
-
-    if (loadedGender == "none") return;
+    if (LoadedGender == null) return;
     event.target.disabled = true;
 
     let id = document.getElementById("id-ipt").value;
@@ -334,11 +325,9 @@ async function setCowName(event) {
     let jsondata = await data.json();
 
     if (jsondata["successful"]) {
-        cows = getSessionDict("Cows");
-        cows[loadedGender][id]["name"] = newname;
-        setSessionDict("Cows", cows);
+        Cows[LoadedGender][id]["name"] = newname;
 
-        alertreal("Name Changed", `Name was successfully changed to <br> ${newname}`, "ok");
+        alertreal("Name Changed", `Name was successfully changed to <br>"${newname}"`, "ok");
     } else {
         alertreal("Name Change Failed", "Name change was unsuccessful.", "ok");
     }
@@ -349,10 +338,9 @@ async function setCowName(event) {
 }
 
 async function moveToClassHerd(event) {
-    let loadedGender = sessionStorage.getItem("LoadedGender");
-    if (loadedGender == "none") return;
+    if (LoadedGender == null) return;
 
-    let gender = loadedGender == "bulls" ? "bull" : "cow";
+    let gender = LoadedGender == "bulls" ? "bull" : "cow";
 
     event.target.disabled = true;
 
@@ -369,13 +357,11 @@ async function moveToClassHerd(event) {
         let data = await fetch(`/move-cow/${id}`);
         let jsondata = await data.json();
 
-        let cows = getSessionDict("Cows");
         if (jsondata["successful"]) {
-            alertreal("Move Successful", `${cows[loadedGender][id]["name"]} was successfully moved to class herd.`, "ok");
-            delete cows[loadedGender][id];
-            setSessionDict("Cows", cows);
+            alertreal("Move Successful", `${Cows[LoadedGender][id]["name"]} was successfully moved to class herd.`, "ok");
+            delete Cows[LoadedGender][id];
         } else {
-            alertreal("Move Failed", `${cows[gender][id]["name"]} could not be moved to class herd.`, "ok");
+            alertreal("Move Failed", `${Cows[gender][id]["name"]} could not be moved to class herd.`, "ok");
         }
 
         setSortOrder();
@@ -393,7 +379,7 @@ async function FetchIDChange(target) {
         return;
     };
 
-    let data = await fetch(`/get-cow-name/${sessionStorage.getItem("ClassId")}/${target.value}`);
+    let data = await fetch(`/get-cow-name/${ClassId}/${target.value}`);
     let jsonData = await data.json();
 
     if (jsonData["name"] == null) {
@@ -405,17 +391,6 @@ async function FetchIDChange(target) {
     }
 }
 
-async function setUp() {
-    sessionStorage.setItem("CanChangeId", "true");
-    sessionStorage.setItem("LoadedGender", "none");
-
-    await loadHerdSummary();
-    await loadCows();
-    displayTraits();
-    displayCows();
-    changeDisplayedCow();
-}
-
 function addToBullStack() {
     let stack = getcookie("bullstack");
     stack = new Set(stack.split(","));
@@ -424,3 +399,15 @@ function addToBullStack() {
     setcookie("bullstack", Array.from(stack).join(","), 1);
     alertreal("Bull Added", `Bull ${id} has been added to your breeding stack.`, "Ok");
 }
+
+async function setUp() {
+    CanChangeId = true;
+    LoadedGender = null;
+
+    await loadHerdSummary();
+    await loadCows();
+    displayTraits();
+    displayCows();
+    changeDisplayedCow();
+}
+

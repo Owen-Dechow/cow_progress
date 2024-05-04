@@ -105,14 +105,6 @@ function getcookie(cookie) {
     return "";
 }
 
-function getSessionDict(id) {
-    return JSON.parse(sessionStorage.getItem(id));
-}
-
-async function setSessionDict(id, obj) {
-    sessionStorage.setItem(id, JSON.stringify(obj));
-}
-
 function toggleTheme() {
     if (getcookie("theme") == "dark") {
         setcookie("theme", "light", 365);

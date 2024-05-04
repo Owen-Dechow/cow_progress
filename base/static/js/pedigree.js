@@ -1,9 +1,11 @@
+var Pedigree;
+var AnimalId;
+
 async function setUp() {
-    let pedigreeID = sessionStorage.getItem("Pedigree");
-    if (pedigreeID > -1) {
-        let data = await fetch("get-pedigree-" + pedigreeID);
+    if (AnimalId > -1) {
+        let data = await fetch("get-pedigree-" + AnimalId);
         if (data.ok) {
-            setSessionDict("Pedigree", await data.json());
+            Pedigree = Object.freeze(await data.json());
             displayTree();
             await loadCowData();
         } else {
@@ -13,10 +15,9 @@ async function setUp() {
 }
 
 function displayTree() {
-    let tree = getSessionDict("Pedigree");
     let container = document.getElementById("pedigree");
-    let gender = tree["sex"] == "Male" ? "Bull" : "Cow"
-    unpackDictToNode(container, tree, gender + " (", ")");
+    let gender = Pedigree["sex"] == "Male" ? "Bull" : "Cow";
+    unpackDictToNode(container, Pedigree, gender + " (", ")");
 }
 
 function unpackDictToNode(node, dict, textprefix, textsuffix) {
@@ -38,7 +39,7 @@ function unpackDictToNode(node, dict, textprefix, textsuffix) {
     } else {
         let span = document.createElement("span");
         span.style.display = "block";
-        span.textContent = "[Sire Unknown]";
+        span.textContent = "sire (unregistered)";
         div.append(span);
     }
     if (dict["dam"]) {
@@ -46,7 +47,7 @@ function unpackDictToNode(node, dict, textprefix, textsuffix) {
     } else {
         let span = document.createElement("span");
         span.style.display = "block";
-        span.textContent = "[Dam Unknown]";
+        span.textContent = "dam (unregistered)";
         div.append(span);
     }
     details.append(div);
@@ -95,8 +96,7 @@ function addTableToNode(node, dict, title, overide) {
 }
 
 async function loadCowData() {
-    let tree = getSessionDict("Pedigree");
-    let response = await fetch(`get-data-${tree["id"]}`);
+    let response = await fetch(`get-data-${Pedigree["id"]}`);
     let data = await response.json();
 
 
@@ -110,7 +110,7 @@ async function loadCowData() {
         infoDict["Sire"] = data["Sire"];
         infoDict["Inbreeding Coefficient"] = data[["Inbreeding Coefficient"]];
 
-        addTableToNode(container, infoDict, "Info", false)
+        addTableToNode(container, infoDict, "Info", false);
         addTableToNode(container, data["traits"], "PTAs", false);
         addTableToNode(container, data["recessives"], "Recessives", true);
     }
