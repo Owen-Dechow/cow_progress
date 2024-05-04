@@ -14,7 +14,6 @@ from . import forms
 from . import excel
 from .resources.resources import get_resources
 from .traitinfo.traitsets import TraitSet, Recessive
-import timeit
 
 ########### Utility functions ##########
 
@@ -512,12 +511,7 @@ def get_class_datafile(request: WSGIRequest, classID: int):
     with BytesIO() as output:
         file = excel.ExcelDoc(output, [f"Sheet1"], overridename=True, in_memory=True)
         file.add_format("header", {"bold": True})
-        print("startwrite")
-        time = timeit.timeit(
-            lambda: file.write_block(0, block, (1, 1), "header"),
-            number=1,
-        )
-        print(f"endwrite ({time})")
+        file.write_block(0, block, (1, 1), "header"),
         file.freeze_cells(0, (1, 0))
         file.close()
 
