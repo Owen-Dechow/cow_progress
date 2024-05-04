@@ -443,15 +443,17 @@ def get_class_tendchart(request: WSGIRequest, classID: int):
         models.Enrollment, connectedclass=connectedclass, user=request.user
     )
 
-    row1 = ["Action ID"] + [x for x in connectedclass.trend_log["Initial Population"]]
+    row1 = [x for x in connectedclass.trend_log["Initial Population"]]
     block = [row1]
 
     for row_id, row_info in connectedclass.trend_log.items():
-        row = [row_id]
-        for key in row1[1:]:
+        row = []
+        for key in row1:
             row.append(row_info[key])
 
         block.append(row)
+
+    print(block)
 
     with BytesIO() as output:
         file = excel.ExcelDoc(output, [f"Sheet1"], overridename=True, in_memory=True)
@@ -630,6 +632,10 @@ def auto_generate_herd(request: WSGIRequest):
         animal.name = animal.auto_generate_name(herd)
         animal.pedigree = animal.auto_generate_pedigree()
     models.Bovine.objects.bulk_update(animals, ["name", "pedigree"])
+
+    herd.connectedclass.update_trend_log(
+        f"{request.user.get_full_name()} [{request.user.username}] created: {herd.name}"
+    )
 
     return HttpResponseRedirect(f"/openherd-{herd.id}")
 

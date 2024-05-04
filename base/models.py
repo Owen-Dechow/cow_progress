@@ -562,6 +562,11 @@ class Class(models.Model):
                     else:
                         summary[f"ph: {key}"] += value
 
+                if f"inbreeding coefficient" not in summary:
+                    summary[f"inbreeding coefficient"] = animal.inbreeding
+                else:
+                    summary[f"inbreeding coefficient"] += animal.inbreeding
+
         for key, value in summary.items():
             summary[key] = round(summary[key] / animal_count, PTA_DECIMALS)
 

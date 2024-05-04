@@ -50,6 +50,7 @@ class ExcelDoc:
         """Writes a 2d array to sheet starting from top left"""
 
         for rowIDX, row in enumerate(data):
+            print(row)
             if rowIDX == 0 and firstrowformmater is not None:
                 self.sheets[sheet].write_row(
                     self.convert_position(startposition),
@@ -58,7 +59,9 @@ class ExcelDoc:
                 )
             else:
                 self.sheets[sheet].write_row(
-                    self.convert_position(startposition),
+                    self.convert_position(
+                        (startposition[0], startposition[1] + rowIDX)
+                    ),
                     row,
                 )
 
