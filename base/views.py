@@ -453,8 +453,6 @@ def get_class_tendchart(request: WSGIRequest, classID: int):
 
         block.append(row)
 
-    print(block)
-
     with BytesIO() as output:
         file = excel.ExcelDoc(output, [f"Sheet1"], overridename=True, in_memory=True)
         file.add_format("header", {"bold": True})
