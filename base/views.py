@@ -12,8 +12,9 @@ from io import BytesIO
 from . import models
 from . import forms
 from . import excel
+from .models import NET_MERIT_KEY
 from .resources.resources import get_resources
-from .traitinfo.traitsets import TraitSet, Recessive
+from .traitinfo.traitsets import TraitSet
 
 ########### Utility functions ##########
 
@@ -211,17 +212,13 @@ def classes(request: WSGIRequest):
     }
 
     if request.method == "POST":
-        try:
-            formid = request.POST["formid"]
-            form = view_forms[formid](request.POST)
-            view_forms[formid] = form
+        formid = request.POST["formid"]
+        form = view_forms[formid](request.POST)
+        view_forms[formid] = form
 
-            assert form.is_valid(request.user)
+        if form.is_valid(request.user):
             form.save(request.user)
-
             form.data = dict()
-        except Exception as e:
-            raise Http404(e)
 
     enrollments = models.Enrollment.objects.filter(user=request.user)
     enrollment_info = {}
@@ -393,7 +390,7 @@ def get_herd_file(request: WSGIRequest, herdID: int):
             "Sire",
             "Dam",
             "Inbreeding Coefficient",
-            "Net Merit",
+            NET_MERIT_KEY,
         ]
         + [x.name for x in traitset.traits if connectedclass.viewable_traits[x.name]]
         + [
@@ -497,7 +494,7 @@ def get_class_datafile(request: WSGIRequest, classID: int):
             "Sire",
             "Dam",
             "Inbreeding Coefficient",
-            "Net Merit",
+            NET_MERIT_KEY,
         ]
         + [x.name for x in traitset.traits]
         + [f"ph: {x.name}" for x in traitset.traits]

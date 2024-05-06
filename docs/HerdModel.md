@@ -76,7 +76,7 @@ get_summary(self):
     "Milk": 0.56,
     "PROT": -0.1,
     "SCS": "~",
-    "Net Merit": 15,
+    "NM$": 15,
 }
 ```
 
@@ -100,7 +100,7 @@ get_herd_dict(self):
                 "Milk": 0.56,
                 "PROT": -0.1,
                 "SCS": "~",
-                "Net Merit": 15,
+                "NM$": 15,
             },
             "recessives": {
                 "BLAD": 0,

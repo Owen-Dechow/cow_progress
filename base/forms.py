@@ -1,6 +1,7 @@
 from django.contrib.auth.forms import UserCreationForm
 from django import forms
 from . import models
+from .models import NET_MERIT_KEY
 from .traitinfo.traitsets import TraitSet, TRAITSET_CHOICES
 
 
@@ -20,16 +21,16 @@ class JoinClass(forms.Form):
         # Find connected class for code
         try:
             connectedclass = models.Class.get_from_code(self.data["connectedclass"])
-        except:
+        except models.Class.DoesNotExist:
             return False
 
         try:
             # Make sure user is not already enrolled in class
-            _ = models.Enrollment.objects.get(
+            _enrollment = models.Enrollment.objects.get(
                 connectedclass=connectedclass[0], user=user
             )
             return False
-        except:
+        except models.Enrollment.DoesNotExist:
             return super().is_valid()
 
     def save(self, user):
@@ -46,8 +47,8 @@ class JoinClass(forms.Form):
     @staticmethod
     def validate_classcode(value):
         try:
-            connectedclass = models.Class.get_from_code(value)
-        except:
+            _connectedclass = models.Class.get_from_code(value)
+        except models.Class.DoesNotExist:
             raise forms.ValidationError("This is not a recognized classcode.")
 
     connectedclass = forms.CharField(
@@ -93,7 +94,7 @@ class AddClass(forms.Form):
         connectedclass.traitset = self.cleaned_data["traitset"]
 
         traitset = TraitSet(connectedclass.traitset)
-        connectedclass.viewable_traits = {"Net Merit": True}
+        connectedclass.viewable_traits = {NET_MERIT_KEY: True}
         connectedclass.viewable_traits |= {x.name: True for x in traitset.traits}
         connectedclass.viewable_recessives = {x.name: True for x in traitset.recessives}
 

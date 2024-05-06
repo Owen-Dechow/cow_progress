@@ -47,7 +47,7 @@
                 "RFI": false,
                 "EFC": false,
                 "HLV": false,
-                "Net Merit": false
+                "NM$": false
             },
             "viewable_recessives": {
                 "BLAD": true,
@@ -64,7 +64,7 @@
                 "Initial Population": {
                     "Timestamp": "2023-11-24 17:48:23.365476",
                     "Population Size": 160,
-                    "Net Merit": -12.949,
+                    "NM$": -12.949,
                     "MILK": -25.117,
                     "FAT": -1.808,
                     "PROT": -1.358,

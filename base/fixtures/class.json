@@ -30,7 +30,7 @@
             "generation": 0,
             "male": false,
             "genotype": {
-                "Net Merit": -32.647,
+                "NM$": -32.647,
                 "MILK": -114.464,
                 "FAT": 18.805,
                 "PROT": 2.012,
@@ -96,7 +96,7 @@
             "generation": 0,
             "male": false,
             "genotype": {
-                "Net Merit": 65.859,
+                "NM$": 65.859,
                 "MILK": 471.526,
                 "FAT": -7.067,
                 "PROT": 4.947,
@@ -162,7 +162,7 @@
             "generation": 0,
             "male": true,
             "genotype": {
-                "Net Merit": 137.363,
+                "NM$": 137.363,
                 "MILK": 511.997,
                 "FAT": 19.223,
                 "PROT": 15.814,
@@ -228,7 +228,7 @@
             "generation": 0,
             "male": true,
             "genotype": {
-                "Net Merit": -254.866,
+                "NM$": -254.866,
                 "MILK": -395.588,
                 "FAT": -28.779,
                 "PROT": -13.341,
@@ -311,7 +311,7 @@
                 "RFI": false,
                 "EFC": false,
                 "HLV": false,
-                "Net Merit": false
+                "NM$": false
             },
             "viewable_recessives": {
                 "BLAD": true,
@@ -328,7 +328,7 @@
                 "Initial Population": {
                     "Timestamp": "2023-11-24 17:48:23.365476",
                     "Population Size": 160,
-                    "Net Merit": -12.949,
+                    "NM$": -12.949,
                     "MILK": -25.117,
                     "FAT": -1.808,
                     "PROT": -1.358,

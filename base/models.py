@@ -6,6 +6,7 @@ from .inbreeding import InbreedingCalculator
 from .traitinfo.traitsets import Recessive, TraitSet, TRAITSET_CHOICES, Trait, DOMAIN
 
 PTA_DECIMALS = 3  # Number of decimal placements shown for PTAs on website/ xlsx files
+NET_MERIT_KEY = "NM$"
 
 
 # Holds a group of animals
@@ -426,7 +427,7 @@ class Bovine(models.Model):
         traitset = TraitSet(self.connectedclass.traitset)
 
         self.genotype = {
-            "Net Merit": round(
+            NET_MERIT_KEY: round(
                 traitset.calculate_net_merit(self.genotype),
                 PTA_DECIMALS,
             )
@@ -475,8 +476,8 @@ class Bovine(models.Model):
                     row.append(self.dam_id if self.dam_id else "~")
                 case "inbreeding coefficient":
                     row.append(self.inbreeding)
-                case "net merit" | "nm$":
-                    row.append(self.genotype["Net Merit"])
+                case k if k == NET_MERIT_KEY:
+                    row.append(self.genotype[NET_MERIT_KEY])
                 case "herd":
                     row.append(self.herd.name if self.herd_id else "~")
                 case "sex" | "gender":

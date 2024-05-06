@@ -103,7 +103,7 @@ def get_dict(self, connectedclass=None):
 ```python
 def set_net_merit(self):
 # Calculates and sets the Net Merit (NM$) of the animal
-# NM$ value will be saved as 'Net Merit' key in genotypes
+# NM$ value will be saved as models.NET_MERIT_KEY in genotypes
 ```
 
 ```python

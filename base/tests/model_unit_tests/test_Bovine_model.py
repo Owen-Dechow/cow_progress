@@ -1,6 +1,7 @@
 from django.test import TestCase
 from base import models
 from ..utils import load_fixture, create_authenticated_client, INFO
+from base.models import NET_MERIT_KEY
 
 
 class TestBovineModel(TestCase):
@@ -110,8 +111,8 @@ class TestBovineModel(TestCase):
 
         animal.set_net_merit()
 
-        self.assertIn("Net Merit", animal.genotype)
-        self.assertNotEquals(animal.genotype["Net Merit"], 0)
+        self.assertIn(NET_MERIT_KEY, animal.genotype)
+        self.assertNotEquals(animal.genotype[NET_MERIT_KEY], 0)
 
     @load_fixture("class.json")
     def test_auto_generate_name(self):
