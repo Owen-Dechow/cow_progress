@@ -1,6 +1,5 @@
 asgiref==3.8.1
 Django==4.2
-django-debug-toolbar==4.1.0
 django-environ==0.10.0
 gunicorn==21.2.0
 numpy==1.24.3

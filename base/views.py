@@ -479,8 +479,22 @@ def get_class_datafile(request: WSGIRequest, classID: int):
         teacher=True,
     )
 
-    animals = models.Bovine.objects.select_related("herd").filter(
-        connectedclass=classID
+    animals = (
+        models.Bovine.objects.select_related("herd")
+        .only(
+            "name",
+            "id",
+            "herd",
+            "generation",
+            "male",
+            "sire",
+            "dam",
+            "inbreeding",
+            "phenotype",
+            "genotype",
+            "recessives",
+        )
+        .filter(connectedclass=classID)
     )
     traitset = TraitSet(enrollment.connectedclass.traitset)
 
