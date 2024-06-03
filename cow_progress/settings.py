@@ -39,6 +39,7 @@ EMAIL_HOST_USER = env("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD")
 
 LOGGING = {
+    "version": 1,
     "handlers": {
         "file": {
             "class": "logging.FileHandler",

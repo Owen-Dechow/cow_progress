@@ -7,3 +7,4 @@ default_*.sqlite3
 __pycache__/
 transition_script.py
 data.json
+general.log
