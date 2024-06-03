@@ -40,10 +40,19 @@ EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD")
 
 LOGGING = {
     "version": 1,
+    "disable_existing_loggers": False,
     "handlers": {
         "file": {
+            "level": "ERROR",
             "class": "logging.FileHandler",
             "filename": "general.log",
+        },
+    },
+    "loggers": {
+        "": {
+            "handlers": ["file"],
+            "level": "DEBUG",
+            "propagate": True,
         },
     },
 }
