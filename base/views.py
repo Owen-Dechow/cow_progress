@@ -358,7 +358,10 @@ def classes(request: WSGIRequest):
 @login_required
 def recessives(request: WSGIRequest, class_id: int):
     enrollment = enrollment_or_404(request, class_id)
-    args = {"recessives": TraitSet(enrollment.connectedclass.traitset).recessives}
+    args = {
+        "recessives": TraitSet(enrollment.connectedclass.traitset).recessives,
+        "class": enrollment.connectedclass,
+    }
     return render(request, "base/recessives.html", args)
 
 
@@ -369,7 +372,11 @@ def pedigree(request: WSGIRequest, class_id: int, animal_id: int):
         models.Bovine, id=animal_id, connectedclass=enrollment.connectedclass
     )
 
-    return render(request, "base/pedigree.html", {"animal": animal})
+    return render(
+        request,
+        "base/pedigree.html",
+        {"animal": animal, "class": enrollment.connectedclass},
+    )
 
 
 @login_required
