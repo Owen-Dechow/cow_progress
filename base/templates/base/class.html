@@ -74,8 +74,8 @@
       </form>
 
       {% comment %}Class codes{% endcomment %}
-      <form method="POST" class="classcodes">
-        {% if enrollment.teacher %}
+      {% if enrollment.teacher %}
+        <form method="POST" class="classcodes">
           <div>
             Student Code: <b><i>{{ class.classcode }}</i></b>
             <button class="copy" type="button" onclick="Copy('{{ class.classcode }}')">&#x2398;</button>
@@ -84,12 +84,14 @@
             Teacher Code: <b><i>{{ class.teacherclasscode }}</i></b>
             <button class="copy" type="button" onclick="Copy('{{ class.teacherclasscode }}')">&#x2398;</button>
           </div>
-        {% else %}
+        </form>
+      {% else %}
+        <form method="POST" class="classcodes" action="/class/{{ class.id }}/promote/">
           {% csrf_token %}
-          <label>Teacher Promotion Code:&nbsp;<input type="text" maxlength="100" /></label>
+          <label>Teacher Promotion Code:&nbsp;<input name="classcode" type="text" maxlength="100" /></label>
           <button type="submit">Promote Enrollment to Teacher</button>
-        {% endif %}
-      </form>
+        </form>
+      {% endif %}
 
       {% comment %}Class members{% endcomment %}
       {% if enrollment.teacher %}

@@ -117,7 +117,7 @@ def new_class(request: WSGIRequest):
         form = forms.AddClass(request.POST)
         if form.is_valid():
             enrollment = form.save(request.user)
-            return HttpResponseRedirect(f"/class/{enrollment.connectedclass.id}")
+            return HttpResponseRedirect(f"/class/{enrollment.connectedclass.id}/")
     else:
         form = forms.AddClass()
 
@@ -131,7 +131,7 @@ def join_class(request: WSGIRequest):
         form = forms.JoinClass(request.POST)
         if form.is_valid(request.user):
             enrollment = form.save(request.user)
-            return HttpResponseRedirect(f"/class/{enrollment.connectedclass.id}")
+            return HttpResponseRedirect(f"/class/{enrollment.connectedclass.id}/")
     else:
         form = forms.JoinClass()
 
@@ -196,6 +196,22 @@ def exit_class(request: WSGIRequest, class_id: int):
 
 
 @login_required
+@transaction.atomic
+@require_POST
+@csrf_protect
+def promote_class(request: WSGIRequest, class_id: int):
+    enrollment = enrollment_or_404(request, class_id)
+    if (
+        request.POST.get("classcode", None)
+        == enrollment.connectedclass.teacherclasscode
+    ):
+        enrollment.teacher = True
+        enrollment.save()
+
+    return HttpResponseRedirect(f"/class/{enrollment.connectedclass.id}/")
+
+
+@login_required
 def open_class(request: WSGIRequest, class_id: int):
     enrollment = get_object_or_404(
         models.Enrollment, connectedclass=class_id, user=request.user
@@ -243,7 +259,7 @@ def account(request: WSGIRequest):
         form = forms.EditUser(request.POST)
         if form.is_valid():
             form.save(request.user)
-            return HttpResponseRedirect("/account")
+            return HttpResponseRedirect("/account/")
         else:
             return render(request, "auth/account.html", {"form": form} | context)
     else:
@@ -313,45 +329,6 @@ def open_herd(request: WSGIRequest, class_id: int, herd_id: int):
             "enrollment": enrollment,
             "class": enrollment.connectedclass,
         },
-    )
-
-
-@transaction.atomic
-@login_required
-def classes(request: WSGIRequest):
-    """Your classes page"""
-
-    view_forms = {
-        "joinclass": forms.JoinClass,
-        "addclass": forms.AddClass,
-        "exitclass": forms.ExitClass,
-        "deleteclass": forms.DeleteClass,
-        "promoteclass": forms.PromoteClass,
-        "updateclass": forms.UpdateClass,
-    }
-
-    if request.method == "POST":
-        formid = request.POST["formid"]
-        form = view_forms[formid](request.POST)
-        view_forms[formid] = form
-
-        if form.is_valid(request.user):
-            form.save(request.user)
-            form.data = dict()
-
-    enrollments = models.Enrollment.objects.filter(user=request.user)
-    enrollment_info = {}
-
-    for e in enrollments:
-        enrollment_info[e] = list(
-            models.Enrollment.objects.prefetch_related("user").filter(
-                connectedclass=e.connectedclass
-            )
-        )
-    return render(
-        request,
-        "base/classes.html",
-        view_forms | {"enrollmentinfo": enrollment_info},
     )
 
 
@@ -430,6 +407,7 @@ def herdsummaries(request: WSGIRequest, class_id: int):
     return JsonResponse(summaries)
 
 
+@login_required
 def herdsummary(request: WSGIRequest, class_id: int, herd_id: int):
     """JSON dict of a herd summary"""
 
@@ -785,7 +763,7 @@ def delete_account(request: WSGIRequest):
     if auth_password(request):
         request.user.is_active = False
         request.user.save()
-        return HttpResponseRedirect("/auth/account-deleted")
+        return HttpResponseRedirect("/auth/account-deleted/")
 
     messages.error(request, "wrong-password")
-    return HttpResponseRedirect("/account")
+    return HttpResponseRedirect("/account/")

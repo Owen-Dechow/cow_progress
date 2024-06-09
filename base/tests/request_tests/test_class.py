@@ -1,6 +1,6 @@
 from django.test import TestCase
 from base import models
-from ..utils import load_fixture, rand_id, create_authenticated_client
+from ..utils import load_fixture, rand_id, create_authenticated_client, INFO
 
 
 class TestClassSystem(TestCase):
@@ -15,17 +15,16 @@ class TestClassSystem(TestCase):
 
     def test_addclass(self):
         _ = self.teacher.post(
-            "/classes",
+            "/class/new/",
             {
                 "classname": f"Test Class {rand_id()}",
                 "info": f"Test Class Info {rand_id()}",
-                "formid": "addclass",
                 "traitset": "NM_2021",
             },
             secure=True,
         )
 
-        self.assertEquals(models.Class.objects.count(), 1)
+        self.assertEqual(models.Class.objects.count(), 1)
 
     @load_fixture("class_no_cows.json")
     def test_joinclass(self):
@@ -33,82 +32,60 @@ class TestClassSystem(TestCase):
 
         for student in self.students:
             _ = student.post(
-                "/classes",
+                f"/class/join/",
                 {
                     "connectedclass": classcode,
-                    "formid": "joinclass",
                 },
                 secure=True,
             )
 
-        self.assertEquals(models.Enrollment.objects.count(), len(self.students) + 1)
+        self.assertEqual(models.Enrollment.objects.count(), len(self.students) + 1)
 
     @load_fixture("class_no_cows.json")
     def test_exitclass(self):
         connectedclass = models.Class.objects.first()
-        classcode = connectedclass.classcode
+        for student in self.students:
+            models.Enrollment(
+                connectedclass=connectedclass, user=student.user, teacher=False
+            ).save()
 
         for student in self.students:
             _ = student.post(
-                "/classes",
-                {
-                    "connectedclass": classcode,
-                    "formid": "joinclass",
-                },
+                f"/class/{INFO.CLASS_ID}/exit/",
+                {},
                 secure=True,
             )
 
-            _ = student.post(
-                "/classes",
-                {
-                    "connectedclass": connectedclass.id,
-                    "formid": "exitclass",
-                },
-                secure=True,
-            )
-
-        self.assertEquals(models.Enrollment.objects.count(), 1)
+        self.assertEqual(models.Enrollment.objects.count(), 1)
 
     @load_fixture("class_no_cows.json")
     def test_deleteclass(self):
         self.teacher.post(
-            "/classes",
-            {
-                "connectedclass": 1,
-                "formid": "deleteclass",
-            },
+            f"/class/{INFO.CLASS_ID}/delete/",
+            {},
             secure=True,
         )
 
-        self.assertEquals(models.Class.objects.count(), 0)
+        self.assertEqual(models.Class.objects.count(), 0)
 
     @load_fixture("class_no_cows.json")
     def test_premoteclass(self):
         connectedclass = models.Class.objects.first()
-        classcode = connectedclass.classcode
         teacherclasscode = connectedclass.teacherclasscode
+        student = self.students[0]
+        models.Enrollment(
+            connectedclass=connectedclass, user=student.user, teacher=False
+        ).save()
 
-        for student in self.students:
-            _ = student.post(
-                "/classes",
-                {
-                    "connectedclass": classcode,
-                    "formid": "joinclass",
-                },
-                secure=True,
-            )
+        _ = student.post(
+            f"/class/{INFO.CLASS_ID}/promote/",
+            {
+                "classcode": teacherclasscode,
+            },
+            secure=True,
+        )
 
-            _ = student.post(
-                "/classes",
-                {
-                    "connectedclass": connectedclass.id,
-                    "classcode": teacherclasscode,
-                    "formid": "promoteclass",
-                },
-                secure=True,
-            )
-
-            self.assertTrue(models.Enrollment.objects.last().teacher)
+        self.assertTrue(models.Enrollment.objects.get(user=student.user).teacher)
 
     @load_fixture("class_no_cows.json")
     def test_updateclass(self):
@@ -117,20 +94,18 @@ class TestClassSystem(TestCase):
         viewable_ptas = ["MILK", "PROT", "FAT"]
 
         _ = self.teacher.post(
-            "/classes",
+            f"/class/{INFO.CLASS_ID}/update/",
             {
-                "connectedclass": 1,
                 "classinfo": classinfo,
                 "maxgen": maxgen,
-                "formid": "updateclass",
             }
             | {f"trait-{pta.upper()}": True for pta in viewable_ptas},
             secure=True,
         )
 
         connectedclass = models.Class.objects.first()
-        self.assertEquals(connectedclass.info, classinfo)
-        self.assertEquals(connectedclass.breeding_limit, maxgen)
+        self.assertEqual(connectedclass.info, classinfo)
+        self.assertEqual(connectedclass.breeding_limit, maxgen)
 
         for key, val in connectedclass.viewable_traits.items():
-            self.assertEquals(val, key in viewable_ptas)
+            self.assertEqual(val, key in viewable_ptas)

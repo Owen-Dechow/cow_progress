@@ -61,7 +61,6 @@ class JoinClass(forms.Form):
         strip=False,
         label="Class Code",
     )
-    formid = forms.CharField(initial="joinclass", widget=forms.HiddenInput, label="")
 
 
 # Create a class form
@@ -197,47 +196,6 @@ class ExitClass(forms.Form):
             ),
         )
         enrollment.delete()
-
-
-# Premote from student to teacher form
-class PromoteClass(forms.Form):
-    connectedclass = forms.IntegerField(widget=forms.HiddenInput)
-    formid = forms.CharField(initial="promoteclass", widget=forms.HiddenInput)
-    classcode = forms.CharField(
-        max_length=100,
-        label="Teacher Promotion Code",
-    )
-
-    def is_valid(self, user) -> bool:
-        try:
-            # Check to make sure that student is already in class
-            enrollment = models.Enrollment.objects.get(
-                user=user,
-                connectedclass=models.Class.objects.get(id=self.data["connectedclass"]),
-            )
-
-            # Check to make sure that class exists
-            assert models.Class.get_from_code(self.data["classcode"])[1]
-
-            # Check to make sure that entered code is a teacher code
-            assert not enrollment.teacher
-
-            # Standard validation
-            return super().is_valid()
-        except:
-            return False
-
-    def save(self, user):
-        """Update the users enrollment info"""
-
-        enrollment = models.Enrollment.objects.get(
-            user=user,
-            connectedclass=models.Class.objects.get(
-                id=self.cleaned_data["connectedclass"]
-            ),
-        )
-        enrollment.teacher = True
-        enrollment.save()
 
 
 # Change user info form

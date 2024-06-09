@@ -33,10 +33,11 @@ INFO = Info()
 
 def create_authenticated_client(username) -> Client:
     client = Client()
-    User.objects.create_user(
+    user = User.objects.create_user(
         username=username, password="password", first_name="John", last_name="Doe"
     )
-    client.login(username=username, password="password")
+    client.force_login(user)
+    client.user = user
 
     return client
 

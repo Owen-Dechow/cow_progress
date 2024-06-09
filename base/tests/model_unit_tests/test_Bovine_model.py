@@ -28,13 +28,13 @@ class TestBovineModel(TestCase):
         self.assertTrue(male.male)
         self.assertFalse(female.male)
 
-        self.assertEquals(male.herd, herd)
-        self.assertEquals(male.sire, sire)
-        self.assertEquals(male.dam, dam)
-        self.assertEquals(male.pedigree, INFO.BRED_PEDIGREE)
-        self.assertEquals(male.generation, herd.breedings)
-        self.assertEquals(male.connectedclass, herd.connectedclass)
-        self.assertNotEquals(male.inbreeding, None)
+        self.assertEqual(male.herd, herd)
+        self.assertEqual(male.sire, sire)
+        self.assertEqual(male.dam, dam)
+        self.assertEqual(male.pedigree, INFO.BRED_PEDIGREE)
+        self.assertEqual(male.generation, herd.breedings)
+        self.assertEqual(male.connectedclass, herd.connectedclass)
+        self.assertNotEqual(male.inbreeding, None)
 
     @load_fixture("class_no_cows.json")
     def test_auto_generate(self):
@@ -48,13 +48,13 @@ class TestBovineModel(TestCase):
         self.assertTrue(male.male)
         self.assertFalse(female.male)
 
-        self.assertEquals(male.herd, herd)
-        self.assertEquals(male.sire, None)
-        self.assertEquals(male.dam, None)
-        self.assertEquals(male.pedigree, None)
-        self.assertEquals(male.generation, 0)
-        self.assertEquals(male.connectedclass, herd.connectedclass)
-        self.assertEquals(male.inbreeding, 0)
+        self.assertEqual(male.herd, herd)
+        self.assertEqual(male.sire, None)
+        self.assertEqual(male.dam, None)
+        self.assertEqual(male.pedigree, None)
+        self.assertEqual(male.generation, 0)
+        self.assertEqual(male.connectedclass, herd.connectedclass)
+        self.assertEqual(male.inbreeding, 0)
 
     @load_fixture("class.json")
     def test_set_phenotypes(self):
@@ -65,7 +65,7 @@ class TestBovineModel(TestCase):
 
         animal.set_phenotypes()
 
-        self.assertNotEquals(animal.phenotype, initial)
+        self.assertNotEqual(animal.phenotype, initial)
 
         for trait in INFO.TRAITSET.traits:
             self.assertIn(trait.name, animal.phenotype)
@@ -112,7 +112,7 @@ class TestBovineModel(TestCase):
         animal.set_net_merit()
 
         self.assertIn(NET_MERIT_KEY, animal.genotype)
-        self.assertNotEquals(animal.genotype[NET_MERIT_KEY], 0)
+        self.assertNotEqual(animal.genotype[NET_MERIT_KEY], 0)
 
     @load_fixture("class.json")
     def test_auto_generate_name(self):
@@ -120,7 +120,7 @@ class TestBovineModel(TestCase):
         herd = animal.herd
 
         name = animal.auto_generate_name(herd)
-        self.assertEquals(name, INFO.BOVINE_1_NAME)
+        self.assertEqual(name, INFO.BOVINE_1_NAME)
 
     @load_fixture("class_personal_herd.json")
     def test_auto_generate_pedigree(self):
@@ -129,7 +129,7 @@ class TestBovineModel(TestCase):
         herd = models.Herd.objects.get(id=INFO.PERSONAL_HERD_ID)
         animal = models.Bovine.create_from_breeding(sire, dam, herd, True)
 
-        self.assertEquals(animal.pedigree, INFO.BRED_PEDIGREE)
+        self.assertEqual(animal.pedigree, INFO.BRED_PEDIGREE)
 
     @load_fixture("class_bred_herd.json")
     def test_get_inbreeding(self):
@@ -140,5 +140,5 @@ class TestBovineModel(TestCase):
         animal2.pedigree = INFO.INBRED_PEDIGREE
         animal2.get_inbreeding()
 
-        self.assertEquals(animal1.inbreeding, 0)
-        self.assertEquals(animal2.inbreeding, INFO.INBRED_PEDIGREE_COEFFICIENT)
+        self.assertEqual(animal1.inbreeding, 0)
+        self.assertEqual(animal2.inbreeding, INFO.INBRED_PEDIGREE_COEFFICIENT)
