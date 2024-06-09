@@ -1,0 +1,89 @@
+main {
+    max-width: 550px;
+    margin-inline: auto;
+    width: calc(100% -20px);
+    margin-top: 10px;
+}
+
+main .class {
+    padding: 10px;
+    background-color: var(--prime);
+}
+
+main .class>summary {
+    font-size: 2rem;
+}
+
+main .class>div {
+    display: flex;
+    flex-direction: column;
+    background-color: var(--secondary);
+    padding: 10px;
+    margin: 10px;
+}
+
+main .class button,
+main .class input,
+main .class textarea,
+main .class a.as-btn {
+    background-color: var(--prime);
+    resize: vertical;
+}
+
+main .class form {
+    display: flex;
+    flex-direction: column;
+}
+
+main .class label {
+    margin-top: 10px;
+}
+
+
+main .classdata details {
+    margin-block: 10px;
+}
+
+main .classdata details>div {
+    columns: 2;
+    width: fit-content;
+    margin-left: 20px;
+}
+
+main .classdata details summary {
+    padding: 10px;
+}
+
+main .classcodes {
+    margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+main .classcodes button.copy {
+    font-size: 1.5em;
+    margin: 0;
+    padding: 0;
+    padding-inline: 3px;
+}
+
+main .classmembers summary {
+    margin-top: 10px;
+    padding: 10px;
+}
+
+main .classmembers>div {
+    padding: 10px;
+    margin-left: 10px;
+}
+
+main .exit-class {
+    margin-top: 10px;
+}
+
+main .herds-link {
+    font-size: 1.5rem;
+    margin-top: 10px;
+    width: 100%;
+}
