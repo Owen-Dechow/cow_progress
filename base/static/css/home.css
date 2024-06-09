@@ -72,10 +72,25 @@ main .info-panel .lines {
     white-space: pre-line;
 }
 
-main .pedigree-btn {
+main .classes {
+    margin: 10px;
+    gap: 5px;
+    display: flex;
+    flex-wrap: wrap;
+}
+
+main .classes a {
+    text-align: left;
+    display: block;
+}
+
+main .classes a.add-class {
+    background-color: var(--prime);
+}
+
+main .credit-btn {
+    margin: 10px;
     width: calc(100% - 20px);
-    box-sizing: border-box;
-    margin: 10px 0 0 10px;
 }
 
 main .hero-text {

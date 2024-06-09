@@ -57,11 +57,30 @@
     </div>
   </div>
 
-  <a href="/pedigree" class="as-btn pedigree-btn">Pedigree/Animal Lookup</a>
-  <a href="/credits" class="as-btn pedigree-btn">Credits</a>
+  <div class="classes">
+    {% for enrollment in enrollments %}
+      <a class="as-btn" href="/class/{{ enrollment.connectedclass.id }}">
+        <div>
+          <b>{{ enrollment.connectedclass }}</b>
+        </div>
+        <div>Profesor: {{ enrollment.connectedclass.owner.get_full_name }}</div>
+      </a>
+    {% endfor %}
+    <a class="as-btn add-class" href="/class/new">
+      <div>
+        <b>+</b>
+      </div>
+      <div>Create New Class</div>
+    </a>
+    <a class="as-btn add-class" href="/class/join">
+      <div>
+        <b>+</b>
+      </div>
+      <div>Join New Class</div>
+    </a>
+  </div>
 
   <div class="info-panel">
-    {% comment %} <img class="small" src="" alt="boy holding cow" /> {% endcomment %}
     <picture>
       <source srcset="{% static 'media/HOL.webp' %}" />
       <source srcset="{% static 'media/HOL.JPG' %}" type="image/jpeg" />
@@ -69,7 +88,7 @@
     </picture>
     <div class="large hero-text">
       <h2>Research, Select & Breed</h2>
-      Simulate Holstein breeding programs, focusing on PTAs, genetic recessives and inbreeding coefficients.
+      Simulate Holstein breeding programs, focusing on PTAs, genetic recessives, and inbreeding coefficients.
     </div>
   </div>
   <div class="info-panel">
@@ -83,4 +102,6 @@
       {% endfor %}
     </div>
   </div>
+
+  <a href="/credits" class="as-btn credit-btn">Credits</a>
 {% endblock %}

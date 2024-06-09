@@ -22,9 +22,9 @@
     <button type="submit">Change Info</button>
   </form>
   <form>
-    <a class="as-btn" href="/auth/password-change">Change Password</a>
+    <a class="as-btn" href="/auth/password-change/">Change Password</a>
   </form>
-  <form method="POST" action="/auth/delete-account">
+  <form method="POST" action="/auth/delete-account/">
     {% csrf_token %}
     <h1>Delete Account</h1>
     {{ passwordcheck }}
@@ -35,6 +35,6 @@
       </ul>
     {% endif %}
 
-    <button href="/auth/delete-account" onclick="cancelClick(this, 'Delete Account?', 'Are you sure you want to delete you account? This action cannot be undone.', 'Delete Account', 'Cancel'); return false;">Delete Account</button>
+    <button onclick="cancelClick(this, 'Delete Account?', 'Are you sure you want to delete you account? This action cannot be undone.', 'Delete Account', 'Cancel'); return false;">Delete Account</button>
   </form>
 {% endblock %}

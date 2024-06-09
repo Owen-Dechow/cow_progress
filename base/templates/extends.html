@@ -1,5 +1,6 @@
 {% load static %}
 {% load dic %}
+{% load navpath %}
 
 <!DOCTYPE html>
 <html lang="en">
@@ -31,7 +32,10 @@
   <body class="{{ request.COOKIES|dic:'theme' }}">
     <div class="alert" id="alert"></div>
     <nav>
-      <a class="home-link" href="/">Cow Progress</a>
+      <div class="path">
+        {% navpath %}
+      </div>
+
       <button onclick="toggleTheme()" class="theme-toggle" title="toggle color theme" type="button">
         <svg version="1.0" xmlns="http://www.w3.org/2000/svg" width="272.000000pt" height="272.000000pt" viewBox="0 0 272.000000 272.000000" preserveAspectRatio="xMidYMid meet">
           <g transform="translate(0.000000,272.000000) scale(0.100000,-0.100000)" stroke="none">
@@ -41,9 +45,6 @@
       </button>
 
       {% if user.is_authenticated %}
-        <a href="/herds">Herds</a>
-        <a href="/classes">Classes</a>
-
         {% if user.is_staff %}
           <a href="/admin/">Admin</a>
         {% endif %}
@@ -55,6 +56,7 @@
         <a href="/auth/login">Login</a>
       {% endif %}
     </nav>
+
     <main>
       {% block body %}
 

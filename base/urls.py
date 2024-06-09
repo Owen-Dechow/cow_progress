@@ -1,38 +1,42 @@
 from django.urls import path
 from . import views
 
-urlpatterns = (
-    [  ########### Page patterns ###########
-        path("", views.home, name="home"),
-        path("herds", views.herds, name="herds"),
-        path("openherd-<int:herdID>", views.open_herd, name="openherd"),
-        path("account", views.account, name="account"),
-        path("classes", views.classes, name="classes"),
-        path("recessives/<str:traitset>", views.recessives, name="recessives"),
-        path("pedigree", views.pedigree, name="pedigree"),
-        path("cookies", views.cookies, name="cookies"),
-        path("credits", views.app_credits, name="credits"),
-    ]
-    + [  ########### JSON patterns ###########
-        path("herdsummaries", views.herdsummaries),
-        path("herdsummary-<int:herdID>", views.herdsummary),
-        path("herddata-<int:herdID>", views.get_herd_data),
-        path("get-cow-name/<int:classID>/<int:cowID>", views.get_bull_name),
-        path("get-pedigree-<int:pedigreeID>", views.get_pedigree),
-        path("get-data-<int:cowID>", views.get_cow_data),
-    ]
-    + [  ########### File patterns ###########
-        path("herd-file/<int:herdID>", views.get_herd_file),
-        path("classtrend-file/<int:classID>", views.get_class_tendchart),
-        path("classdata-file/<int:classID>", views.get_class_datafile),
-    ]
-    + [  ########### Actions -> success dict ###########
-        path("move-cow/<int:cowID>", views.move_cow),
-        path("set-cow-name/<int:cowID>/<str:name>", views.change_name),
-    ]
-    + [  ########### Actions -> redirect ###########
-        path("breed-herd/<int:herdID>", views.breed_herd, name="new-herd"),
-        path("auto-generate-herd", views.auto_generate_herd, name="autogenerate-herd"),
-        path("delete-herd/<int:herdID>", views.delete_herd, name="delete-herd"),
-    ]
-)
+urlpatterns = [  ########### Page patterns ###########
+    path("", views.home, name="home"),
+    path("account/", views.account, name="account"),
+    path("cookies/", views.cookies, name="cookies"),
+    path("credits/", views.app_credits, name="credits"),
+    # New class based
+    path("class/new/", views.new_class),
+    path("class/join/", views.join_class),
+    path("class/<int:class_id>/", views.open_class),
+    path("class/<int:class_id>/", views.open_class),
+    path("class/<int:class_id>/recessives/", views.recessives),
+    path("class/<int:class_id>/update/", views.update_class),
+    path("class/<int:class_id>/delete/", views.delete_class),
+    path("class/<int:class_id>/exit/", views.exit_class),
+    path("class/<int:class_id>/trendfile/", views.get_class_tendchart),
+    path("class/<int:class_id>/datafile/", views.get_class_datafile),
+    path("class/<int:class_id>/herds/generate/", views.auto_generate_herd),
+    path("class/<int:class_id>/herds/summaries/", views.herdsummaries),
+    path("class/<int:class_id>/herds/", views.herds),
+    path("class/<int:class_id>/herds/<int:herd_id>/", views.open_herd),
+    path("class/<int:class_id>/herds/<int:herd_id>/file/", views.get_herd_file),
+    path("class/<int:class_id>/herds/<int:herd_id>/breed/", views.breed_herd),
+    path("class/<int:class_id>/herds/<int:herd_id>/summary/", views.herdsummary),
+    path("class/<int:class_id>/herds/<int:herd_id>/data/", views.herddata),
+    path("class/<int:class_id>/herds/<int:herd_id>/delete/", views.delete_herd),
+    path(
+        "class/<int:class_id>/herds/<int:herd_id>/animal/<int:animal_id>/move/",
+        views.move_animal,
+    ),
+    path(
+        "class/<int:class_id>/herds/<int:herd_id>/animal/<int:animal_id>/rename/<str:name>/",
+        views.rename,
+    ),
+    path("class/<int:class_id>/bullname/<int:bull_id>/", views.get_bull_name),
+    path("class/<int:class_id>/pedigree/<int:animal_id>/", views.pedigree),
+    path("class/<int:class_id>/pedigree/<int:animal_id>/get/", views.get_pedigree),
+    path("class/<int:class_id>/pedigree/<int:animal_id>/get/", views.get_pedigree),
+    path("class/<int:class_id>/pedigree/<int:animal_id>/data/", views.get_cow_data),
+]

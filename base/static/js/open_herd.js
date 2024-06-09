@@ -6,7 +6,7 @@ var CanChangeId;
 var ClassId;
 
 async function loadCows() {
-    let cows = await fetch("/herddata-" + HerdId);
+    let cows = await fetch(new URL("data", window.location));
 
     if (!cows.ok) {
         alertreal("Error Loading Data", "Error loading herd data. Please try again.", "ok");
@@ -16,7 +16,7 @@ async function loadCows() {
 }
 
 async function loadHerdSummary() {
-    let summary = await fetch("/herdsummary-" + HerdId);
+    let summary = await fetch(new URL("summary", window.location));
     if (!summary.ok) {
         alertreal("Error Loading Data", "Error loading herd data. Please try again.", "ok");
     }
@@ -155,7 +155,7 @@ function changeDisplayedCow(gender = null, cowID = null) {
             }
         }
 
-        document.getElementById("pedigree-link").href = `/pedigree?animal_id=${cowID}`;
+        document.getElementById("pedigree-link").href = `/class/${ClassId}/pedigree/${cowID}/`;
 
     } else {
         pedigreeLink = document.getElementById("pedigree-link");
@@ -321,7 +321,7 @@ async function setCowName(event) {
         return;
     }
 
-    let data = await fetch(`/set-cow-name/${id}/${newname}`);
+    let data = await fetch(new URL(`animal/${id}/rename/${newname}`, window.location));
     let jsondata = await data.json();
 
     if (jsondata["successful"]) {
@@ -354,7 +354,7 @@ async function moveToClassHerd(event) {
     if (confirm) {
 
         let id = document.getElementById("id-ipt").value;
-        let data = await fetch(`/move-cow/${id}`);
+        let data = await fetch(new URL(`animal/${id}/move`, window.location));
         let jsondata = await data.json();
 
         if (jsondata["successful"]) {
@@ -379,7 +379,7 @@ async function FetchIDChange(target) {
         return;
     };
 
-    let data = await fetch(`/get-cow-name/${ClassId}/${target.value}`);
+    let data = await fetch(`/class/${ClassId}/bullname/${target.value}/`);
     let jsonData = await data.json();
 
     if (jsonData["name"] == null) {

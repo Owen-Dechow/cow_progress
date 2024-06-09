@@ -32,11 +32,14 @@ DEBUG = eval(env("DEBUG"))
 
 ALLOWED_HOSTS = eval(env("ALLOWED_HOSTS"))
 
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST = "smtp.gmail.com"
-EMAIL_HOST_USER = env("EMAIL_HOST_USER")
-EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD")
+if eval(env("USE_LOCAL_EMAIL")):
+    EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+else:
+    EMAIL_PORT = 587
+    EMAIL_USE_TLS = True
+    EMAIL_HOST = "smtp.gmail.com"
+    EMAIL_HOST_USER = env("EMAIL_HOST_USER")
+    EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD")
 
 LOGGING = {
     "version": 1,
@@ -169,7 +172,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/"
 
-LOGIN_URL = "/auth/login"
+LOGIN_URL = "/auth/login/"
 
 SECURE_SSL_REDIRECT = eval(env("USE_HTTPS_ONLY"))
 CSRF_COOKIE_SECURE = eval(env("USE_HTTPS_ONLY"))

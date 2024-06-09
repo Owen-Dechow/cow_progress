@@ -1,7 +1,7 @@
 var Sumaries;
 
 async function loadHerds() {
-    let herds = await fetch("/herdsummaries");
+    let herds = await fetch(new URL("summaries", window.location));
     if (!herds.ok) {
         alertreal("Error Loading Data", "Error loading herd data. Please try again.", "ok");
         return false;
@@ -37,16 +37,10 @@ function displayHerdsBy(orderby, reverse, protection, summaries) {
     for (let key in keylist) {
         if (keylist.hasOwnProperty(key)) {
             let protectedKey = keylist[key];
-            let herdName = summaries[protection][protectedKey]["name"];
-            let className = summaries[protection][protectedKey]["class"];
 
             let btn = document.createElement("button");
-            if (protection == "private") {
-                btn.textContent = `[${className}] ${herdName}`;
-            } else {
-                btn.textContent = `${herdName}`;
-            }
 
+            btn.textContent = summaries[protection][protectedKey]["name"];
             btn.herdid = protectedKey;
             btn.setAttribute('type', "button");
 
@@ -102,7 +96,7 @@ function changeDisplayedHerd(publicprivate, herdid) {
 
     displayTraits(herdsum);
 
-    document.getElementById("open-herd-link").href = "/openherd-" + herdid;
+    document.getElementById("open-herd-link").href = new URL(herdid, window.location);
     document.getElementById("herd-name").textContent = Sumaries[publicprivate][herdid]["name"];
 
     document.getElementById("ID" + "-ipt").value = herdid;

@@ -9,7 +9,9 @@ main form {
 }
 
 
-main form input {
+main form input,
+main form textarea,
+main form select {
     margin-bottom: 20px;
 }
 

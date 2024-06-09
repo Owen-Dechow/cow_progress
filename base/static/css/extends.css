@@ -27,8 +27,19 @@ nav a {
     text-decoration: none;
 }
 
-nav a.home-link {
+nav div.path {
     margin-right: auto;
+    display: flex;
+    padding: 10px;
+}
+
+nav div.path a {
+    padding: 0;
+    margin-right: 10px;
+}
+
+nav div.path a:hover {
+    background-color: inherit;
 }
 
 nav a:hover {
@@ -117,7 +128,7 @@ h1 {
 }
 
 .as-link:hover {
-    filter: brightness(90%);
+    filter: brightness(100%);
     text-decoration: underline;
 }
 
