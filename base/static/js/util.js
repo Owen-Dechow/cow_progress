@@ -118,7 +118,7 @@ function toggleTheme() {
 }
 
 window.addEventListener("DOMContentLoaded", async () => {
-    if (getcookie("acceptedcookie") != "true" && window.location.pathname != "/cookies") {
+    if (getcookie("acceptedcookie") != "true" && window.location.pathname != "/cookies/") {
         alertreal(
             "COOKIES IN USE!",
             `
@@ -137,7 +137,7 @@ window.addEventListener("DOMContentLoaded", async () => {
         let div = document.getElementById("alert").getElementsByTagName("div")[0];
         let a = document.createElement("a");
         a.textContent = "More Info";
-        a.href = "/cookies";
+        a.href = "/cookies/";
         a.classList.add("as-btn");
         div.append(a);
     }

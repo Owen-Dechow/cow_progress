@@ -26,7 +26,7 @@ function unpackDictToNode(node, dict, textprefix, textsuffix) {
     summary.textContent = textprefix + dict["id"] + textsuffix;
     details.append(summary);
 
-    a.href = new URL(`../${dict["id"]}/`, window.location);
+    a.href = new URL(`../${dict["id"]}`, window.location);
     a.textContent = "Open Pedigree";
     a.classList.add("as-link");
     summary.append(a);

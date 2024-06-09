@@ -159,7 +159,7 @@ function changeDisplayedCow(gender = null, cowID = null) {
 
     } else {
         pedigreeLink = document.getElementById("pedigree-link");
-        if (pedigreeLink) pedigreeLink.href = "javascript:void(0);";
+        if (pedigreeLink) pedigreeLink.href = "javascript:void(0)";
 
         document.getElementById("cow-name").value = "[HERD SUMMARY]";
         document.getElementById("id" + "-ipt").value = "~";

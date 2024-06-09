@@ -118,7 +118,7 @@ function toggleTheme() {
 }
 
 window.addEventListener("DOMContentLoaded", async () => {
-    if (getcookie("acceptedcookie") != "true" && window.location.pathname != "/cookies/") {
+    if (getcookie("acceptedcookie") != "true" && window.location.pathname != "/cookies") {
         alertreal(
             "COOKIES IN USE!",
             `

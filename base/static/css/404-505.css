@@ -1,14 +1,8 @@
-body {
-    background-color: var(--neutral);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-}
-
 main {
     background-color: var(--prime);
-    width: min(600px, 100%);
+    width: min(600px, calc(100% - 20px));
+    margin-inline: auto;
+    margin-top: 10px;
 }
 
 main h1 {

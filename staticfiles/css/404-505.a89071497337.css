@@ -1,8 +1,7 @@
 main {
     background-color: var(--prime);
-    width: min(600px, calc(100% - 20px));
+    width: min(600px, 100%);
     margin-inline: auto;
-    margin-top: 10px;
 }
 
 main h1 {

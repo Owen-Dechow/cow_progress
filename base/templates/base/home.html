@@ -59,20 +59,20 @@
 
   <div class="classes">
     {% for enrollment in enrollments %}
-      <a class="as-btn" href="/class/{{ enrollment.connectedclass.id }}">
+      <a class="as-btn" href="/class/{{ enrollment.connectedclass.id }}/">
         <div>
           <b>{{ enrollment.connectedclass }}</b>
         </div>
         <div>Profesor: {{ enrollment.connectedclass.owner.get_full_name }}</div>
       </a>
     {% endfor %}
-    <a class="as-btn add-class" href="/class/new">
+    <a class="as-btn add-class" href="/class/new/">
       <div>
         <b>+</b>
       </div>
       <div>Create New Class</div>
     </a>
-    <a class="as-btn add-class" href="/class/join">
+    <a class="as-btn add-class" href="/class/join/">
       <div>
         <b>+</b>
       </div>
@@ -97,11 +97,11 @@
 
       {% for r in resources %}
         <p>
-          {{ r.title }}: <a class="as-link" href="{{ r.link }}">{{ r.link }}</a>
+          {{ r.title }}: <a class="as-link" href="{{ r.link }}/">{{ r.link }}</a>
         </p>
       {% endfor %}
     </div>
   </div>
 
-  <a href="/credits" class="as-btn credit-btn">Credits</a>
+  <a href="/credits/" class="as-btn credit-btn">Credits</a>
 {% endblock %}

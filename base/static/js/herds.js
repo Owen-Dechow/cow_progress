@@ -1,7 +1,7 @@
 var Sumaries;
 
 async function loadHerds() {
-    let herds = await fetch(new URL("summaries", window.location));
+    let herds = await fetch(new URL("summaries/", window.location));
     if (!herds.ok) {
         alertreal("Error Loading Data", "Error loading herd data. Please try again.", "ok");
         return false;
@@ -96,7 +96,7 @@ function changeDisplayedHerd(publicprivate, herdid) {
 
     displayTraits(herdsum);
 
-    document.getElementById("open-herd-link").href = new URL(herdid, window.location);
+    document.getElementById("open-herd-link").href = new URL(`${herdid}/`, window.location);
     document.getElementById("herd-name").textContent = Sumaries[publicprivate][herdid]["name"];
 
     document.getElementById("ID" + "-ipt").value = herdid;

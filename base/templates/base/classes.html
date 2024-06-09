@@ -38,9 +38,9 @@
         <details class="enrollment-wrapper">
           <summary>{{ enrollment.connectedclass.name }}</summary>
           <div class="enrollment">
-            <a href="/classtrend-file/{{ enrollment.connectedclass.id }}" class="as-btn">Download trend .xlsx</a>
+            <a href="/classtrend-file/{{ enrollment.connectedclass.id }}/" class="as-btn">Download trend .xlsx</a>
             {% if enrollment.teacher %}
-              <a href="/classdata-file/{{ enrollment.connectedclass.id }}" class="as-btn">Download Class Data .xlsx</a>
+              <a href="/classdata-file/{{ enrollment.connectedclass.id }}/" class="as-btn">Download Class Data .xlsx</a>
             {% endif %}
             <div class="classinfo">
               {% if enrollment.teacher %}

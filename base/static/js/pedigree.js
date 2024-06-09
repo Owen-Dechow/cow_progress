@@ -1,7 +1,7 @@
 var Pedigree;
 
 async function setUp() {
-    let data = await fetch(new URL("get", window.location));
+    let data = await fetch(new URL("get/", window.location));
     if (data.ok) {
         Pedigree = Object.freeze(await data.json());
         displayTree();
@@ -26,7 +26,7 @@ function unpackDictToNode(node, dict, textprefix, textsuffix) {
     summary.textContent = textprefix + dict["id"] + textsuffix;
     details.append(summary);
 
-    a.href = new URL(`../${dict["id"]}`, window.location);
+    a.href = new URL(`../${dict["id"]}/`, window.location);
     a.textContent = "Open Pedigree";
     a.classList.add("as-link");
     summary.append(a);
@@ -93,7 +93,7 @@ function addTableToNode(node, dict, title, overide) {
 }
 
 async function loadCowData() {
-    let response = await fetch("data", window.location);
+    let response = await fetch("data/", window.location);
     let data = await response.json();
 
 
