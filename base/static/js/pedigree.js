@@ -1,16 +1,13 @@
 var Pedigree;
-var AnimalId;
 
 async function setUp() {
-    if (AnimalId > -1) {
-        let data = await fetch("get-pedigree-" + AnimalId);
-        if (data.ok) {
-            Pedigree = Object.freeze(await data.json());
-            displayTree();
-            await loadCowData();
-        } else {
-            alertreal("Error Loading Data", "The pedigree you asked for could not be loaded.", "ok");
-        }
+    let data = await fetch(new URL("get", window.location));
+    if (data.ok) {
+        Pedigree = Object.freeze(await data.json());
+        displayTree();
+        await loadCowData();
+    } else {
+        alertreal("Error Loading Data", "The pedigree you asked for could not be loaded.", "ok");
     }
 }
 
@@ -29,7 +26,7 @@ function unpackDictToNode(node, dict, textprefix, textsuffix) {
     summary.textContent = textprefix + dict["id"] + textsuffix;
     details.append(summary);
 
-    a.href = `/pedigree?animal_id=${dict["id"]}`;
+    a.href = new URL(`../${dict["id"]}`, window.location);
     a.textContent = "Open Pedigree";
     a.classList.add("as-link");
     summary.append(a);
@@ -96,7 +93,7 @@ function addTableToNode(node, dict, title, overide) {
 }
 
 async function loadCowData() {
-    let response = await fetch(`get-data-${Pedigree["id"]}`);
+    let response = await fetch("data", window.location);
     let data = await response.json();
 
 

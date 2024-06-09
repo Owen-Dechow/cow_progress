@@ -1,0 +1,130 @@
+{% extends '../extends.html' %}
+
+{% load dic %}
+{% load static %}
+
+{% block title %}
+  {{ class }}
+{% endblock %}
+
+{% block links %}
+  <link rel="stylesheet" href="{% static 'css/class.css' %}" />
+{% endblock %}
+
+{% block body %}
+  <details class="class">
+    <summary>{{ class }}</summary>
+
+    <div>
+      {% comment %}Data files{% endcomment %}
+      <a href="/class/{{ class.id }}/trendfile/" class="as-btn">Download trend .xlsx</a>
+      {% if enrollment.teacher %}
+        <a href="/class/{{ class.id }}/datafile/" class="as-btn">Download Class Data .xlsx</a>
+      {% endif %}
+
+      {% comment %}Class data{% endcomment %}
+      <form method="POST" class="classdata" action="/class/{{ class.id }}/update/">
+        {% if enrollment.teacher %}
+          {% csrf_token %}
+          <label for="classinfo">Class Info</label>
+          <textarea name="classinfo" id="classinfo">{{ class.info }}</textarea>
+          <label for="maxgen">Max number of breedings</label>
+          <input type="number" min="0" name="maxgen" value="{{ class.breeding_limit }}" id="maxgen" />
+
+          <details class="ptas">
+            <summary>Viewable PTAs</summary>
+            <div>
+              {% for pta, viewable in class.viewable_traits.items %}
+                <div>
+                  {% if viewable %}
+                    <input type="checkbox" name="trait-{{ pta }}" id="trait-{{ pta }}" checked />
+                  {% else %}
+                    <input type="checkbox" name="trait-{{ pta }}" id="trait-{{ pta }}" />
+                  {% endif %}
+                  <label for="trait-{{ pta }}">{{ pta }}</label>
+                </div>
+              {% endfor %}
+            </div>
+          </details>
+
+          <details class="recessives">
+            <summary>Viewable Recessives</summary>
+            <div>
+              {% for rec, viewable in class.viewable_recessives.items %}
+                <div>
+                  {% if viewable %}
+                    <input type="checkbox" name="rec-{{ rec }}" id="rec-{{ rec }}" checked />
+                  {% else %}
+                    <input type="checkbox" name="rec-{{ rec }}" id="rec-{{ rec }}" />
+                  {% endif %}
+                  <label for="rec-{{ rec }}">{{ rec }}</label>
+                  <label for="rec-{{ pta }}">{{ pta }}</label>
+                </div>
+              {% endfor %}
+            </div>
+          </details>
+
+          <button type="submit">Update Class</button>
+        {% else %}
+          <label for="classinfo">Class Info</label>
+          <textarea name="classinfo" id="classinfo" readonly>{{ class.info }}</textarea>
+          <label for="maxgen">Max number of breedings</label>
+          <input type="number" min="0" name="maxgen" value="{{ class.breeding_limit }}" id="maxgen" readonly />
+        {% endif %}
+      </form>
+
+      {% comment %}Class codes{% endcomment %}
+      <form method="POST" class="classcodes">
+        {% if enrollment.teacher %}
+          <div>
+            Student Code: <b><i>{{ class.classcode }}</i></b>
+            <button class="copy" type="button" onclick="Copy('{{ class.classcode }}')">&#x2398;</button>
+          </div>
+          <div>
+            Teacher Code: <b><i>{{ class.teacherclasscode }}</i></b>
+            <button class="copy" type="button" onclick="Copy('{{ class.teacherclasscode }}')">&#x2398;</button>
+          </div>
+        {% else %}
+          {% csrf_token %}
+          <label>Teacher Promotion Code:&nbsp;<input type="text" maxlength="100" /></label>
+          <button type="submit">Promote Enrollment to Teacher</button>
+        {% endif %}
+      </form>
+
+      {% comment %}Class members{% endcomment %}
+      {% if enrollment.teacher %}
+        <details class="classmembers">
+          <summary>Class Members</summary>
+          <div class="members">
+            {% for member in members %}
+              {% if member.user != request.user %}
+                <div class="member" id="member-{{ member.id }}">
+                  <span>{{ member.user.get_full_name }}:</span>
+                  <b><i>{{ member.user.email }}</i></b>
+                  {% if not member.teacher or class.owner == request.user %}
+                    <button onclick="deleteuser(event, '{{ member.id }}', '{{ member.user.get_full_name }}')">Remove</button>
+                  {% endif %}
+                </div>
+              {% endif %}
+            {% endfor %}
+          </div>
+        </details>
+      {% endif %}
+
+      {% comment %}Exit class{% endcomment %}
+      {% if class.owner == request.user %}
+        <form method="POST" action="/class/{{ class.id }}/delete/" class="exit-class">
+          {% csrf_token %}
+          <button type="submit" onclick="cancelClick(this, 'Delete Class?', 'Are you sure you want to delete {{ class.name }}? This will delete all herds, animals and enrollments connected to class.', 'Delete {{ class.name }}', 'Cancel'); return false;">Delete Class</button>
+        </form>
+      {% else %}
+        <form method="POST" class="exit-class" action="/class/{{ class.id }}/exit/">
+          {% csrf_token %}
+          <button type="submit" onclick="cancelClick(this, 'Leave Class?', 'Are you sure you want to leave {{ class.name }}? This will delete all herds and animals you have connected to class.', 'Leave {{ class.name }}', 'Cancel'); return false;">Exit Class</button>
+        </form>
+      {% endif %}
+    </div>
+  </details>
+
+  <a href="/class/{{ class.id }}/herds" class="as-btn herds-link">Go To Herds</a>
+{% endblock %}

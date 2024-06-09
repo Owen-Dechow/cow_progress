@@ -8,6 +8,8 @@ from django.db import transaction
 from django.http import HttpResponseRedirect, JsonResponse, HttpResponse
 from django.shortcuts import render, get_object_or_404, Http404
 from django.utils.text import slugify
+from django.views.decorators.http import require_POST
+from django.views.decorators.csrf import csrf_protect
 from io import BytesIO
 from . import models
 from . import forms
@@ -20,11 +22,11 @@ from .traitinfo.traitsets import TraitSet
 
 
 def auth_herd(
-    request: WSGIRequest, herd: models.Herd, error=True, use_class_herds=True
+    request: WSGIRequest, herd: models.Herd, error=True, allow_class_herds=True
 ):
     """Authenticate a users herd acceses"""
 
-    if use_class_herds:
+    if allow_class_herds:
         classes = (
             [
                 x.connectedclass
@@ -77,6 +79,14 @@ def JSONSuccess(success: bool):
     return JsonResponse({"successful": success})
 
 
+def enrollment_or_404(request: WSGIRequest, _class):
+    return get_object_or_404(
+        models.Enrollment.objects.select_related("connectedclass"),
+        user=request.user,
+        connectedclass=_class,
+    )
+
+
 ########## Page views ##########
 
 
@@ -91,8 +101,113 @@ def error_500_handler(request):
 def home(request: WSGIRequest):
     """Home page"""
 
-    args = {"resources": get_resources()}
+    enrollments = (
+        models.Enrollment.objects.filter(user=request.user)
+        if request.user.is_authenticated
+        else []
+    )
+    args = {"resources": get_resources(), "enrollments": enrollments}
     return render(request, "base/home.html", args)
+
+
+@login_required
+@transaction.atomic
+def new_class(request: WSGIRequest):
+    if request.method == "POST":
+        form = forms.AddClass(request.POST)
+        if form.is_valid():
+            enrollment = form.save(request.user)
+            return HttpResponseRedirect(f"/class/{enrollment.connectedclass.id}")
+    else:
+        form = forms.AddClass()
+
+    return render(request, "base/new_class.html", {"form": form})
+
+
+@login_required
+@transaction.atomic
+def join_class(request: WSGIRequest):
+    if request.method == "POST":
+        form = forms.JoinClass(request.POST)
+        if form.is_valid(request.user):
+            enrollment = form.save(request.user)
+            return HttpResponseRedirect(f"/class/{enrollment.connectedclass.id}")
+    else:
+        form = forms.JoinClass()
+
+    return render(request, "base/join_class.html", {"form": form})
+
+
+@login_required
+@transaction.atomic
+@require_POST
+@csrf_protect
+def update_class(request: WSGIRequest, class_id: int):
+    enrollment = enrollment_or_404(request, class_id)
+
+    if not enrollment.teacher:
+        raise Http404("User does not have permission to update class")
+
+    connectedclass = enrollment.connectedclass
+    connectedclass.info = request.POST.get("classinfo", "~")
+
+    maxgen = request.POST.get("maxgen", "~")
+    if not maxgen.isdigit():
+        maxgen = 1
+    connectedclass.breeding_limit = maxgen
+
+    for trait in connectedclass.viewable_traits:
+        connectedclass.viewable_traits[trait] = "trait-" + trait in request.POST
+
+    for rec in connectedclass.viewable_recessives:
+        connectedclass.viewable_recessives[rec] = "rec-" + rec in request.POST
+
+    connectedclass.save()
+
+    return HttpResponseRedirect(f"/class/{connectedclass.id}/")
+
+
+@login_required
+@transaction.atomic
+@require_POST
+@csrf_protect
+def delete_class(request: WSGIRequest, class_id: int):
+    enrollment = enrollment_or_404(request, class_id)
+    if request.user != enrollment.connectedclass.owner:
+        raise Http404("User does not have permission to delete class.")
+
+    enrollment.connectedclass.delete()
+
+    return HttpResponseRedirect("/")
+
+
+@login_required
+@transaction.atomic
+@require_POST
+@csrf_protect
+def exit_class(request: WSGIRequest, class_id: int):
+    enrollment = enrollment_or_404(request, class_id)
+    if request.user == enrollment.connectedclass.owner:
+        raise Http404("Owner cannot exit class")
+
+    enrollment.delete()
+
+    return HttpResponseRedirect("/")
+
+
+@login_required
+def open_class(request: WSGIRequest, class_id: int):
+    enrollment = get_object_or_404(
+        models.Enrollment, connectedclass=class_id, user=request.user
+    )
+    _class = get_object_or_404(models.Class, id=class_id)
+    members = models.Enrollment.objects.filter(connectedclass=_class)
+
+    return render(
+        request,
+        "base/class.html",
+        {"class": _class, "members": members, "enrollment": enrollment},
+    )
 
 
 @transaction.atomic
@@ -147,18 +262,17 @@ def account_deleted(request: WSGIRequest):
 
 @transaction.atomic
 @login_required
-def herds(request: WSGIRequest):
+def herds(request: WSGIRequest, class_id: int):
     """Your herds page"""
 
-    classes = [
-        x.connectedclass for x in models.Enrollment.objects.filter(user=request.user)
-    ]
+    enrollment = enrollment_or_404(request, class_id)
 
     return render(
         request,
         "base/herds.html",
         {
-            "classes": classes,
+            "enrollment": enrollment,
+            "class": enrollment.connectedclass,
             "maxlen": models.Herd._meta.get_field("name").max_length,
         },
     )
@@ -166,13 +280,16 @@ def herds(request: WSGIRequest):
 
 @transaction.atomic
 @login_required
-def open_herd(request: WSGIRequest, herdID: int):
+def open_herd(request: WSGIRequest, class_id: int, herd_id: int):
     """View herd page"""
 
+    enrollment = enrollment_or_404(request, class_id)
     herd = get_object_or_404(
-        models.Herd.objects.select_related("connectedclass__herd"), id=herdID
+        models.Herd.objects.select_related("connectedclass__herd"),
+        id=herd_id,
+        connectedclass=enrollment.connectedclass,
     )
-    auth_herd(request, herd)
+    auth_herd(request, herd, allow_class_herds=True)
 
     if herd.connectedclass.herd == herd:
         herdstatus = "Class"
@@ -193,6 +310,8 @@ def open_herd(request: WSGIRequest, herdID: int):
             "herd": herd,
             "herdstatus": herdstatus,
             "deaths": deaths,
+            "enrollment": enrollment,
+            "class": enrollment.connectedclass,
         },
     )
 
@@ -236,35 +355,30 @@ def classes(request: WSGIRequest):
     )
 
 
-def recessives(request: WSGIRequest, traitset: str):
-    try:
-        args = {"recessives": TraitSet(traitset).recessives}
-    except:
-        raise Http404("Invalid traitset name")
-
+@login_required
+def recessives(request: WSGIRequest, class_id: int):
+    enrollment = enrollment_or_404(request, class_id)
+    args = {"recessives": TraitSet(enrollment.connectedclass.traitset).recessives}
     return render(request, "base/recessives.html", args)
 
 
-def pedigree(request: WSGIRequest):
-    animal_id = -1
-    data_id = -1
-
-    if "animal_id" in request.GET:
-        try:
-            animal_id = int(request.GET["animal_id"])
-        except:
-            animal_id = float("inf")
-
-        try:
-            data_id = models.Bovine.objects.get(id=animal_id).id
-        except:
-            data_id = -1
-
-    return render(
-        request,
-        "base/pedigree.html",
-        {"animal_id": animal_id, "data_id": data_id},
+@login_required
+def pedigree(request: WSGIRequest, class_id: int, animal_id: int):
+    enrollment = enrollment_or_404(request, class_id)
+    animal = get_object_or_404(
+        models.Bovine, id=animal_id, connectedclass=enrollment.connectedclass
     )
+
+    return render(request, "base/pedigree.html", {"animal": animal})
+
+
+@login_required
+def get_pedigree(request: WSGIRequest, class_id: int, animal_id: int):
+    enrollment = enrollment_or_404(request, class_id)
+    animal = get_object_or_404(
+        models.Bovine, id=animal_id, connectedclass=enrollment.connectedclass
+    )
+    return JsonResponse(animal.pedigree)
 
 
 def cookies(request: WSGIRequest):
@@ -277,27 +391,29 @@ def app_credits(request: WSGIRequest):
 
 ########## JSON requests ##########
 @login_required
-def herdsummaries(request: WSGIRequest):
+def herdsummaries(request: WSGIRequest, class_id: int):
     """JSON dict of all accessable herd summaries"""
 
-    privateherdlist = models.Herd.objects.filter(owner=request.user)
+    enrollment = enrollment_or_404(request, class_id)
+    public_herds = [
+        enrollment.connectedclass.publicherd,
+        enrollment.connectedclass.herd,
+    ]
 
-    publicherdlist = []
-    for enrollment in models.Enrollment.objects.filter(user=request.user):
-        connectedclass = enrollment.connectedclass
-        publicherdlist.append(connectedclass.herd)
-        publicherdlist.append(connectedclass.publicherd)
+    private_herds = models.Herd.objects.filter(
+        connectedclass=enrollment.connectedclass, owner=request.user
+    )
 
-    summaries = {"public": {}, "private": {}, "class": {}}
+    summaries = {"public": {}, "private": {}}
 
-    for herd in publicherdlist:
+    for herd in public_herds:
         summaries["public"][herd.id] = {
             "name": herd.name,
             "class": "",
             "traits": herd.get_summary(),
         }
 
-    for herd in privateherdlist:
+    for herd in private_herds:
         summaries["private"][herd.id] = {
             "name": herd.name,
             "class": herd.connectedclass.name,
@@ -307,58 +423,63 @@ def herdsummaries(request: WSGIRequest):
     return JsonResponse(summaries)
 
 
-def herdsummary(request: WSGIRequest, herdID: int):
+def herdsummary(request: WSGIRequest, class_id: int, herd_id: int):
     """JSON dict of a herd summary"""
 
-    herd = get_object_or_404(models.Herd, id=herdID)
-    auth_herd(request, herd)
+    enrollment = enrollment_or_404(request, class_id)
+    herd = get_object_or_404(
+        models.Herd, id=herd_id, connectedclass=enrollment.connectedclass
+    )
+    auth_herd(request, herd, allow_class_herds=True)
     return JsonResponse(herd.get_summary())
 
 
 @login_required
-def get_herd_data(request: WSGIRequest, herdID: int):
+def herddata(request: WSGIRequest, class_id: int, herd_id: int):
     """JSON response of all cows in herd"""
 
-    herd = get_object_or_404(models.Herd, id=herdID)
-    auth_herd(request, herd)
+    enrollment = enrollment_or_404(request, class_id)
+    herd = get_object_or_404(
+        models.Herd, id=herd_id, connectedclass=enrollment.connectedclass
+    )
+    auth_herd(request, herd, allow_class_herds=True)
     herd_dict = herd.get_herd_dict()
     return JsonResponse(herd_dict)
 
 
 @login_required
-def get_bull_name(request: WSGIRequest, classID: int, cowID: int):
+def get_bull_name(request: WSGIRequest, class_id: int, bull_id: int):
     """Get the name if a bull from id"""
 
-    try:
-        connectedclass = models.Class.objects.get(id=classID)
-        models.Enrollment.objects.get(connectedclass=connectedclass, user=request.user)
+    enrollment = enrollment_or_404(request, class_id)
+    bull_queryset = models.Bovine.objects.filter(id=bull_id, male=True)
 
-        animal = models.Bovine.objects.get(id=cowID)
-        assert animal.male
-        assert auth_herd(request, animal.herd, error=False)
-
-        assert animal.herd.connectedclass == connectedclass
-    except:
+    if len(bull_queryset) != 1:
         return JsonResponse({"name": None})
 
-    return JsonResponse({"name": animal.name})
+    bull = bull_queryset[0]
 
+    if not auth_herd(request, bull.herd, error=False, allow_class_herds=True):
+        return JsonResponse({"name": None})
 
-def get_pedigree(request: WSGIRequest, pedigreeID: int):
-    animal = get_object_or_404(models.Bovine, id=pedigreeID)
-    return JsonResponse(animal.pedigree)
+    if bull.herd.connectedclass != enrollment.connectedclass:
+        return JsonResponse({"name": None})
+
+    return JsonResponse({"name": bull.name})
 
 
 @login_required
-def get_cow_data(request: WSGIRequest, cowID: int):
+def get_cow_data(request: WSGIRequest, class_id: int, animal_id: int):
+    enrollment = enrollment_or_404(request, class_id)
+
     try:
-        animal = models.Bovine.objects.get(id=cowID)
+        animal = models.Bovine.objects.get(
+            id=animal_id, connectedclass=enrollment.connectedclass
+        )
     except:
         return JSONSuccess(False)
 
-    can_give_data = auth_herd(request, animal.herd, False)
-
-    if can_give_data:
+    if auth_herd(request, animal.herd, error=False, allow_class_herds=True):
         return JsonResponse({"successful": True} | animal.get_dict())
     else:
         return JSONSuccess(False)
@@ -368,18 +489,18 @@ def get_cow_data(request: WSGIRequest, cowID: int):
 
 
 @login_required
-def get_herd_file(request: WSGIRequest, herdID: int):
+def get_herd_file(request: WSGIRequest, class_id: int, herd_id: int):
     """Get XLSX file for herd"""
 
+    enrollment = enrollment_or_404(request, class_id)
     herd = get_object_or_404(
-        models.Herd.objects.select_related("connectedclass"), id=herdID
+        models.Herd.objects.select_related("connectedclass"), id=herd_id
     )
-    animals = models.Bovine.objects.filter(herd=herd)
+    auth_herd(request, herd, allow_class_herds=True)
 
+    animals = models.Bovine.objects.filter(herd=herd)
     connectedclass = herd.connectedclass
     traitset = TraitSet(herd.connectedclass.traitset)
-
-    auth_herd(request, herd)
 
     model_row = (
         [
@@ -430,15 +551,13 @@ def get_herd_file(request: WSGIRequest, herdID: int):
 
 
 @login_required
-def get_class_tendchart(request: WSGIRequest, classID: int):
+def get_class_tendchart(request: WSGIRequest, class_id: int):
     """Get XLSX trend file"""
 
-    connectedclass = get_object_or_404(models.Class, id=classID)
+    connectedclass = get_object_or_404(models.Class, id=class_id)
 
     # Authenticate user enrollment
-    get_object_or_404(
-        models.Enrollment, connectedclass=connectedclass, user=request.user
-    )
+    enrollment_or_404(request, class_id)
 
     row1 = [x for x in connectedclass.trend_log["Initial Population"]]
     block = [row1]
@@ -471,16 +590,11 @@ def get_class_tendchart(request: WSGIRequest, classID: int):
 
 
 @login_required
-def get_class_datafile(request: WSGIRequest, classID: int):
-    enrollment = get_object_or_404(
-        models.Enrollment.objects.select_related("connectedclass"),
-        connectedclass=classID,
-        user=request.user,
-        teacher=True,
-    )
+def get_class_datafile(request: WSGIRequest, class_id: int):
+    enrollment = enrollment_or_404(request, class_id)
 
     animals = list(
-        models.Bovine.objects.select_related("herd").filter(connectedclass=classID)
+        models.Bovine.objects.select_related("herd").filter(connectedclass=class_id)
     )
     traitset = TraitSet(enrollment.connectedclass.traitset)
 
@@ -529,14 +643,22 @@ def get_class_datafile(request: WSGIRequest, classID: int):
 
 @transaction.atomic
 @login_required
-def change_name(request: WSGIRequest, cowID: int, name: str):
+def rename(
+    request: WSGIRequest, class_id: int, herd_id: int, animal_id: int, name: str
+):
     """Change the name of a cow"""
 
     try:
+        enrollment = enrollment_or_404(request, class_id)
         string_validation(name, 1, 100, specialchar=" -_.'")
 
-        animal = get_object_or_404(models.Bovine, id=cowID)
-        auth_herd(request, animal.herd, use_class_herds=False)
+        animal = get_object_or_404(
+            models.Bovine,
+            id=animal_id,
+            herd=herd_id,
+            connectedclass=enrollment.connectedclass,
+        )
+        auth_herd(request, animal.herd, allow_class_herds=False)
 
         animal.name = name
         animal.save()
@@ -547,13 +669,14 @@ def change_name(request: WSGIRequest, cowID: int, name: str):
 
 @transaction.atomic
 @login_required
-def move_cow(request: WSGIRequest, cowID: int):
+def move_animal(request: WSGIRequest, class_id: int, herd_id: int, animal_id: int):
     """Move an animal to class herd"""
 
     try:
-        animal = get_object_or_404(models.Bovine, id=cowID)
-        auth_herd(request, animal.herd, use_class_herds=False)
-        animal.herd = animal.herd.connectedclass.herd
+        enrollment = enrollment_or_404(request, class_id)
+        animal = get_object_or_404(models.Bovine, id=animal_id, herd=herd_id)
+        auth_herd(request, animal.herd, allow_class_herds=False)
+        animal.herd = enrollment.connectedclass.herd
         animal.name = f"[{request.user.get_full_name()}] {animal.name}"
         animal.save()
         return JSONSuccess(True)
@@ -564,13 +687,14 @@ def move_cow(request: WSGIRequest, cowID: int):
 ########## Actions -> redirect ##########
 @transaction.atomic
 @login_required
-def breed_herd(request: WSGIRequest, herdID: int):
+def breed_herd(request: WSGIRequest, class_id: int, herd_id: int):
     """Breed your herd"""
 
+    enrollment = enrollment_or_404(request, class_id)
     herd = get_object_or_404(
-        models.Herd.objects.select_related("connectedclass"), id=herdID
+        models.Herd.objects.select_related("connectedclass"), id=herd_id
     )
-    auth_herd(request, herd, use_class_herds=False)
+    auth_herd(request, herd, allow_class_herds=False)
 
     sires = []
     for key in request.POST:
@@ -581,7 +705,7 @@ def breed_herd(request: WSGIRequest, herdID: int):
                 male=True,
             )
             sires.append(sire)
-            auth_herd(request, sire.herd)
+            auth_herd(request, sire.herd, allow_class_herds=True)
 
             if sire.herd.connectedclass != herd.connectedclass:
                 raise Http404("Bull outside of class")
@@ -598,27 +722,24 @@ def breed_herd(request: WSGIRequest, herdID: int):
     )
 
     messages.info(request, f"deaths:{deaths}")
-    return HttpResponseRedirect(f"/openherd-{herd.id}")
+    return HttpResponseRedirect(
+        f"/class/{enrollment.connectedclass.id}/herds/{herd.id}/"
+    )
 
 
 @transaction.atomic
 @login_required
-def auto_generate_herd(request: WSGIRequest):
+def auto_generate_herd(request: WSGIRequest, class_id: int):
     """Generate a random herd"""
-    try:
-        name = request.POST["name"]
 
-        _class = models.Class.objects.get(id=request.POST["class"])
-        enrollment = models.Enrollment.objects.get(
-            connectedclass=_class, user=request.user
-        )
+    form = forms.AutoGenerateHerd(request.POST)
+    if not form.is_valid():
+        raise Http404("Invalid create herd form")
 
-        string_validation(name, 1, 100, allowall=True)
-    except:
-        return HttpResponseRedirect("/herds")
+    enrollment = enrollment_or_404(request, class_id)
 
     herd, animals = models.Herd.get_auto_generated_herd(
-        name, _class, enrollment=enrollment
+        form.cleaned_data["name"], enrollment.connectedclass, enrollment=enrollment
     )
     herd.owner = request.user
     herd.save()
@@ -628,22 +749,25 @@ def auto_generate_herd(request: WSGIRequest):
         animal.pedigree = animal.auto_generate_pedigree()
     models.Bovine.objects.bulk_update(animals, ["name", "pedigree"])
 
-    herd.connectedclass.update_trend_log(
-        f"{request.user.get_full_name()} [{request.user.username}] created: {herd.name}"
+    enrollment.connectedclass.update_trend_log(
+        f"{request.user.get_full_name()} [{request.user.get_full_name()}] created: {herd.name}"
     )
 
-    return HttpResponseRedirect(f"/openherd-{herd.id}")
+    return HttpResponseRedirect(
+        f"/class/{enrollment.connectedclass.id}/herds/{herd.id}/"
+    )
 
 
 @transaction.atomic
 @login_required
-def delete_herd(request: WSGIRequest, herdID: int):
+def delete_herd(request: WSGIRequest, class_id: int, herd_id: int):
     """Delete a herd"""
 
-    herd = get_object_or_404(models.Herd, id=herdID)
-    auth_herd(request, herd, use_class_herds=False)
+    enrollment = enrollment_or_404(request, class_id)
+    herd = get_object_or_404(models.Herd, id=herd_id)
+    auth_herd(request, herd, allow_class_herds=False)
     herd.delete()
-    return HttpResponseRedirect("/herds")
+    return HttpResponseRedirect(f"/class/{enrollment.connectedclass.id}/herds/")
 
 
 @transaction.atomic

@@ -1,0 +1,21 @@
+{% extends '../extends.html' %}
+
+{% load dic %}
+{% load static %}
+
+{% block title %}
+  New Class
+{% endblock %}
+
+{% block links %}
+  <link rel="stylesheet" href="{% static 'css/auth_form.css' %}" />
+{% endblock %}
+
+{% block body %}
+  <form method="POST">
+    {% csrf_token %}
+    <h1>New Class</h1>
+    {{ form }}
+    <button type="submit">New Class</button>
+  </form>
+{% endblock %}

@@ -29,6 +29,8 @@ class JoinClass(forms.Form):
             _enrollment = models.Enrollment.objects.get(
                 connectedclass=connectedclass[0], user=user
             )
+
+            self.add_error("connectedclass", "Cannot enroll in class more than once.")
             return False
         except models.Enrollment.DoesNotExist:
             return super().is_valid()
@@ -44,6 +46,8 @@ class JoinClass(forms.Form):
         enrollment.user = user
         enrollment.save()
 
+        return enrollment
+
     @staticmethod
     def validate_classcode(value):
         try:
@@ -54,6 +58,7 @@ class JoinClass(forms.Form):
     connectedclass = forms.CharField(
         max_length=models.Class._meta.get_field("classcode").max_length,
         validators=[validate_classcode],
+        strip=False,
         label="Class Code",
     )
     formid = forms.CharField(initial="joinclass", widget=forms.HiddenInput, label="")
@@ -78,7 +83,7 @@ class AddClass(forms.Form):
         choices=TRAITSET_CHOICES, initial=TRAITSET_CHOICES[-1][0]
     )
 
-    def is_valid(self, user) -> bool:
+    def is_valid(self) -> bool:
         return super().is_valid()
 
     def save(self, user):
@@ -127,6 +132,8 @@ class AddClass(forms.Form):
         enrollment.save()
 
         connectedclass.update_trend_log("Initial Population")
+
+        return enrollment
 
 
 # Delete a class form
@@ -233,40 +240,6 @@ class PromoteClass(forms.Form):
         enrollment.save()
 
 
-# Updates class info
-class UpdateClass(forms.Form):
-    def is_valid(self, user) -> bool:
-        try:
-            connectedclass = models.Class.objects.get(id=self.data["connectedclass"])
-
-            enrollment = models.Enrollment.objects.get(
-                user=user, connectedclass=connectedclass
-            )
-
-            assert enrollment.teacher
-
-            assert "classinfo" in self.data
-
-            assert int(self.data["maxgen"]) >= 0
-
-            return True
-        except:
-            return False
-
-    def save(self, user):
-        connectedclass = models.Class.objects.get(id=self.data["connectedclass"])
-
-        for trait in connectedclass.viewable_traits:
-            connectedclass.viewable_traits[trait] = "trait-" + trait in self.data
-
-        for rec in connectedclass.viewable_recessives:
-            connectedclass.viewable_recessives[rec] = "rec-" + rec in self.data
-
-        connectedclass.info = self.data["classinfo"]
-        connectedclass.breeding_limit = self.data["maxgen"]
-        connectedclass.save()
-
-
 # Change user info form
 class EditUser(forms.Form):
     first_name = forms.CharField()
@@ -300,3 +273,8 @@ class Passwordcheck(forms.Form):
         strip=False,
         widget=forms.PasswordInput(),
     )
+
+
+# Auto generate herd form
+class AutoGenerateHerd(forms.Form):
+    name = forms.CharField(max_length=255)

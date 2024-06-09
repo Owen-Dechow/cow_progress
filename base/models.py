@@ -6,7 +6,7 @@ from .inbreeding import InbreedingCalculator
 from .traitinfo.traitsets import Recessive, TraitSet, TRAITSET_CHOICES, Trait, DOMAIN
 
 PTA_DECIMALS = 3  # Number of decimal placements shown for PTAs on website/ xlsx files
-NET_MERIT_KEY = "NM$"
+NET_MERIT_KEY = "Net Merit"
 
 
 # Holds a group of animals

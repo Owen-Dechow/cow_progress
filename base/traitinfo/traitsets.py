@@ -76,6 +76,9 @@ class Recessive:
     def get_carrier_int_from_prominence(self):
         return 1 if random() <= self.prominence else 0
 
+    def prev_percent(self):
+        return self.prominence * 100
+
     @staticmethod
     def int_to_string(integer):
         if integer == 0:

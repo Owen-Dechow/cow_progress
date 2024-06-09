@@ -17,11 +17,18 @@
     <table>
       <tr>
         <th>Abbreviation</th>
+        <th>Fatal</th>
+        <th>Average Prevalence</th>
         <th>Full Name</th>
+      </tr>
+      <tr>
+        <td colspan="4">&nbsp;</td>
       </tr>
       {% for rec in recessives %}
         <tr>
           <td>{{ rec.name }}</td>
+          <td>{{ rec.fatal }}</td>
+          <td>{{ rec.prev_percent }}%</td>
           <td>{{ rec.extended_name }}</td>
         </tr>
       {% endfor %}

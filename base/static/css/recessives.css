@@ -16,6 +16,7 @@ main table {
 
 main table tr {
     background-color: var(--prime);
+    text-align: left;
 }
 
 main table tr:nth-child(even) {
